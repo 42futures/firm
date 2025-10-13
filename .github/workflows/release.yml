@@ -1,8 +1,9 @@
 name: Release
 
 on:
-  push:
-    branches: ["release/*"]
+  pull_request:
+    branches:
+      - "releases/**"
 
 jobs:
   validate:
