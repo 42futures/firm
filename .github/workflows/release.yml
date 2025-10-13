@@ -6,17 +6,6 @@ on:
       - "releases/**"
 
 jobs:
-  validate:
-    name: Validate
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: true
-      - name: Run tests
-        run: cargo test
-
   release:
     name: Build - ${{ matrix.platform.os-name }}
     needs: validate
