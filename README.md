@@ -1,6 +1,8 @@
 # Firm: Business-as-code
 A text-based work management system for technologists.
 
+Just testing Release pipeline still works.
+
 ## Why?
 Modern businesses are natively digital, but lack a unified view. Your data is scattered across SaaS tools you don't control, so you piece together answers by jumping between platforms.
 
