@@ -2,10 +2,12 @@ use std::fs;
 use std::io::Write;
 use std::path::Path;
 
+use firm_core::{Entity, EntityId, EntityType, FieldId, FieldValue};
 use firm_lang::defaults;
-use firm_lang::generate::generate_schema_dsl;
-use inquire::Confirm;
+use firm_lang::generate::{generate_dsl, generate_schema_dsl};
+use inquire::{Confirm, Text};
 
+use super::add::sanitize_entity_id;
 use crate::errors::CliError;
 use crate::ui;
 
@@ -29,7 +31,76 @@ pub fn init_workspace(workspace_path: &Path) -> Result<(), CliError> {
     // Prompt for .gitignore
     create_or_update_gitignore(workspace_path)?;
 
+    // Prompt for default entities
+    let create_entities = Confirm::new("Add default entities (you and your organization)?")
+        .with_default(true)
+        .prompt()
+        .map_err(|_| CliError::InputError)?;
+
+    if create_entities {
+        create_default_entities(workspace_path)?;
+    }
+
     ui::success("Workspace initialized!");
+
+    Ok(())
+}
+
+/// Create default entities (person and organization) in main.firm file.
+fn create_default_entities(workspace_path: &Path) -> Result<(), CliError> {
+    let main_file_path = workspace_path.join("main.firm");
+
+    // Check if main.firm already exists
+    if main_file_path.exists() {
+        let overwrite = Confirm::new("main.firm already exists. Overwrite?")
+            .with_default(false)
+            .prompt()
+            .map_err(|_| CliError::InputError)?;
+
+        if !overwrite {
+            ui::info("Skipped entity creation");
+            return Ok(());
+        }
+    }
+
+    ui::info("Let's set up your core entities");
+
+    // Prompt for person name
+    let person_name = Text::new("Your name:")
+        .prompt()
+        .map_err(|_| CliError::InputError)?;
+
+    // Prompt for organization name
+    let org_name = Text::new("Your organization name:")
+        .prompt()
+        .map_err(|_| CliError::InputError)?;
+
+    // Create person entity with sanitized ID (filters numbers, converts to snake_case)
+    let person_id = sanitize_entity_id(person_name.clone());
+
+    let person_entity = Entity::new(
+        EntityId(format!("person.{}", person_id)),
+        EntityType::new("person"),
+    )
+    .with_field(FieldId::new("name"), FieldValue::String(person_name));
+
+    // Create organization entity with sanitized ID (filters numbers, converts to snake_case)
+    let org_id = sanitize_entity_id(org_name.clone());
+
+    let org_entity = Entity::new(
+        EntityId(format!("organization.{}", org_id)),
+        EntityType::new("organization"),
+    )
+    .with_field(FieldId::new("name"), FieldValue::String(org_name));
+
+    // Generate DSL
+    let entities = vec![person_entity, org_entity];
+    let dsl_content = generate_dsl(&entities);
+
+    // Write to main.firm
+    fs::write(&main_file_path, dsl_content).map_err(|_| CliError::FileError)?;
+
+    ui::success("Created main.firm with your person and organization");
 
     Ok(())
 }
