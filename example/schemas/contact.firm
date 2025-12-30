@@ -1,0 +1,42 @@
+schema contact {
+    field {
+        name = "source_ref"
+        type = "reference"
+        required = false
+    }
+    field {
+        name = "person_ref"
+        type = "reference"
+        required = false
+    }
+    field {
+        name = "account_ref"
+        type = "reference"
+        required = false
+    }
+    field {
+        name = "role"
+        type = "string"
+        required = false
+    }
+    field {
+        name = "status"
+        type = "string"
+        required = false
+    }
+    field {
+        name = "notes"
+        type = "string"
+        required = false
+    }
+    field {
+        name = "created_at"
+        type = "datetime"
+        required = false
+    }
+    field {
+        name = "updated_at"
+        type = "datetime"
+        required = false
+    }
+}

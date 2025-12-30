@@ -1,0 +1,37 @@
+schema account {
+    field {
+        name = "name"
+        type = "string"
+        required = true
+    }
+    field {
+        name = "organization_ref"
+        type = "reference"
+        required = true
+    }
+    field {
+        name = "owner_ref"
+        type = "reference"
+        required = false
+    }
+    field {
+        name = "status"
+        type = "string"
+        required = false
+    }
+    field {
+        name = "notes"
+        type = "string"
+        required = false
+    }
+    field {
+        name = "created_at"
+        type = "datetime"
+        required = false
+    }
+    field {
+        name = "updated_at"
+        type = "datetime"
+        required = false
+    }
+}

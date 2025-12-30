@@ -4,6 +4,7 @@
 //! representation, and converting them to Firm's core data structures.
 
 pub mod convert;
+pub mod defaults;
 pub mod generate;
 pub mod parser;
 pub mod workspace;

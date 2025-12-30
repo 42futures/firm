@@ -71,6 +71,27 @@ mod tests {
         let mixed_file_path = temp_dir.path().join("valid_entities.firm");
 
         let content = r#"
+schema person {
+    field {
+        name = "name"
+        type = "string"
+        required = true
+    }
+}
+
+schema organization {
+    field {
+        name = "name"
+        type = "string"
+        required = true
+    }
+    field {
+        name = "primary_email"
+        type = "string"
+        required = false
+    }
+}
+
 person john {
     name = "John Doe"
 }
@@ -92,10 +113,7 @@ organization acme {
 
         let build = result.unwrap();
         assert_eq!(build.entities.len(), 2, "Should have 2 entities");
-        assert!(
-            build.schemas.len() >= 3,
-            "Should have at least 3 schemas (built-ins)"
-        );
+        assert_eq!(build.schemas.len(), 2, "Should have 2 schemas");
     }
 
     #[test]
@@ -105,10 +123,18 @@ organization acme {
         let temp_dir = TempDir::new().unwrap();
         let invalid_file_path = temp_dir.path().join("invalid_entity.firm");
 
-        // Person entity missing required first_name field
+        // Person entity missing required name field
         let content = r#"
+schema person {
+    field {
+        name = "name"
+        type = "string"
+        required = true
+    }
+}
+
 person john {
-    last_name = "Doe"
+    email = "john@example.com"
 }
 "#;
         fs::write(&invalid_file_path, content).expect("Should write file");
@@ -156,10 +182,10 @@ custom_unknown john {
         );
 
         match result {
-            Err(WorkspaceError::ValidationError(_, _)) => {
-                // Expected validation error
+            Err(WorkspaceError::MissingSchemaError(_, _)) => {
+                // Expected missing schema error
             }
-            _ => panic!("Expected ValidationError"),
+            _ => panic!("Expected MissingSchemaError"),
         }
     }
 
@@ -205,10 +231,7 @@ custom_employee emp1 {
 
         let build = result.unwrap();
         assert_eq!(build.entities.len(), 1, "Should have 1 entity");
-        assert!(
-            build.schemas.len() >= 4,
-            "Should have custom schema + built-ins"
-        );
+        assert_eq!(build.schemas.len(), 1, "Should have custom schema");
     }
 
     #[test]
@@ -286,6 +309,22 @@ schema broken_schema {
 
         // Create multiple entities of the same type to test schema map efficiency
         let content = r#"
+schema person {
+    field {
+        name = "name"
+        type = "string"
+        required = true
+    }
+}
+
+schema organization {
+    field {
+        name = "name"
+        type = "string"
+        required = true
+    }
+}
+
 person john {
     name = "John Doe"
 }
@@ -333,6 +372,6 @@ organization globo {
 
         assert_eq!(person_count, 2, "Should have 2 person entities");
         assert_eq!(org_count, 2, "Should have 2 organization entities");
-        assert!(build.schemas.len() >= 3, "Should have built-in schemas");
+        assert_eq!(build.schemas.len(), 2, "Should have 2 schemas");
     }
 }

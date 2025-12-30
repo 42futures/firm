@@ -32,18 +32,14 @@ impl Workspace {
     where
         F: FnMut(usize, usize, &str),
     {
-        // Get all built-in schemas
-        let builtin_schemas = EntitySchema::all_builtin();
-        let mut schemas: HashMap<EntityType, EntitySchema> = builtin_schemas
-            .into_iter()
-            .map(|schema| (schema.entity_type.clone(), schema))
-            .collect();
+        // Initialize empty schema collection
+        let mut schemas: HashMap<EntityType, EntitySchema> = HashMap::new();
 
         let files_to_process = self.num_files();
         let mut files_processed = 0;
         progress(files_to_process, files_processed, "Building schemas");
 
-        // First pass: Walk through workspace files to add custom schemas
+        // First pass: Walk through workspace files to collect schemas
         for (path, file) in &self.files {
             let parsed_schemas = file.parsed.schemas();
             for parsed_schema in &parsed_schemas {
@@ -77,10 +73,7 @@ impl Workspace {
 
                 // Find the appropriate schema for this entity
                 let schema = schemas.get(&entity.entity_type).ok_or_else(|| {
-                    WorkspaceError::ValidationError(
-                        path.clone(),
-                        format!("No schema found for entity type: {:?}", entity.entity_type),
-                    )
+                    WorkspaceError::MissingSchemaError(path.clone(), entity.entity_type.clone())
                 })?;
 
                 // Validate the entity against its schema

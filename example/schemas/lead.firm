@@ -1,0 +1,42 @@
+schema lead {
+    field {
+        name = "source_ref"
+        type = "reference"
+        required = true
+    }
+    field {
+        name = "status"
+        type = "string"
+        required = true
+    }
+    field {
+        name = "person_ref"
+        type = "reference"
+        required = false
+    }
+    field {
+        name = "account_ref"
+        type = "reference"
+        required = false
+    }
+    field {
+        name = "score"
+        type = "integer"
+        required = false
+    }
+    field {
+        name = "notes"
+        type = "string"
+        required = false
+    }
+    field {
+        name = "created_at"
+        type = "datetime"
+        required = false
+    }
+    field {
+        name = "updated_at"
+        type = "datetime"
+        required = false
+    }
+}

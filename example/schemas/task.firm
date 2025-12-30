@@ -1,0 +1,52 @@
+schema task {
+    field {
+        name = "name"
+        type = "string"
+        required = true
+    }
+    field {
+        name = "description"
+        type = "string"
+        required = false
+    }
+    field {
+        name = "source_ref"
+        type = "reference"
+        required = false
+    }
+    field {
+        name = "assignee_ref"
+        type = "reference"
+        required = false
+    }
+    field {
+        name = "due_date"
+        type = "datetime"
+        required = false
+    }
+    field {
+        name = "is_completed"
+        type = "boolean"
+        required = false
+    }
+    field {
+        name = "completed_at"
+        type = "datetime"
+        required = false
+    }
+    field {
+        name = "notes"
+        type = "string"
+        required = false
+    }
+    field {
+        name = "created_at"
+        type = "datetime"
+        required = false
+    }
+    field {
+        name = "updated_at"
+        type = "datetime"
+        required = false
+    }
+}

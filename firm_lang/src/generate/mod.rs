@@ -1,11 +1,13 @@
 pub mod from_entity;
 pub mod from_field;
+pub mod from_schema;
 pub mod from_value;
 pub mod generator_options;
 
-use firm_core::Entity;
+use firm_core::{Entity, EntitySchema};
 
 use from_entity::generate_entity;
+use from_schema::generate_schema;
 use generator_options::GeneratorOptions;
 
 /// Generates Firm DSL for a collection of entities.
@@ -26,6 +28,11 @@ pub fn generate_dsl_with_options(entities: &[Entity], options: &GeneratorOptions
     }
 
     output
+}
+
+/// Generates Firm DSL for a single schema.
+pub fn generate_schema_dsl(schema: &EntitySchema) -> String {
+    generate_schema(schema, &GeneratorOptions::default())
 }
 
 #[cfg(test)]
