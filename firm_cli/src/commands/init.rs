@@ -26,6 +26,9 @@ pub fn init_workspace(workspace_path: &Path) -> Result<(), CliError> {
         create_default_schemas(workspace_path)?;
     }
 
+    // Prompt for .gitignore
+    create_or_update_gitignore(workspace_path)?;
+
     ui::success("Workspace initialized!");
 
     Ok(())
@@ -83,6 +86,67 @@ fn create_default_schemas(workspace_path: &Path) -> Result<(), CliError> {
         "Created {} schema files in schemas/",
         schemas.len()
     ));
+
+    Ok(())
+}
+
+/// Create or update .gitignore file with Firm-specific entries.
+fn create_or_update_gitignore(workspace_path: &Path) -> Result<(), CliError> {
+    let gitignore_path = workspace_path.join(".gitignore");
+    let gitignore_entries = "**/*.firm.graph\n";
+
+    if gitignore_path.exists() {
+        // File exists, ask if they want to update it
+        let update = Confirm::new("Update existing .gitignore with Firm entries?")
+            .with_default(true)
+            .prompt()
+            .map_err(|_| CliError::InputError)?;
+
+        if !update {
+            ui::info("Skipped .gitignore update");
+            return Ok(());
+        }
+
+        // Read existing content
+        let existing_content = fs::read_to_string(&gitignore_path)
+            .map_err(|_| CliError::FileError)?;
+
+        // Check if entries already exist
+        if existing_content.contains(".DS_Store") && existing_content.contains("*.firm.graph") {
+            ui::info(".gitignore already contains Firm entries");
+            return Ok(());
+        }
+
+        // Append entries
+        let mut file = fs::OpenOptions::new()
+            .append(true)
+            .open(&gitignore_path)
+            .map_err(|_| CliError::FileError)?;
+
+        // Add a newline before our entries if file doesn't end with one
+        let prefix = if existing_content.ends_with('\n') { "" } else { "\n" };
+        file.write_all(format!("{}{}", prefix, gitignore_entries).as_bytes())
+            .map_err(|_| CliError::FileError)?;
+
+        ui::success("Updated .gitignore with Firm entries");
+    } else {
+        // File doesn't exist, ask if they want to create it
+        let create = Confirm::new("Create .gitignore file?")
+            .with_default(true)
+            .prompt()
+            .map_err(|_| CliError::InputError)?;
+
+        if !create {
+            ui::info("Skipped .gitignore creation");
+            return Ok(());
+        }
+
+        // Create new file
+        fs::write(&gitignore_path, gitignore_entries)
+            .map_err(|_| CliError::FileError)?;
+
+        ui::success("Created .gitignore");
+    }
 
     Ok(())
 }
