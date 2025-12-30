@@ -1,0 +1,62 @@
+schema interaction {
+    field {
+        name = "type"
+        type = "string"
+        required = true
+    }
+    field {
+        name = "subject"
+        type = "string"
+        required = true
+    }
+    field {
+        name = "initiator_ref"
+        type = "reference"
+        required = true
+    }
+    field {
+        name = "primary_contact_ref"
+        type = "reference"
+        required = true
+    }
+    field {
+        name = "interaction_date"
+        type = "datetime"
+        required = true
+    }
+    field {
+        name = "outcome"
+        type = "string"
+        required = false
+    }
+    field {
+        name = "secondary_contacts_ref"
+        type = "list"
+        required = false
+    }
+    field {
+        name = "channel_ref"
+        type = "reference"
+        required = false
+    }
+    field {
+        name = "opportunity_ref"
+        type = "reference"
+        required = false
+    }
+    field {
+        name = "notes"
+        type = "string"
+        required = false
+    }
+    field {
+        name = "created_at"
+        type = "datetime"
+        required = false
+    }
+    field {
+        name = "updated_at"
+        type = "datetime"
+        required = false
+    }
+}

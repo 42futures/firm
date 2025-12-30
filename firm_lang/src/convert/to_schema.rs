@@ -54,6 +54,7 @@ fn convert_field_type(type_str: &str) -> Result<FieldType, SchemaConversionError
         "reference" => Ok(FieldType::Reference),
         "list" => Ok(FieldType::List),
         "datetime" => Ok(FieldType::DateTime),
+        "path" => Ok(FieldType::Path),
         _ => Err(SchemaConversionError::UnknownFieldType(
             type_str.to_string(),
         )),

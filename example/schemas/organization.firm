@@ -1,0 +1,52 @@
+schema organization {
+    field {
+        name = "name"
+        type = "string"
+        required = true
+    }
+    field {
+        name = "address"
+        type = "string"
+        required = false
+    }
+    field {
+        name = "email"
+        type = "string"
+        required = false
+    }
+    field {
+        name = "phone"
+        type = "string"
+        required = false
+    }
+    field {
+        name = "urls"
+        type = "list"
+        required = false
+    }
+    field {
+        name = "vat_id"
+        type = "string"
+        required = false
+    }
+    field {
+        name = "industry_ref"
+        type = "reference"
+        required = false
+    }
+    field {
+        name = "notes"
+        type = "string"
+        required = false
+    }
+    field {
+        name = "created_at"
+        type = "datetime"
+        required = false
+    }
+    field {
+        name = "updated_at"
+        type = "datetime"
+        required = false
+    }
+}

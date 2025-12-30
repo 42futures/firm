@@ -162,6 +162,17 @@ fn prompt_optional_fields(
     Ok(entity)
 }
 
+/// Sanitize a string to be a valid entity ID.
+/// - Filters for only alphabetic characters and whitespace
+/// - Converts to snake_case
+pub fn sanitize_entity_id(input: String) -> String {
+    input
+        .chars()
+        .filter(|&c| c == ' ' || c.is_alphabetic())
+        .collect::<String>()
+        .to_case(Case::Snake)
+}
+
 /// Ensures uniqueness and comformity of a selected entity ID.
 /// We do this by:
 /// - Filtering for only alphabetic characters and whitespace
@@ -171,22 +182,18 @@ fn prompt_optional_fields(
 fn compute_unique_entity_id(
     graph: &EntityGraph,
     chosen_type_str: &String,
-    mut chosen_id: String,
+    chosen_id: String,
 ) -> String {
-    chosen_id = chosen_id
-        .chars()
-        .filter(|&c| c == ' ' || c.is_alphabetic())
-        .collect::<String>()
-        .to_case(Case::Snake);
+    let sanitized_id = sanitize_entity_id(chosen_id);
 
-    let mut entity_id = chosen_id.clone();
+    let mut entity_id = sanitized_id.clone();
     let mut id_counter = 1;
     while graph
         .get_entity(&compose_entity_id(chosen_type_str, &entity_id))
         .is_some()
         && id_counter < 1000
     {
-        entity_id = format!("{}_{}", chosen_id, id_counter);
+        entity_id = format!("{}_{}", sanitized_id, id_counter);
         id_counter += 1;
     }
 

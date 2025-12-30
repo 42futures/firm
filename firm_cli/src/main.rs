@@ -34,8 +34,8 @@ fn main() -> ExitCode {
         Err(_) => return ExitCode::FAILURE,
     };
 
-    // Pre-build the graph unless we're using cache or doing a build command
-    if !cli.cached && cli.command != FirmCliCommand::Build {
+    // Pre-build the graph unless we're using cache or doing a build/init command
+    if !cli.cached && cli.command != FirmCliCommand::Build && cli.command != FirmCliCommand::Init {
         match build_and_save_graph(&workspace_path) {
             Ok(_) => (),
             Err(_) => return ExitCode::FAILURE,
@@ -44,6 +44,7 @@ fn main() -> ExitCode {
 
     // Handle CLI subcommands
     let result = match cli.command {
+        FirmCliCommand::Init => commands::init_workspace(&workspace_path),
         FirmCliCommand::Build => build_and_save_graph(&workspace_path),
         FirmCliCommand::Get {
             entity_type,

@@ -1,0 +1,115 @@
+# Firm Workspace AI Guide
+
+This workspace uses [Firm](https://github.com/42futures/firm), a text-based work management system for defining business entities and their relationships as code.
+
+## How to interact with this workspace
+
+**Prefer using the `firm` CLI for querying data.** The CLI provides validated, structured access to the workspace. You can edit `.firm` files directly when needed, but always run `firm build` afterward to validate your changes.
+
+### Quick Overview Commands
+
+Start with these commands to understand the workspace:
+
+```bash
+# See what entity types are available
+firm list schema
+
+# List all entities of a specific type
+firm list <entity_type>
+
+# Get details for a specific entity
+firm get <entity_type> <entity_id>
+
+# Explore relationships for an entity
+firm related <entity_type> <entity_id>
+```
+
+### Common Workflows
+
+#### Adding a new contact and interaction
+
+When adding contacts, create a `.firm` file with the contact, their organization, and any interactions:
+
+```firm
+organization acme {
+    name = "Acme Corp"
+}
+
+person john_doe {
+    name = "John Doe"
+}
+
+contact john_at_acme {
+    person_ref = person.john_doe
+    account_ref = account.acme
+    role = "CEO"
+}
+
+interaction intro_call {
+    type = "Call"
+    subject = "Introduction call"
+    interaction_date = 2025-12-30 at 14:00 UTC
+    initiator_ref = person.me
+    primary_contact_ref = contact.john_at_acme
+}
+```
+
+#### Creating a task
+
+Tasks can reference other entities as their source:
+
+```firm
+task follow_up {
+    name = "Follow up with John"
+    source_ref = interaction.intro_call
+    assignee_ref = person.me
+    due_date = 2026-01-05
+    is_completed = false
+}
+```
+
+### Best Practices
+
+1. **Prefer the CLI for queries**: Use `firm get`, `firm list`, and `firm related` rather than parsing `.firm` files manually
+2. **Validate after changes**: Always run `firm build` after editing `.firm` files to ensure your changes are valid
+3. **Check schemas first**: Use `firm list schema` to see available entity types and their required fields
+4. **Explore relationships**: Use `firm related` to understand connections between entities
+5. **Use JSON output for automation**: Add `--format json` to any command for structured output
+
+### CLI Reference
+
+#### `firm build`
+Validate the workspace and build the entity graph.
+
+#### `firm get <entity_type> <entity_id>`
+Get details for a specific entity.
+
+Example: `firm get contact john_at_acme`
+
+#### `firm list <entity_type>`
+List all entities of a type. Use `firm list schema` to see available schemas.
+
+Example: `firm list task`
+
+#### `firm related <entity_type> <entity_id>`
+Show all entities related to the specified entity.
+
+Example: `firm related contact john_at_acme`
+
+#### `firm add`
+Interactively add a new entity. Note: This command is interactive and not well-suited for automation. Prefer editing `.firm` files directly.
+
+### Output Formats
+
+Use `--format json` for structured output that's easy to parse:
+
+```bash
+firm list task --format json | jq '.[] | select(.is_completed == false)'
+```
+
+### Notes for AI Agents
+
+- The workspace structure is validated by schemas defined in the `schemas/` directory
+- Entity IDs must be unique and follow snake_case naming
+- References between entities create a queryable graph structure
+- Always validate changes with `firm build` before committing

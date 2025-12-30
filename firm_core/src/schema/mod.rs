@@ -3,7 +3,6 @@ use std::{collections::HashMap, fmt::Display};
 
 use crate::{EntityType, FieldId, FieldType};
 
-mod builtin;
 mod validation;
 mod validation_errors;
 

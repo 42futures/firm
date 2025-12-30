@@ -1,0 +1,47 @@
+schema project {
+    field {
+        name = "name"
+        type = "string"
+        required = true
+    }
+    field {
+        name = "status"
+        type = "string"
+        required = true
+    }
+    field {
+        name = "description"
+        type = "string"
+        required = false
+    }
+    field {
+        name = "owner_ref"
+        type = "reference"
+        required = false
+    }
+    field {
+        name = "objective_refs"
+        type = "list"
+        required = false
+    }
+    field {
+        name = "due_date"
+        type = "datetime"
+        required = false
+    }
+    field {
+        name = "notes"
+        type = "string"
+        required = false
+    }
+    field {
+        name = "created_at"
+        type = "datetime"
+        required = false
+    }
+    field {
+        name = "updated_at"
+        type = "datetime"
+        required = false
+    }
+}

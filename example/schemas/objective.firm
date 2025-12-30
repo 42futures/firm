@@ -1,0 +1,52 @@
+schema objective {
+    field {
+        name = "name"
+        type = "string"
+        required = true
+    }
+    field {
+        name = "description"
+        type = "string"
+        required = false
+    }
+    field {
+        name = "strategy_ref"
+        type = "reference"
+        required = false
+    }
+    field {
+        name = "owner_ref"
+        type = "reference"
+        required = false
+    }
+    field {
+        name = "status"
+        type = "string"
+        required = false
+    }
+    field {
+        name = "start_date"
+        type = "datetime"
+        required = false
+    }
+    field {
+        name = "end_date"
+        type = "datetime"
+        required = false
+    }
+    field {
+        name = "notes"
+        type = "string"
+        required = false
+    }
+    field {
+        name = "created_at"
+        type = "datetime"
+        required = false
+    }
+    field {
+        name = "updated_at"
+        type = "datetime"
+        required = false
+    }
+}

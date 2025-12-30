@@ -32,6 +32,8 @@ pub struct FirmCli {
 /// Defines the available subcommands of the Firm CLI.
 #[derive(Subcommand, Debug, PartialEq)]
 pub enum FirmCliCommand {
+    /// Initialize a new Firm workspace with default schemas and files.
+    Init,
     /// Build workspace and entity graph.
     Build,
     /// Get an entity by ID.
