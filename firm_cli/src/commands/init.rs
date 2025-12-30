@@ -41,7 +41,43 @@ pub fn init_workspace(workspace_path: &Path) -> Result<(), CliError> {
         create_default_entities(workspace_path)?;
     }
 
+    // Prompt for AI context
+    let add_ai_context = Confirm::new("Add AI context (AGENTS.md)?")
+        .with_default(true)
+        .prompt()
+        .map_err(|_| CliError::InputError)?;
+
+    if add_ai_context {
+        create_ai_context(workspace_path)?;
+    }
+
     ui::success("Workspace initialized!");
+
+    Ok(())
+}
+
+/// Create AI context file (AGENTS.md).
+fn create_ai_context(workspace_path: &Path) -> Result<(), CliError> {
+    let agents_md_path = workspace_path.join("AGENTS.md");
+
+    // Check if AGENTS.md already exists
+    if agents_md_path.exists() {
+        let overwrite = Confirm::new("AGENTS.md already exists. Overwrite?")
+            .with_default(false)
+            .prompt()
+            .map_err(|_| CliError::InputError)?;
+
+        if !overwrite {
+            ui::info("Skipped AI context creation");
+            return Ok(());
+        }
+    }
+
+    // Load AGENTS.md template from embedded file
+    let agents_md_content = include_str!("../../AGENTS.md.template");
+
+    fs::write(&agents_md_path, agents_md_content).map_err(|_| CliError::FileError)?;
+    ui::success("Created AGENTS.md");
 
     Ok(())
 }
