@@ -18,9 +18,30 @@ Version controlled, locally stored and structured as code with the Firm DSL. Thi
 - **AI-ready:** LLMs can read, write, and query your business structure.
 
 ## Getting started
+
+### Initialize your workspace
+
+The easiest way to start is by running `firm init` in an empty directory:
+
+```bash
+mkdir my_workspace
+cd my_workspace
+firm init
+```
+
+This interactive command will help you set up your workspace by:
+- Creating default schemas for common entity types (Person, Organization, Task, etc.)
+- Adding a `.gitignore` file
+- Creating starter entities (you and your organization)
+- Adding AI context documentation for AI coding assistants
+
+Once initialized, your workspace is ready to use!
+
+### Working with your workspace
+
 Firm operates on a "workspace": a directory containing all your `.firm` DSL files. The Firm CLI processes every file in this workspace to build a unified, queryable graph of your business.
 
-The first step is to add an entity to your workspace. You can do this either by using the CLI or by writing the DSL yourself.
+You can add entities to your workspace either by using the CLI or by writing the DSL yourself.
 
 ### Add entities with the CLI
 Use `firm add` to interactively generate new entities. Out of the box, Firm supports a set of pre-built entity schemas for org mapping, customer relations and work management. The CLI will prompt you for the necessary info and generate corresponding DSL.
