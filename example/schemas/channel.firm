@@ -6,7 +6,8 @@ schema channel {
     }
     field {
         name = "type"
-        type = "string"
+        type = "enum"
+        allowed_values = ["website", "social media", "email", "meeting", "other"]
         required = false
     }
     field {

@@ -11,8 +11,9 @@ schema opportunity {
     }
     field {
         name = "status"
-        type = "string"
-        required = true
+        type = "enum"
+        allowed_values = ["open", "closed won", "closed lost"]
+        required = false
     }
     field {
         name = "value"

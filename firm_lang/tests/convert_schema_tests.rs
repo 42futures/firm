@@ -150,3 +150,44 @@ fn test_convert_multiple_schemas() {
     assert_eq!(project_schema.fields.len(), 1);
     assert_eq!(invoice_schema.fields.len(), 1);
 }
+
+#[test]
+fn test_convert_schema_with_enum() {
+    let source = r#"
+        schema account {
+            field {
+                name = "name"
+                type = "string"
+                required = true
+            }
+            field {
+                name = "status"
+                type = "enum"
+                allowed_values = ["prospect", "customer", "partner"]
+                required = true
+            }
+        }
+    "#;
+
+    let parsed = parse_source(String::from(source), None).unwrap();
+    let schemas = parsed.schemas();
+    assert_eq!(schemas.len(), 1);
+
+    let schema: EntitySchema = (&schemas[0]).try_into().unwrap();
+
+    assert_eq!(schema.entity_type, EntityType::new("account"));
+    assert_eq!(schema.fields.len(), 2);
+
+    // Check enum field
+    let status_field = &schema.fields[&FieldId("status".to_string())];
+    assert_eq!(status_field.field_type, FieldType::Enum);
+    assert_eq!(status_field.field_mode, FieldMode::Required);
+
+    // Check allowed values
+    assert!(status_field.allowed_values().is_some());
+    let allowed = status_field.allowed_values().unwrap();
+    assert_eq!(allowed.len(), 3);
+    assert!(allowed.contains(&"prospect".to_string()));
+    assert!(allowed.contains(&"customer".to_string()));
+    assert!(allowed.contains(&"partner".to_string()));
+}

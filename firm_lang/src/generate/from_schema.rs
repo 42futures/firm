@@ -22,6 +22,21 @@ pub fn generate_schema(schema: &EntitySchema, options: &GeneratorOptions) -> Str
             options.indent_style.indent_string(2),
             field_type_to_string(&field_schema.field_type)
         ));
+
+        // For enum fields, include the allowed values
+        if let Some(allowed_values) = field_schema.allowed_values() {
+            let values_str = allowed_values
+                .iter()
+                .map(|v| format!("\"{}\"", v))
+                .collect::<Vec<_>>()
+                .join(", ");
+            output.push_str(&format!(
+                "{}allowed_values = [{}]\n",
+                options.indent_style.indent_string(2),
+                values_str
+            ));
+        }
+
         output.push_str(&format!(
             "{}required = {}\n",
             options.indent_style.indent_string(2),
@@ -48,6 +63,7 @@ fn field_type_to_string(field_type: &FieldType) -> &str {
         FieldType::Reference => "reference",
         FieldType::List => "list",
         FieldType::Path => "path",
+        FieldType::Enum => "enum",
     }
 }
 
@@ -116,6 +132,38 @@ mod tests {
         name = "owner_ref"
         type = "reference"
         required = false
+    }
+}
+"#;
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_generate_schema_with_enum() {
+        let schema = EntitySchema::new(EntityType::new("account"))
+            .with_required_field(FieldId::new("name"), FieldType::String)
+            .with_required_enum(
+                FieldId::new("status"),
+                vec![
+                    "prospect".to_string(),
+                    "customer".to_string(),
+                    "partner".to_string(),
+                ],
+            );
+
+        let result = generate_schema(&schema, &GeneratorOptions::default());
+
+        let expected = r#"schema account {
+    field {
+        name = "name"
+        type = "string"
+        required = true
+    }
+    field {
+        name = "status"
+        type = "enum"
+        allowed_values = ["prospect", "customer", "partner"]
+        required = true
     }
 }
 "#;

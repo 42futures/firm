@@ -21,7 +21,8 @@ schema contact {
     }
     field {
         name = "status"
-        type = "string"
+        type = "enum"
+        allowed_values = ["prospect", "partner", "client", "network", "other"]
         required = false
     }
     field {

@@ -21,6 +21,7 @@ enum ValueKind {
     DateTime,
     Date,
     Path,
+    Enum,
     Unknown(String),
 }
 
@@ -36,6 +37,7 @@ impl From<&str> for ValueKind {
             "datetime" => ValueKind::DateTime,
             "date" => ValueKind::Date,
             "path" => ValueKind::Path,
+            "enum" => ValueKind::Enum,
             _ => ValueKind::Unknown(kind.to_string()),
         }
     }
@@ -74,6 +76,8 @@ pub enum ParsedValue {
     DateTime(DateTime<FixedOffset>),
     /// A path to a file or directory
     Path(PathBuf),
+    /// An enum value (`enum"customer"`)
+    Enum(String),
 }
 
 impl ParsedValue {
@@ -90,6 +94,7 @@ impl ParsedValue {
             ParsedValue::List(_) => "List",
             ParsedValue::DateTime(_) => "DateTime",
             ParsedValue::Path(_) => "Path",
+            ParsedValue::Enum(_) => "Enum",
         }
     }
 
@@ -112,6 +117,7 @@ impl ParsedValue {
             ValueKind::Date => Self::parse_date(&raw),
             ValueKind::DateTime => Self::parse_datetime(&raw),
             ValueKind::Path => Self::parse_path(&raw, path),
+            ValueKind::Enum => Self::parse_enum(&raw),
             _ => Err(ValueParseError::MissingParseMethod),
         }
     }
@@ -344,6 +350,12 @@ impl ParsedValue {
         };
 
         Ok(ParsedValue::Path(final_path))
+    }
+
+    /// Parses enum values (`enum"customer"`).
+    fn parse_enum(raw: &str) -> Result<ParsedValue, ValueParseError> {
+        let enum_value = raw.replace("enum\"", "").trim_matches('"').to_string();
+        Ok(ParsedValue::Enum(enum_value))
     }
 
     /// Removes common leading whitespace from multi-line strings.

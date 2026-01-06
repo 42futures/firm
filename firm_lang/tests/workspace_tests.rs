@@ -374,4 +374,90 @@ organization globo {
         assert_eq!(org_count, 2, "Should have 2 organization entities");
         assert_eq!(build.schemas.len(), 2, "Should have 2 schemas");
     }
+
+    #[test]
+    fn test_enum_field_type_conversion() {
+        use std::fs;
+
+        let temp_dir = TempDir::new().unwrap();
+        let test_file = temp_dir.path().join("enum_test.firm");
+
+        let content = r#"
+schema account {
+    field {
+        name = "status"
+        type = "enum"
+        allowed_values = ["prospect", "customer", "partner"]
+        required = true
+    }
+}
+
+account test1 {
+    status = enum"customer"
+}
+
+account test2 {
+    status = enum"PROSPECT"
+}
+"#;
+
+        fs::write(&test_file, content).expect("Write test file");
+
+        let mut workspace = Workspace::new();
+        workspace
+            .load_file(&test_file, &temp_dir.path().to_path_buf())
+            .unwrap();
+        let build = workspace.build().unwrap();
+
+        // Should successfully build with enum fields converted from strings
+        assert_eq!(build.entities.len(), 2);
+        assert_eq!(build.schemas.len(), 1);
+
+        // Verify all entities passed validation
+        for entity in &build.entities {
+            assert!(build.schemas[0].validate(entity).is_ok());
+        }
+    }
+
+    #[test]
+    fn test_enum_validation_fails_for_invalid_value() {
+        use std::fs;
+
+        let temp_dir = TempDir::new().unwrap();
+        let test_file = temp_dir.path().join("enum_invalid.firm");
+
+        let content = r#"
+schema account {
+    field {
+        name = "status"
+        type = "enum"
+        values = ["prospect", "customer"]
+        required = true
+    }
+}
+
+account invalid {
+    status = enum"client"
+}
+"#;
+
+        fs::write(&test_file, content).expect("Write test file");
+
+        let mut workspace = Workspace::new();
+        workspace
+            .load_file(&test_file, &temp_dir.path().to_path_buf())
+            .unwrap();
+
+        // Build should fail due to invalid enum value
+        let result = workspace.build();
+        assert!(result.is_err());
+
+        match result {
+            Err(WorkspaceError::ValidationError(_, msg)) => {
+                assert!(msg.contains("Invalid value"));
+                assert!(msg.contains("client"));
+            }
+            _ => panic!("Expected ValidationError for invalid enum value"),
+        }
+    }
 }

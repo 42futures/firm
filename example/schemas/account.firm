@@ -16,7 +16,8 @@ schema account {
     }
     field {
         name = "status"
-        type = "string"
+        type = "enum"
+        allowed_values = ["prospect", "engaged", "client", "partner", "closed"]
         required = false
     }
     field {

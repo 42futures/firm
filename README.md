@@ -272,6 +272,7 @@ Fields are typed key-value pairs attached to an entity. Firm supports a rich set
 - `List` of other values
 - `Reference` to other fields or entities
 - `Path` to a local file
+- `Enum` for standard values
 
 **In the DSL**, the syntax maps directly to these types:
 
@@ -285,6 +286,7 @@ my_task design_homepage {
     tags = ["ui", "ux"]                  // List
     assignee = person.jane_doe           // Reference
     deliverable = path"./homepage.zip"   // Path
+    status = enum"implementing"          // Enum
 }
 ```
 
@@ -339,11 +341,18 @@ schema custom_project {
         type = "currency"
         required = false
     }
+    field {
+        name = "status"
+        type = "enum"
+        required = false
+        allowed_values = ["planned", "in-progress", "completed"]
+    }
 }
 
 custom_project my_project {
     title  = "My custom project"
     budget = 42000 EUR
+    status = enum"planned"
 }
 ```
 

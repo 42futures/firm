@@ -21,7 +21,8 @@ schema strategy {
     }
     field {
         name = "status"
-        type = "string"
+        type = "enum"
+        allowed_values = ["draft", "active", "completed", "archived"]
         required = false
     }
     field {

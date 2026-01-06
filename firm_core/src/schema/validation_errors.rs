@@ -15,6 +15,11 @@ pub enum ValidationErrorType {
         expected: FieldType,
         actual: FieldType,
     },
+    /// The enum field has a value that is not in the allowed values.
+    InvalidEnumValue {
+        actual: String,
+        allowed: Vec<String>,
+    },
 }
 
 /// Information about an error encountered while validating a schema.
@@ -79,6 +84,30 @@ impl ValidationError {
             error_type: ValidationErrorType::MismatchedFieldType {
                 expected: expected.clone(),
                 actual: actual.clone(),
+            },
+        }
+    }
+
+    /// Shorthand for creating an invalid enum value error.
+    pub fn invalid_enum_value(
+        entity_id: &EntityId,
+        field_id: &FieldId,
+        actual: &str,
+        allowed: &[String],
+    ) -> Self {
+        Self {
+            entity_id: Some(entity_id.clone()),
+            field: Some(field_id.clone()),
+            message: format!(
+                "Invalid value '{}' for enum field '{}' in entity '{}'. Expected one of: [{}]",
+                actual,
+                field_id,
+                entity_id,
+                allowed.join(", ")
+            ),
+            error_type: ValidationErrorType::InvalidEnumValue {
+                actual: actual.to_string(),
+                allowed: allowed.to_vec(),
             },
         }
     }

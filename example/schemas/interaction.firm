@@ -1,8 +1,9 @@
 schema interaction {
     field {
         name = "type"
-        type = "string"
-        required = true
+        type = "enum"
+        allowed_values = ["online meeting", "in-person meeting", "chat", "email", "other"]
+        required = false
     }
     field {
         name = "subject"

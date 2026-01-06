@@ -76,7 +76,16 @@ pub fn account() -> EntitySchema {
         .with_required_field(FieldId::new("name"), FieldType::String)
         .with_required_field(FieldId::new("organization_ref"), FieldType::Reference)
         .with_optional_field(FieldId::new("owner_ref"), FieldType::Reference)
-        .with_optional_field(FieldId::new("status"), FieldType::String)
+        .with_optional_enum(
+            FieldId::new("status"),
+            vec![
+                "prospect".to_string(),
+                "engaged".to_string(),
+                "client".to_string(),
+                "partner".to_string(),
+                "closed".to_string(),
+            ],
+        )
 }
 
 /// Represents a communication or marketing channel.
@@ -87,7 +96,16 @@ pub fn channel() -> EntitySchema {
     EntitySchema::new(EntityType::new("channel"))
         .with_metadata()
         .with_required_field(FieldId::new("name"), FieldType::String)
-        .with_optional_field(FieldId::new("type"), FieldType::String)
+        .with_optional_enum(
+            FieldId::new("type"),
+            vec![
+                "website".to_string(),
+                "social media".to_string(),
+                "email".to_string(),
+                "meeting".to_string(),
+                "other".to_string(),
+            ],
+        )
         .with_optional_field(FieldId::new("description"), FieldType::String)
 }
 
@@ -99,7 +117,15 @@ pub fn lead() -> EntitySchema {
     EntitySchema::new(EntityType::new("lead"))
         .with_metadata()
         .with_required_field(FieldId::new("source_ref"), FieldType::Reference)
-        .with_required_field(FieldId::new("status"), FieldType::String)
+        .with_optional_enum(
+            FieldId::new("status"),
+            vec![
+                "new".to_string(),
+                "qualified".to_string(),
+                "converted".to_string(),
+                "discarded".to_string(),
+            ],
+        )
         .with_optional_field(FieldId::new("person_ref"), FieldType::Reference)
         .with_optional_field(FieldId::new("account_ref"), FieldType::Reference)
         .with_optional_field(FieldId::new("score"), FieldType::Integer)
@@ -116,7 +142,16 @@ pub fn contact() -> EntitySchema {
         .with_optional_field(FieldId::new("person_ref"), FieldType::Reference)
         .with_optional_field(FieldId::new("account_ref"), FieldType::Reference)
         .with_optional_field(FieldId::new("role"), FieldType::String)
-        .with_optional_field(FieldId::new("status"), FieldType::String)
+        .with_optional_enum(
+            FieldId::new("status"),
+            vec![
+                "prospect".to_string(),
+                "partner".to_string(),
+                "client".to_string(),
+                "network".to_string(),
+                "other".to_string(),
+            ],
+        )
 }
 
 /// Represents a specific interaction or communication (an Event in the REA model).
@@ -126,7 +161,16 @@ pub fn contact() -> EntitySchema {
 pub fn interaction() -> EntitySchema {
     EntitySchema::new(EntityType::new("interaction"))
         .with_metadata()
-        .with_required_field(FieldId::new("type"), FieldType::String)
+        .with_optional_enum(
+            FieldId::new("type"),
+            vec![
+                "online meeting".to_string(),
+                "in-person meeting".to_string(),
+                "chat".to_string(),
+                "email".to_string(),
+                "other".to_string(),
+            ],
+        )
         .with_required_field(FieldId::new("subject"), FieldType::String)
         .with_required_field(FieldId::new("initiator_ref"), FieldType::Reference)
         .with_required_field(FieldId::new("primary_contact_ref"), FieldType::Reference)
@@ -146,7 +190,14 @@ pub fn opportunity() -> EntitySchema {
         .with_metadata()
         .with_required_field(FieldId::new("source_ref"), FieldType::Reference)
         .with_required_field(FieldId::new("name"), FieldType::String)
-        .with_required_field(FieldId::new("status"), FieldType::String)
+        .with_optional_enum(
+            FieldId::new("status"),
+            vec![
+                "open".to_string(),
+                "closed won".to_string(),
+                "closed lost".to_string(),
+            ],
+        )
         .with_optional_field(FieldId::new("value"), FieldType::Currency)
         .with_optional_field(FieldId::new("probability"), FieldType::Integer)
 }
@@ -162,7 +213,15 @@ pub fn strategy() -> EntitySchema {
         .with_optional_field(FieldId::new("description"), FieldType::String)
         .with_optional_field(FieldId::new("source_ref"), FieldType::Reference)
         .with_optional_field(FieldId::new("owner_ref"), FieldType::Reference)
-        .with_optional_field(FieldId::new("status"), FieldType::String)
+        .with_optional_enum(
+            FieldId::new("status"),
+            vec![
+                "draft".to_string(),
+                "active".to_string(),
+                "completed".to_string(),
+                "archived".to_string(),
+            ],
+        )
         .with_optional_field(FieldId::new("start_date"), FieldType::DateTime)
         .with_optional_field(FieldId::new("end_date"), FieldType::DateTime)
 }
@@ -205,7 +264,15 @@ pub fn project() -> EntitySchema {
     EntitySchema::new(EntityType::new("project"))
         .with_metadata()
         .with_required_field(FieldId::new("name"), FieldType::String)
-        .with_required_field(FieldId::new("status"), FieldType::String)
+        .with_optional_enum(
+            FieldId::new("status"),
+            vec![
+                "planned".to_string(),
+                "in progress".to_string(),
+                "completed".to_string(),
+                "cancelled".to_string(),
+            ],
+        )
         .with_optional_field(FieldId::new("description"), FieldType::String)
         .with_optional_field(FieldId::new("owner_ref"), FieldType::Reference)
         .with_optional_field(FieldId::new("objective_refs"), FieldType::List)
