@@ -6,8 +6,9 @@ schema lead {
     }
     field {
         name = "status"
-        type = "string"
-        required = true
+        type = "enum"
+        allowed_values = ["new", "qualified", "converted", "discarded"]
+        required = false
     }
     field {
         name = "person_ref"

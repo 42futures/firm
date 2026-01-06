@@ -1,17 +1,17 @@
 channel website {
     description = "The primary website for 42futures."
     name = "42futures website"
-    type = "Website"
+    type = enum"Website"
 }
 
 channel blog {
     description = "The substack blog for 42futures."
     name = "42futures blog"
-    type = "Website"
+    type = enum"Website"
 }
 
 channel linkedin_organic {
     description = "Organic inbound from LinkedIn."
     name = "LinkedIn organic"
-    type = "Social Media"
+    type = enum"Social Media"
 }

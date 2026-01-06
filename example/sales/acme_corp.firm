@@ -18,7 +18,7 @@ account acme_corp {
     name = "Acme Corp"
     organization_ref = organization.acme_corp
     owner_ref = person.daniel_rothmann
-    status = "Customer"
+    status = enum"Client"
 
     created_at = 2025-10-10 at 12:30 UTC+2
 }
@@ -32,7 +32,7 @@ person kent_smith {
 contact kent_smith {
     person_ref = person.kent_smith
     role = "Senior Engineer"
-    status = "Former Colleague"
+    status = enum"Client"
     notes = "From a previous company, now key contact at Acme Corp."
     created_at = 2025-09-30 at 11:00 UTC+2
 }
@@ -44,7 +44,7 @@ interaction kent_checkin {
     initiator_ref = person.daniel_rothmann
     primary_contact_ref = contact.kent_smith
 
-    type = "LinkedIn Chat"
+    type = enum"Chat"
     subject = "Check-in / Catch up"
     outcome = "Reached out to reconnect. Expressed interest in learning about Acme's tech stack. Waiting for response."
 
@@ -74,7 +74,7 @@ interaction kent_catchup {
     initiator_ref = person.daniel_rothmann
     primary_contact_ref = contact.kent_smith
 
-    type = "Meeting"
+    type = enum"In-person Meeting"
     subject = "Catch up & Feedback"
     outcome = """
         We caught up and I got good feedback on my 'Project X' concept.
@@ -88,7 +88,7 @@ interaction kent_catchup {
 opportunity acme_scaling_pilot {
     name = "Technology Scaling Pilot"
     source_ref = contact.kent_smith
-    status = "Discovery"
+    status = enum"Open"
     value = 15000 EUR
     probability = 10
 

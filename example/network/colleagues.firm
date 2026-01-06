@@ -8,7 +8,7 @@ person john_doe {
 contact john_doe {
     person_ref = person.john_doe
     role = "Head of Rocket Science"
-    status = "Former Colleague"
+    status = enum"Network"
 
     notes = "From Acme Corp. Heads up rocket science team at Globex Inc today."
     created_at = 2025-09-30 at 09:45 UTC+2
@@ -21,7 +21,7 @@ interaction john_checkin {
     initiator_ref = person.daniel_rothmann
     primary_contact_ref = contact.john_doe
 
-    type = "LinkedIn Chat"
+    type = enum"Chat"
     subject = "Check-in"
     outcome = "I met John at a conference, and we agreed a catch up was due. I've sent him a message on LinkedIn, waiting to hear back."
 
