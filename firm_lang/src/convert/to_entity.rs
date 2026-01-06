@@ -74,6 +74,7 @@ impl TryFrom<ParsedValue> for FieldValue {
             }
             ParsedValue::DateTime(value) => Ok(FieldValue::DateTime(value)),
             ParsedValue::Path(value) => Ok(FieldValue::Path(value)),
+            ParsedValue::Enum(value) => Ok(FieldValue::Enum(value)),
         }
     }
 }

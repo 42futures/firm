@@ -285,6 +285,7 @@ my_task design_homepage {
     tags = ["ui", "ux"]                  // List
     assignee = person.jane_doe           // Reference
     deliverable = path"./homepage.zip"   // Path
+    status = enum"in-progress"           // Enum
 }
 ```
 

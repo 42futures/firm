@@ -67,6 +67,28 @@ impl<'a> ParsedSchemaField<'a> {
         false // Default to false if not specified or invalid
     }
 
+    /// Gets the allowed values for enum fields from the "values" field.
+    /// Returns None if not specified or if it's not a list of strings.
+    pub fn allowed_values(&self) -> Option<Vec<String>> {
+        let values_field = self.find_field_by_name("allowed_values")?;
+
+        match values_field.value() {
+            Ok(ParsedValue::List(items)) => {
+                let mut strings = Vec::new();
+                for item in items {
+                    if let ParsedValue::String(s) = item {
+                        strings.push(s);
+                    } else {
+                        // If any item is not a string, enum is invalid
+                        return None;
+                    }
+                }
+                Some(strings)
+            }
+            _ => None,
+        }
+    }
+
     /// Helper method to find a field by name within this schema field block.
     fn find_field_by_name(&self, field_name: &str) -> Option<super::ParsedField> {
         // Find the block node within this field

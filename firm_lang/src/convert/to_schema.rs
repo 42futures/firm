@@ -30,10 +30,22 @@ impl TryFrom<&ParsedSchema<'_>> for EntitySchema {
 
             let field_type = convert_field_type(&field_type_str)?;
 
-            let field_schema = if field.required() {
-                FieldSchema::new(field_type, FieldMode::Required, order)
+            let field_mode = if field.required() {
+                FieldMode::Required
             } else {
-                FieldSchema::new(field_type, FieldMode::Optional, order)
+                FieldMode::Optional
+            };
+
+            let field_schema = if field_type == FieldType::Enum {
+                // For enum fields, check if allowed values are provided
+                if let Some(allowed_values) = field.allowed_values() {
+                    FieldSchema::new_enum(field_mode, order, allowed_values)
+                } else {
+                    // Enum without allowed values - treat as regular field
+                    FieldSchema::new(field_type, field_mode, order)
+                }
+            } else {
+                FieldSchema::new(field_type, field_mode, order)
             };
 
             schema.fields.insert(FieldId(field_name), field_schema);
@@ -55,6 +67,7 @@ fn convert_field_type(type_str: &str) -> Result<FieldType, SchemaConversionError
         "list" => Ok(FieldType::List),
         "datetime" => Ok(FieldType::DateTime),
         "path" => Ok(FieldType::Path),
+        "enum" => Ok(FieldType::Enum),
         _ => Err(SchemaConversionError::UnknownFieldType(
             type_str.to_string(),
         )),

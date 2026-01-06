@@ -22,6 +22,7 @@ pub struct FieldSchema {
     pub field_type: FieldType,
     pub field_mode: FieldMode,
     pub order: usize,
+    pub allowed_values: Option<Vec<String>>,
 }
 
 impl FieldSchema {
@@ -30,6 +31,26 @@ impl FieldSchema {
             field_type,
             field_mode,
             order,
+            allowed_values: None,
+        }
+    }
+
+    /// Creates a new enum field schema with allowed values (normalized to lowercase).
+    pub fn new_enum(
+        field_mode: FieldMode,
+        order: usize,
+        allowed_values: Vec<String>,
+    ) -> Self {
+        let normalized_values: Vec<String> = allowed_values
+            .iter()
+            .map(|v| v.trim().to_lowercase())
+            .collect();
+
+        FieldSchema {
+            field_type: FieldType::Enum,
+            field_mode,
+            order,
+            allowed_values: Some(normalized_values),
         }
     }
 
@@ -41,6 +62,11 @@ impl FieldSchema {
     /// Check if the field is required.
     pub fn is_required(&self) -> bool {
         self.field_mode == FieldMode::Required
+    }
+
+    /// Get the allowed values for enum fields.
+    pub fn allowed_values(&self) -> Option<&Vec<String>> {
+        self.allowed_values.as_ref()
     }
 }
 
@@ -84,6 +110,18 @@ impl EntitySchema {
     pub fn with_optional_field(self, id: FieldId, field_type: FieldType) -> Self {
         let order = self.next_order();
         self.add_field_schema(id, FieldSchema::new(field_type, FieldMode::Optional, order))
+    }
+
+    /// Builder method to add a required enum field with allowed values.
+    pub fn with_required_enum(self, id: FieldId, allowed_values: Vec<String>) -> Self {
+        let order = self.next_order();
+        self.add_field_schema(id, FieldSchema::new_enum(FieldMode::Required, order, allowed_values))
+    }
+
+    /// Builder method to add an optional enum field with allowed values.
+    pub fn with_optional_enum(self, id: FieldId, allowed_values: Vec<String>) -> Self {
+        let order = self.next_order();
+        self.add_field_schema(id, FieldSchema::new_enum(FieldMode::Optional, order, allowed_values))
     }
 
     /// Builder method to add common metadata fields to the schema.

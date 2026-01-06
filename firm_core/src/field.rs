@@ -20,6 +20,7 @@ pub enum FieldType {
     List,
     DateTime,
     Path,
+    Enum,
 }
 
 impl fmt::Display for FieldType {
@@ -34,6 +35,7 @@ impl fmt::Display for FieldType {
             FieldType::List => write!(f, "List"),
             FieldType::DateTime => write!(f, "DateTime"),
             FieldType::Path => write!(f, "Path"),
+            FieldType::Enum => write!(f, "Enum"),
         }
     }
 }
@@ -66,6 +68,7 @@ pub enum FieldValue {
     List(Vec<FieldValue>),
     DateTime(DateTime<FixedOffset>),
     Path(PathBuf),
+    Enum(String),
 }
 
 impl fmt::Display for FieldValue {
@@ -89,6 +92,7 @@ impl fmt::Display for FieldValue {
             }
             FieldValue::DateTime(val) => write!(f, "{}", val),
             FieldValue::Path(val) => write!(f, "{}", val.display()),
+            FieldValue::Enum(val) => write!(f, "{}", val),
         }
     }
 }
@@ -110,6 +114,7 @@ impl FieldValue {
             FieldValue::List(_) => FieldType::List,
             FieldValue::DateTime(_) => FieldType::DateTime,
             FieldValue::Path(_) => FieldType::Path,
+            FieldValue::Enum(_) => FieldType::Enum,
         }
     }
 
@@ -409,6 +414,21 @@ mod tests {
     #[test]
     fn test_path_serialization() {
         let field = FieldValue::Path(current_dir().unwrap());
+        let serialized = serde_json::to_string(&field).unwrap();
+        let deserialized: FieldValue = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(deserialized, field);
+    }
+
+    #[test]
+    fn test_enum_field_value() {
+        let enum_field = FieldValue::Enum("active".to_string());
+        assert_eq!(enum_field.get_type(), FieldType::Enum);
+        assert!(enum_field.is_type(&FieldType::Enum));
+    }
+
+    #[test]
+    fn test_enum_serialization() {
+        let field = FieldValue::Enum("customer".to_string());
         let serialized = serde_json::to_string(&field).unwrap();
         let deserialized: FieldValue = serde_json::from_str(&serialized).unwrap();
         assert_eq!(deserialized, field);

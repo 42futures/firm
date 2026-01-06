@@ -19,6 +19,7 @@ pub fn generate_value(value: &FieldValue, options: &GeneratorOptions) -> String 
         FieldValue::List(values) => generate_list(values, options),
         FieldValue::DateTime(dt) => generate_datetime(dt),
         FieldValue::Path(path) => generate_path(path),
+        FieldValue::Enum(s) => generate_enum(s),
     }
 }
 
@@ -98,6 +99,11 @@ fn generate_datetime(dt: &DateTime<FixedOffset>) -> String {
 /// Generate path value.
 fn generate_path(path: &PathBuf) -> String {
     format!("path\"{}\"", path.display())
+}
+
+/// Generate enum value.
+fn generate_enum(value: &str) -> String {
+    format!("enum\"{}\"", value)
 }
 
 #[cfg(test)]

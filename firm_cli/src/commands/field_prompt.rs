@@ -23,6 +23,7 @@ pub fn prompt_for_field_value(
     field_id: &FieldId,
     field_type: &FieldType,
     is_required: bool,
+    allowed_values: Option<&Vec<String>>,
     entity_graph: Arc<EntityGraph>,
     source_path: &PathBuf,
     workspace_dir: &PathBuf,
@@ -53,6 +54,7 @@ pub fn prompt_for_field_value(
             source_path,
             workspace_dir.clone(),
         ),
+        FieldType::Enum => enum_prompt(skippable, &field_id_prompt, allowed_values)
     }
 }
 
@@ -409,6 +411,7 @@ fn list_prompt(
             &item_field_id,
             &item_type,
             false,
+            None,
             Arc::clone(&entity_graph),
             source_path,
             workspace_dir,
@@ -599,6 +602,25 @@ fn get_path_suggestions(
     }
 
     Ok(suggestions)
+}
+
+/// Prompts for an enum field.
+fn enum_prompt(skippable: bool, field_id_prompt: &String, allowed_values: Option<&Vec<String>>) -> Result<Option<FieldValue>, CliError> {
+    match allowed_values {
+        Some(values) => {
+            let skip_message = get_skippable_prompt(skippable);
+            let prompt_text = format!("{}{}:", field_id_prompt, skip_message);
+
+            let selected_option = Select::new(&prompt_text, values.to_vec())
+                .prompt()
+                .map_err(|_| CliError::InputError)?;
+
+            Ok(Some(FieldValue::Enum(selected_option)))
+        },
+        None => return Err(CliError::InputError),
+    }
+
+
 }
 
 /// Helper to get a prompt message fragment or empty string depending on whether field is skippable.
