@@ -113,7 +113,7 @@ impl ParsedValue {
             ValueKind::Number => Self::parse_number(&raw),
             ValueKind::Currency => Self::parse_currency(&raw),
             ValueKind::Reference => Self::parse_reference(&raw),
-            ValueKind::List => Self::parse_list(node, source, path),
+            ValueKind::List => Self::parse_list_from_node(node, source, path),
             ValueKind::Date => Self::parse_date(&raw),
             ValueKind::DateTime => Self::parse_datetime(&raw),
             ValueKind::Path => Self::parse_path(&raw, path),
@@ -130,14 +130,14 @@ impl ParsedValue {
     }
 
     /// Parses boolean values (`true` or `false`).
-    fn parse_boolean(raw: &str) -> Result<ParsedValue, ValueParseError> {
+    pub fn parse_boolean(raw: &str) -> Result<ParsedValue, ValueParseError> {
         raw.parse()
             .map(ParsedValue::Boolean)
             .map_err(|_| ValueParseError::InvalidBoolean(raw.to_string()))
     }
 
     /// Parses string values, handling both single-line and multi-line formats.
-    fn parse_string(raw: &str) -> Result<ParsedValue, ValueParseError> {
+    pub fn parse_string(raw: &str) -> Result<ParsedValue, ValueParseError> {
         // Multi-line strings start and end with triple quotes ("""stuff""")
         if raw.starts_with("\"\"\"") && raw.ends_with("\"\"\"") {
             // Handle triple quotes
@@ -155,7 +155,7 @@ impl ParsedValue {
     }
 
     /// Parses numeric values, distinguishing between integers and floats.
-    fn parse_number(raw: &str) -> Result<ParsedValue, ValueParseError> {
+    pub fn parse_number(raw: &str) -> Result<ParsedValue, ValueParseError> {
         // Numbers with a period are floats (42.0)
         if raw.contains(".") {
             raw.parse()
@@ -171,7 +171,7 @@ impl ParsedValue {
     }
 
     /// Parses currency values with amount and currency code (`42.50 USD`).
-    fn parse_currency(raw: &str) -> Result<ParsedValue, ValueParseError> {
+    pub fn parse_currency(raw: &str) -> Result<ParsedValue, ValueParseError> {
         let parts: Vec<&str> = raw.split(" ").collect();
 
         // Currencies have 2 parts: number and currency (42 USD or 42.24 EUR)
@@ -194,7 +194,7 @@ impl ParsedValue {
     }
 
     /// Parses reference values (entity or field references).
-    fn parse_reference(raw: &str) -> Result<ParsedValue, ValueParseError> {
+    pub fn parse_reference(raw: &str) -> Result<ParsedValue, ValueParseError> {
         let parts: Vec<&str> = raw.split(".").collect();
         match parts.len() {
             // References with 2 parts are for entities (contact.john)
@@ -216,48 +216,27 @@ impl ParsedValue {
         }
     }
 
-    /// Parses list values by recursively parsing each contained value.
-    /// Ensures all list items are of the same type (homogeneous lists).
-    fn parse_list<'a>(
-        node: Node<'a>,
-        source: &'a str,
-        path: &'a PathBuf,
-    ) -> Result<ParsedValue, ValueParseError> {
-        // For lists, we walk each child value node and parse it
-        let mut items: Vec<ParsedValue> = Vec::new();
-        let mut cursor = node.walk();
+    /// Validates that all items in a list are of the same type (homogeneous).
+    /// Returns Ok(List) if valid, Err if types don't match.
+    pub fn parse_list_from_vec(items: Vec<ParsedValue>) -> Result<ParsedValue, ValueParseError> {
         let mut expected_type: Option<&'static str> = None;
 
-        if let Some(list_node) = node.children(&mut cursor).next() {
-            let mut list_cursor = list_node.walk();
-            let mut index = 0;
-
-            for child in list_node.children(&mut list_cursor) {
-                if child.kind() == VALUE_KIND {
-                    // Recursively parse the list child value
-                    let item = Self::from_node(child, source, path)?;
-
-                    // Check type homogeneity
-                    let item_type = item.get_type_name();
-                    match expected_type {
-                        None => {
-                            // First item - establish the expected type
-                            expected_type = Some(item_type);
-                        }
-                        Some(expected) => {
-                            // Subsequent items - check they match the first type
-                            if item_type != expected {
-                                return Err(ValueParseError::HeterogeneousList {
-                                    expected_type: expected.to_string(),
-                                    found_type: item_type.to_string(),
-                                    index,
-                                });
-                            }
-                        }
+        for (index, item) in items.iter().enumerate() {
+            let item_type = item.get_type_name();
+            match expected_type {
+                None => {
+                    // First item - establish the expected type
+                    expected_type = Some(item_type);
+                }
+                Some(expected) => {
+                    // Subsequent items - check they match the first type
+                    if item_type != expected {
+                        return Err(ValueParseError::HeterogeneousList {
+                            expected_type: expected.to_string(),
+                            found_type: item_type.to_string(),
+                            index,
+                        });
                     }
-
-                    items.push(item);
-                    index += 1;
                 }
             }
         }
@@ -265,8 +244,35 @@ impl ParsedValue {
         Ok(ParsedValue::List(items))
     }
 
+    /// Parses list values by recursively parsing each contained value.
+    /// Ensures all list items are of the same type (homogeneous lists).
+    fn parse_list_from_node<'a>(
+        node: Node<'a>,
+        source: &'a str,
+        path: &'a PathBuf,
+    ) -> Result<ParsedValue, ValueParseError> {
+        // For lists, we walk each child value node and parse it
+        let mut items: Vec<ParsedValue> = Vec::new();
+        let mut cursor = node.walk();
+
+        if let Some(list_node) = node.children(&mut cursor).next() {
+            let mut list_cursor = list_node.walk();
+
+            for child in list_node.children(&mut list_cursor) {
+                if child.kind() == VALUE_KIND {
+                    // Recursively parse the list child value
+                    let item = Self::from_node(child, source, path)?;
+                    items.push(item);
+                }
+            }
+        }
+
+        // Use the shared validation function
+        Self::parse_list_from_vec(items)
+    }
+
     /// Parses date values (`2024-03-20`) as datetime at midnight local time.
-    fn parse_date(raw: &str) -> Result<ParsedValue, ValueParseError> {
+    pub fn parse_date(raw: &str) -> Result<ParsedValue, ValueParseError> {
         // Parse "naive date" in year-month-day format (2025-07-31)
         let date = NaiveDate::parse_from_str(raw, "%Y-%m-%d")
             .map_err(|_| ValueParseError::InvalidDate(raw.to_string()))?;
@@ -285,7 +291,7 @@ impl ParsedValue {
     }
 
     /// Parses datetime values with optional timezone (`2024-03-20 at 14:30 UTC-5`).
-    fn parse_datetime(raw: &str) -> Result<ParsedValue, ValueParseError> {
+    pub fn parse_datetime(raw: &str) -> Result<ParsedValue, ValueParseError> {
         // Datetimes start with year-month-day (2025-07-31) followed by " at ", then time (09:42), optionally timezone " UTC+3"
         let parts: Vec<&str> = raw.split(" at ").collect();
         match parts.as_slice() {
@@ -328,7 +334,7 @@ impl ParsedValue {
     /// Relative paths are assumed to be relative to the source file they're defined in.
     /// On parse, we transform the source-relative path to a workspace-relative path and normalize it.
     /// Absolute paths are left as-is.
-    fn parse_path(raw: &str, source_path: &PathBuf) -> Result<ParsedValue, ValueParseError> {
+    pub fn parse_path(raw: &str, source_path: &PathBuf) -> Result<ParsedValue, ValueParseError> {
         let raw_path = raw.replace("path\"", "").trim_matches('"').to_string();
         let target_path = PathBuf::from(raw_path);
 
@@ -353,7 +359,7 @@ impl ParsedValue {
     }
 
     /// Parses enum values (`enum"customer"`).
-    fn parse_enum(raw: &str) -> Result<ParsedValue, ValueParseError> {
+    pub fn parse_enum(raw: &str) -> Result<ParsedValue, ValueParseError> {
         let enum_value = raw.replace("enum\"", "").trim_matches('"').to_string();
         Ok(ParsedValue::Enum(enum_value))
     }
