@@ -58,7 +58,7 @@ pub enum FirmCliCommand {
         #[arg(short, long)]
         direction: Option<CliDirection>,
     },
-    /// Interactively adds a new entity to a file in the workspace.
+    /// Adds a new entity to a file in the workspace. If type, id or fields are not provided, this is done interactively.
     Add {
         /// Target firm file.
         to_file: Option<PathBuf>,

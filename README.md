@@ -44,7 +44,7 @@ Firm operates on a "workspace": a directory containing all your `.firm` DSL file
 You can add entities to your workspace either by using the CLI or by writing the DSL yourself.
 
 ### Add entities with the CLI
-Use `firm add` to interactively generate new entities. Out of the box, Firm supports a set of pre-built entity schemas for org mapping, customer relations and work management. The CLI will prompt you for the necessary info and generate corresponding DSL.
+Use `firm add` to generate new entities. Out of the box, Firm supports a set of pre-built entity schemas for org mapping, customer relations and work management. The CLI will prompt you for the necessary info and generate corresponding DSL.
 
 ```bash
 $ firm add
@@ -60,6 +60,10 @@ Adding new entity
 
 Writing generated DSL to file my_workspace/generated/organization.firm
 ```
+
+You can also use `firm add` noninteractively by providing its type, ID and fields:
+
+`$ firm add --type organization --id megacorp --field name "Megacorp Ltd."`
 
 ### Write DSL manually
 Alternatively, you can create a `.firm` file and write the DSL yourself.
