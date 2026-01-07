@@ -68,8 +68,8 @@ fn main() -> ExitCode {
             direction,
             cli.format,
         ),
-        FirmCliCommand::Add { to_file } => {
-            commands::add_entity(&workspace_path, to_file, cli.format)
+        FirmCliCommand::Add { to_file, r#type, id, fields, lists, list_values } => {
+            commands::add_entity(&workspace_path, to_file, r#type, id, fields, lists, list_values, cli.format)
         }
     };
 

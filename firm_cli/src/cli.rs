@@ -58,9 +58,24 @@ pub enum FirmCliCommand {
         #[arg(short, long)]
         direction: Option<CliDirection>,
     },
-    /// Interactively adds a new entity to a file in the workspace.
+    /// Adds a new entity to a file in the workspace. If type, id or fields are not provided, this is done interactively.
     Add {
         /// Target firm file.
         to_file: Option<PathBuf>,
+        /// Entity type for non-interactive mode (e.g., person, organization)
+        #[arg(long)]
+        r#type: Option<String>,
+        /// Entity ID for non-interactive mode (e.g., john_doe)
+        #[arg(long)]
+        id: Option<String>,
+        /// Field for non-interactive mode (can be repeated). Format: --field <field_name> <value>
+        #[arg(long = "field", num_args = 2, value_names = ["FIELD_NAME", "VALUE"])]
+        fields: Vec<String>,
+        /// List declaration for non-interactive mode (can be repeated). Format: --list <field_name> <item_type>
+        #[arg(long = "list", num_args = 2, value_names = ["FIELD_NAME", "ITEM_TYPE"])]
+        lists: Vec<String>,
+        /// List value for non-interactive mode (can be repeated). Format: --list-value <field_name> <value>
+        #[arg(long = "list-value", num_args = 2, value_names = ["FIELD_NAME", "VALUE"])]
+        list_values: Vec<String>,
     },
 }

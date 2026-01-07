@@ -71,10 +71,11 @@ task follow_up {
 ### Best Practices
 
 1. **Prefer the CLI for queries**: Use `firm get`, `firm list`, and `firm related` rather than parsing `.firm` files manually
-2. **Validate after changes**: Always run `firm build` after editing `.firm` files to ensure your changes are valid
-3. **Check schemas first**: Use `firm list schema` to see available entity types and their required fields
-4. **Explore relationships**: Use `firm related` to understand connections between entities
-5. **Use JSON output for automation**: Add `--format json` to any command for structured output
+2. **Use non-interactive add**: Consider `firm add --type --id --field` for programmatic entity creation instead of creating files directly
+3. **Validate after changes**: Always run `firm build` after changing a firm workspace to ensure your changes are valid
+4. **Check schemas first**: Use `firm list schema` to see available entity types and their required fields
+5. **Explore relationships**: Use `firm related` to understand connections between entities
+6. **Use JSON output for automation**: Add `--format json` to any command for structured output
 
 ### CLI Reference
 
@@ -97,7 +98,32 @@ Show all entities related to the specified entity.
 Example: `firm related contact john_at_acme`
 
 #### `firm add`
-Interactively add a new entity. Note: This command is interactive and not well-suited for automation. Prefer editing `.firm` files directly.
+Add a new entity. Can be used interactively (without flags) or non-interactively for automation.
+
+**Non-interactive mode** (recommended for AI agents):
+```bash
+# Add an entity with fields
+firm add --type person --id john_doe \
+  --field name "John Doe" \
+  --field email "john@example.com"
+
+# Add an entity with lists
+firm add --type person --id jane_smith \
+  --field name "Jane Smith" \
+  --list urls string \
+  --list-value urls "https://github.com/janesmith" \
+  --list-value urls "https://linkedin.com/in/janesmith"
+```
+
+Arguments:
+- `--type <entity_type>`: The entity type (required for non-interactive mode)
+- `--id <entity_id>`: The entity ID (required for non-interactive mode)
+- `--field <field_name> <value>`: Add a field (repeatable)
+- `--list <field_name> <item_type>`: Declare a list field with its item type
+- `--list-value <field_name> <value>`: Add an item to a list (repeatable)
+
+The command validates against schemas and provides error messages for self-correction.
+In cases where you're adding new entities, this is preferable to first editing the DSL and then building the workspace to verify.
 
 ### Output Formats
 
