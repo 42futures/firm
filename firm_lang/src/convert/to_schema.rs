@@ -5,7 +5,7 @@ use firm_core::{
 };
 
 use super::SchemaConversionError;
-use crate::parser::ParsedSchema;
+use crate::parser::dsl::ParsedSchema;
 
 /// Converts a ParsedSchema to an EntitySchema.
 impl TryFrom<&ParsedSchema<'_>> for EntitySchema {

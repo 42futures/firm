@@ -69,7 +69,7 @@ impl ParsedSource {
 mod tests {
     use std::path::PathBuf;
 
-    use crate::parser::parse_source;
+    use crate::parser::dsl::parse_source;
 
     #[test]
     fn test_has_entities_for_valid_source() {

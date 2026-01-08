@@ -6,7 +6,7 @@ use pest_derive::Parser;
 use super::parsed_query::*;
 
 #[derive(Parser)]
-#[grammar = "query/grammar.pest"]
+#[grammar = "parser/query/grammar.pest"]
 pub struct QueryParser;
 
 /// Error type for query parsing

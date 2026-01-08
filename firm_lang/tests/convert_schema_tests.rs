@@ -4,7 +4,7 @@ use firm_core::{
     schema::{EntitySchema, FieldMode},
 };
 
-use firm_lang::{convert::SchemaConversionError, parser::parse_source};
+use firm_lang::{convert::SchemaConversionError, parser::dsl::parse_source};
 
 #[test]
 fn test_convert_simple_schema() {

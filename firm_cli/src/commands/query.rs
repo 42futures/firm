@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use firm_core::graph::Query;
-use firm_lang::query::parse_query;
+use firm_lang::parser::query::parse_query;
 
 use crate::errors::CliError;
 use crate::files::load_current_graph;

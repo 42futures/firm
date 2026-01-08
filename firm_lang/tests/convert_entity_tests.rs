@@ -1,6 +1,6 @@
 use chrono::{Datelike, Timelike};
 use firm_core::{Entity, EntityId, EntityType, FieldId, FieldValue};
-use firm_lang::parser::parse_source;
+use firm_lang::parser::dsl::parse_source;
 use iso_currency::Currency;
 use rust_decimal::Decimal;
 

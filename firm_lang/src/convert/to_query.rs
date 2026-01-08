@@ -6,7 +6,7 @@ use firm_core::graph::{
 };
 use firm_core::{EntityType, FieldId};
 
-use super::parsed_query::*;
+use crate::parser::query::*;
 
 /// Error type for query conversion
 #[derive(Debug, Clone, PartialEq)]

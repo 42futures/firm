@@ -2,7 +2,7 @@ use convert_case::{Case, Casing};
 use firm_core::graph::EntityGraph;
 use firm_core::{Entity, EntitySchema, FieldId, FieldType, FieldValue, compose_entity_id};
 use firm_lang::generate::generate_dsl;
-use firm_lang::parser::ParsedValue;
+use firm_lang::parser::dsl::ParsedValue;
 use firm_lang::workspace::Workspace;
 use inquire::{Confirm, Select, Text};
 use std::fs::{self, File};

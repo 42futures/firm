@@ -1,6 +1,6 @@
 use std::{fs, path::PathBuf};
 
-use crate::{parser::parse_source, workspace::WorkspaceFile};
+use crate::{parser::dsl::parse_source, workspace::WorkspaceFile};
 
 use super::{Workspace, WorkspaceError};
 

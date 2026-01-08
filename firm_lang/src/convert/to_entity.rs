@@ -1,7 +1,7 @@
 use firm_core::{Entity, FieldId, FieldValue, ReferenceValue, compose_entity_id};
 
 use super::EntityConversionError;
-use crate::parser::{ParsedEntity, ParsedValue};
+use crate::parser::dsl::{ParsedEntity, ParsedValue};
 
 /// Converts a ParsedEntity to an Entity.
 impl TryFrom<&ParsedEntity<'_>> for Entity {

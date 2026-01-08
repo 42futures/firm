@@ -3,7 +3,7 @@ mod tests {
     use std::fs;
     use std::path::Path;
 
-    use firm_lang::parser::parse_source;
+    use firm_lang::parser::dsl::parse_source;
 
     #[test]
     fn test_all_example_files_parse_without_errors() {
