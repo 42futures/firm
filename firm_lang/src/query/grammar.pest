@@ -1,0 +1,99 @@
+WHITESPACE = _{ " " | "\t" | "\n" }
+
+// Top-level query: "from <type> | where ... | order ... | limit ..."
+query = { SOI ~ from_clause ~ ("|" ~ operation)* ~ EOI }
+
+// FROM clause: "from task" or "from *"
+from_clause = { "from" ~ entity_selector }
+
+entity_selector = { "*" | identifier }
+
+// Operations that can be chained after FROM
+operation = {
+    where_clause
+  | related_clause
+  | order_clause
+  | limit_clause
+}
+
+// WHERE clause: "where field_name == value" or "where @type == 'task'"
+where_clause = { "where" ~ condition }
+
+condition = {
+    metadata_field ~ operator ~ value
+  | field_name ~ operator ~ value
+}
+
+metadata_field = { "@" ~ identifier }
+field_name = { identifier }
+
+// Operators: ==, !=, >, <, >=, <=, contains, in, etc.
+operator = {
+    "==" | "!=" | ">=" | "<=" | ">" | "<"
+  | "contains"
+  | "startswith"
+  | "endswith"
+  | "in"
+}
+
+// RELATED clause: "related task" or "related(2) *" or "related *"
+related_clause = { "related" ~ degree? ~ entity_selector? }
+degree = { "(" ~ number ~ ")" }
+
+// ORDER clause: "order field_name" or "order field_name desc"
+order_clause = { "order" ~ field_name ~ direction? }
+direction = { "asc" | "desc" }
+
+// LIMIT clause: "limit 10"
+limit_clause = { "limit" ~ number }
+
+// Value types
+value = {
+    currency
+  | datetime
+  | reference
+  | path
+  | enum_value
+  | string
+  | number
+  | boolean
+  | list
+}
+
+string = {
+    "\"" ~ inner_string_double ~ "\""
+  | "'" ~ inner_string_single ~ "'"
+}
+
+inner_string_double = @{ (!("\"") ~ ANY)* }
+inner_string_single = @{ (!("'") ~ ANY)* }
+
+number = @{ "-"? ~ ASCII_DIGIT+ ~ ("." ~ ASCII_DIGIT+)? }
+
+boolean = { "true" | "false" }
+
+// Currency: number followed by currency code (e.g., "100.50 USD")
+currency = { number ~ currency_code }
+currency_code = @{ ASCII_ALPHA{3} }
+
+// DateTime: ISO format (e.g., "2025-01-15" or "2025-01-15 at 14:30 UTC")
+datetime = @{
+    ASCII_DIGIT{4} ~ "-" ~ ASCII_DIGIT{2} ~ "-" ~ ASCII_DIGIT{2}
+    ~ (" at " ~ ASCII_DIGIT{2} ~ ":" ~ ASCII_DIGIT{2} ~ (" " ~ timezone)?)?
+}
+timezone = @{ ASCII_ALPHA+ }
+
+// Reference: entity or field reference (e.g., "person.john_doe" or "person.john_doe.field_name")
+reference = @{
+    identifier ~ "." ~ identifier ~ ("." ~ identifier)?
+}
+
+// Path: path"./file.txt"
+path = { "path" ~ string }
+
+// Enum: enum"value"
+enum_value = { "enum" ~ string }
+
+list = { "[" ~ value ~ ("," ~ value)* ~ "]" }
+
+identifier = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }

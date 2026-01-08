@@ -16,6 +16,8 @@ rust_decimal = { version = "1.37", features = ["serde-with-str"] }
 iso_currency = { version = "0.5", features = ["with-serde"] }
 chrono = { version = "0.4", features = ["serde"] }
 path-clean = "1.0.1"
+pest = "2.7"
+pest_derive = "2.7"
 
 [dev-dependencies]
 assert_matches = "1.5"

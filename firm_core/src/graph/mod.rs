@@ -8,9 +8,11 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 mod graph_errors;
 mod query;
+mod query_execution;
 
 pub use graph_errors::GraphError;
 pub use petgraph::Direction;
+pub use query_execution::*;
 
 use crate::{Entity, EntityId, EntityType, FieldId, FieldValue, ReferenceValue};
 

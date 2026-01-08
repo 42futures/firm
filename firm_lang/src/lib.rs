@@ -7,4 +7,5 @@ pub mod convert;
 pub mod defaults;
 pub mod generate;
 pub mod parser;
+pub mod query;
 pub mod workspace;
