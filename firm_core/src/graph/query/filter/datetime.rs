@@ -47,6 +47,7 @@ pub fn compare_datetime(
 
 #[cfg(test)]
 mod tests {
+    use chrono::TimeZone;
     use super::*;
 
     // Helper to create a datetime

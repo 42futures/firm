@@ -41,6 +41,7 @@ pub fn compare_reference(
 
 #[cfg(test)]
 mod tests {
+    use crate::{EntityId, FieldId};
     use super::*;
 
     #[test]
