@@ -1,0 +1,49 @@
+//! Filter type definitions
+
+use crate::FieldId;
+
+/// Reference to a field (either metadata or regular field)
+#[derive(Debug, Clone, PartialEq)]
+pub enum FieldRef {
+    /// Metadata field like @type or @id
+    Metadata(MetadataField),
+    /// Regular entity field
+    Regular(FieldId),
+}
+
+/// Metadata fields that can be queried
+#[derive(Debug, Clone, PartialEq)]
+pub enum MetadataField {
+    Type,
+    Id,
+}
+
+/// Comparison operators for filtering
+#[derive(Debug, Clone, PartialEq)]
+pub enum FilterOperator {
+    Equal,
+    NotEqual,
+    GreaterThan,
+    LessThan,
+    GreaterOrEqual,
+    LessOrEqual,
+    Contains,
+    StartsWith,
+    EndsWith,
+    In,
+}
+
+/// Values used in filter conditions
+#[derive(Debug, Clone, PartialEq)]
+pub enum FilterValue {
+    String(String),
+    Integer(i64),
+    Float(f64),
+    Boolean(bool),
+    Currency { amount: f64, code: String },
+    DateTime(String),
+    Reference(String),
+    Path(String),
+    Enum(String),
+    List(Vec<FilterValue>),
+}
