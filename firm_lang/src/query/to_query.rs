@@ -131,7 +131,15 @@ fn convert_value(parsed: ParsedQueryValue) -> Result<FilterValue, QueryConversio
         ParsedQueryValue::Currency { amount, code } => Ok(FilterValue::Currency { amount, code }),
         ParsedQueryValue::DateTime(s) => Ok(FilterValue::DateTime(s)),
         ParsedQueryValue::Reference(s) => Ok(FilterValue::Reference(s)),
-        ParsedQueryValue::Path(s) => Ok(FilterValue::Path(s)),
+        ParsedQueryValue::Path(s) => {
+            // TODO: Path resolution context
+            // Currently assumes paths in queries are workspace-relative (matching how paths are stored in the graph).
+            // In the future, we may want to pass workspace_path here and apply the same transformation as DSL parsing:
+            // - Join with workspace path if relative
+            // - Clean/normalize the path
+            // This would make query paths CWD-relative and transform them to workspace-relative for comparison.
+            Ok(FilterValue::Path(s))
+        }
         ParsedQueryValue::Enum(s) => Ok(FilterValue::Enum(s)),
         ParsedQueryValue::List(items) => {
             let converted: Result<Vec<FilterValue>, _> =

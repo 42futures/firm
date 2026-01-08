@@ -4,10 +4,11 @@
 //! the entity graph. It is separate from the query language parsing (in firm_lang)
 //! and focuses purely on the in-memory graph operations.
 
+use chrono::{DateTime, FixedOffset};
 use rust_decimal::Decimal;
 use iso_currency::Currency;
 
-use crate::{Entity, EntityId, EntityType, FieldId, FieldValue};
+use crate::{Entity, EntityType, FieldId, FieldValue};
 
 /// A filter condition for matching entities
 #[derive(Debug, Clone, PartialEq)]
@@ -206,20 +207,40 @@ impl FilterCondition {
             FieldValue::Currency { amount, currency } => {
                 self.compare_currency(amount, currency)
             }
-            _ => false, // TODO: Handle other types
+            FieldValue::DateTime(dt) => self.compare_datetime(dt),
+            FieldValue::Enum(s) => self.compare_string(s),
+            FieldValue::Path(p) => {
+                if let Some(path_str) = p.to_str() {
+                    self.compare_string(path_str)
+                } else {
+                    false
+                }
+            }
+            _ => false, // TODO: Handle List, Reference
         }
     }
 
     fn compare_string(&self, value: &str) -> bool {
-        match &self.value {
-            FilterValue::String(filter_str) => match self.operator {
-                FilterOperator::Equal => value == filter_str,
-                FilterOperator::NotEqual => value != filter_str,
-                FilterOperator::Contains => value.contains(filter_str),
-                FilterOperator::StartsWith => value.starts_with(filter_str),
-                FilterOperator::EndsWith => value.ends_with(filter_str),
-                _ => false,
-            },
+        // Get the filter string, which could be String, Enum, or Path variant
+        let filter_str = match &self.value {
+            FilterValue::String(s) => s,
+            FilterValue::Enum(s) => s,
+            FilterValue::Path(s) => s,
+            _ => return false,
+        };
+
+        match self.operator {
+            FilterOperator::Equal => value.eq_ignore_ascii_case(filter_str),
+            FilterOperator::NotEqual => !value.eq_ignore_ascii_case(filter_str),
+            FilterOperator::Contains => {
+                value.to_lowercase().contains(&filter_str.to_lowercase())
+            }
+            FilterOperator::StartsWith => {
+                value.to_lowercase().starts_with(&filter_str.to_lowercase())
+            }
+            FilterOperator::EndsWith => {
+                value.to_lowercase().ends_with(&filter_str.to_lowercase())
+            }
             _ => false,
         }
     }
@@ -289,9 +310,9 @@ impl FilterCondition {
                 amount: filter_amount,
                 code: filter_code,
             } => {
-                // Currency code must match
-                let currency_str = currency.to_string();
-                if currency_str != *filter_code {
+                // Currency code must match (use code() to get ISO code like "EUR", not full name)
+                let currency_code = currency.code();
+                if currency_code != filter_code.as_str() {
                     return false;
                 }
 
@@ -311,6 +332,43 @@ impl FilterCondition {
                     }
                 } else {
                     false
+                }
+            }
+            _ => false,
+        }
+    }
+
+    fn compare_datetime(&self, value: &DateTime<FixedOffset>) -> bool {
+        match &self.value {
+            FilterValue::DateTime(filter_str) => {
+                // Try to parse the filter string as a DateTime
+                // Support both full datetime and date-only formats
+                if let Ok(filter_dt) = filter_str.parse::<DateTime<FixedOffset>>() {
+                    match self.operator {
+                        FilterOperator::Equal => value == &filter_dt,
+                        FilterOperator::NotEqual => value != &filter_dt,
+                        FilterOperator::GreaterThan => value > &filter_dt,
+                        FilterOperator::LessThan => value < &filter_dt,
+                        FilterOperator::GreaterOrEqual => value >= &filter_dt,
+                        FilterOperator::LessOrEqual => value <= &filter_dt,
+                        _ => false,
+                    }
+                } else {
+                    // Try parsing as just a date (YYYY-MM-DD) and compare dates only
+                    if let Ok(filter_date) = chrono::NaiveDate::parse_from_str(filter_str, "%Y-%m-%d") {
+                        let value_date = value.date_naive();
+                        match self.operator {
+                            FilterOperator::Equal => value_date == filter_date,
+                            FilterOperator::NotEqual => value_date != filter_date,
+                            FilterOperator::GreaterThan => value_date > filter_date,
+                            FilterOperator::LessThan => value_date < filter_date,
+                            FilterOperator::GreaterOrEqual => value_date >= filter_date,
+                            FilterOperator::LessOrEqual => value_date <= filter_date,
+                            _ => false,
+                        }
+                    } else {
+                        false
+                    }
                 }
             }
             _ => false,
