@@ -216,7 +216,8 @@ impl FilterCondition {
                     false
                 }
             }
-            _ => false, // TODO: Handle List, Reference
+            FieldValue::Reference(ref_value) => self.compare_reference(ref_value),
+            FieldValue::List(items) => self.compare_list(items)
         }
     }
 
@@ -371,6 +372,74 @@ impl FilterCondition {
                     }
                 }
             }
+            _ => false,
+        }
+    }
+
+    fn compare_reference(&self, reference: &crate::ReferenceValue) -> bool {
+        // Compare reference by converting to string representation
+        // Entity references: "person.john_doe"
+        // Field references: "person.john_doe.name"
+        let ref_str = reference.to_string();
+
+        // The filter value should be a Reference or String variant
+        match &self.value {
+            FilterValue::Reference(filter_ref_str) => {
+                // Case-insensitive comparison of reference strings
+                ref_str.eq_ignore_ascii_case(filter_ref_str)
+            }
+            FilterValue::String(filter_str) => {
+                // Also allow comparing against plain strings for convenience
+                ref_str.eq_ignore_ascii_case(filter_str)
+            }
+            _ => false,
+        }
+    }
+
+    fn compare_list(&self, items: &[FieldValue]) -> bool {
+        match self.operator {
+            FilterOperator::Contains => {
+                // For "contains" operator, check if any list item matches the filter value
+                // Support string matching for now (most common use case)
+                match &self.value {
+                    FilterValue::String(filter_str) => {
+                        items.iter().any(|item| {
+                            match item {
+                                FieldValue::String(s) => s.to_lowercase().contains(&filter_str.to_lowercase()),
+                                _ => false,
+                            }
+                        })
+                    }
+                    _ => false,
+                }
+            }
+            FilterOperator::Equal => {
+                // For equality, compare the entire list (exact match)
+                match &self.value {
+                    FilterValue::List(filter_items) => {
+                        if items.len() != filter_items.len() {
+                            return false;
+                        }
+                        // Compare each item (simplified comparison for now)
+                        items.iter().zip(filter_items.iter()).all(|(item, filter_item)| {
+                            self.compare_list_item(item, filter_item)
+                        })
+                    }
+                    _ => false,
+                }
+            }
+            _ => false, // Other operators not supported for lists yet
+        }
+    }
+
+    fn compare_list_item(&self, item: &FieldValue, filter_item: &FilterValue) -> bool {
+        // Compare individual list items
+        match (item, filter_item) {
+            (FieldValue::String(s1), FilterValue::String(s2)) => s1.eq_ignore_ascii_case(s2),
+            (FieldValue::Integer(i1), FilterValue::Integer(i2)) => i1 == i2,
+            (FieldValue::Float(f1), FilterValue::Float(f2)) => (f1 - f2).abs() < f64::EPSILON,
+            (FieldValue::Boolean(b1), FilterValue::Boolean(b2)) => b1 == b2,
+            // Add more types as needed
             _ => false,
         }
     }
