@@ -22,50 +22,9 @@ firm get <entity_type> <entity_id>
 
 # Explore relationships for an entity
 firm related <entity_type> <entity_id>
-```
 
-### Common Workflows
-
-#### Adding a new contact and interaction
-
-When adding contacts, create a `.firm` file with the contact, their organization, and any interactions:
-
-```firm
-organization acme {
-    name = "Acme Corp"
-}
-
-person john_doe {
-    name = "John Doe"
-}
-
-contact john_at_acme {
-    person_ref = person.john_doe
-    account_ref = account.acme
-    role = "CEO"
-}
-
-interaction intro_call {
-    type = "Call"
-    subject = "Introduction call"
-    interaction_date = 2025-12-30 at 14:00 UTC
-    initiator_ref = person.me
-    primary_contact_ref = contact.john_at_acme
-}
-```
-
-#### Creating a task
-
-Tasks can reference other entities as their source:
-
-```firm
-task follow_up {
-    name = "Follow up with John"
-    source_ref = interaction.intro_call
-    assignee_ref = person.me
-    due_date = 2026-01-05
-    is_completed = false
-}
+# Query the workspace
+firm query <query_string>
 ```
 
 ### Best Practices
@@ -125,17 +84,130 @@ Arguments:
 The command validates against schemas and provides error messages for self-correction.
 In cases where you're adding new entities, this is preferable to first editing the DSL and then building the workspace to verify.
 
+### Querying with the Query Language
+
+For advanced queries, use `firm query` with the Firm Query Language. This provides filtering, relationship traversal, sorting, and limiting capabilities without needing external tools like `jq`.
+
+**Basic syntax:**
+```
+from <type or wildcard> | <operation> | <operation> | ...
+```
+
+**Available operations:**
+
+1. **`where <field> <operator> <value>`** - Filter entities
+   - Operators: `==`, `!=`, `>`, `<`, `>=`, `<=`, `contains`, `startswith`, `endswith`, `in`
+   - Works with all field types and metadata fields (`@type`, `@id`)
+   - Examples:
+     ```bash
+     firm query 'from task | where is_completed == false'
+     firm query 'from person | where email contains "@acme.com"'
+     firm query 'from * | where @type == "task"'
+     ```
+
+2. **`related([degrees]) [type]`** - Traverse relationships
+   - Default: 1 degree of separation
+   - Optional type filter to only return specific entity types
+   - Examples:
+     ```bash
+     firm query 'from person | related task'
+     firm query 'from project | related(2)'
+     firm query 'from contact | related(2) interaction'
+     ```
+
+3. **`order <field> [asc|desc]`** - Sort results
+   - Default: ascending
+   - Works with regular fields and metadata (`@type`, `@id`)
+   - Examples:
+     ```bash
+     firm query 'from task | order due_date'
+     firm query 'from task | order due_date desc'
+     firm query 'from * | order @type'
+     ```
+
+4. **`limit <n>`** - Limit number of results
+   - Example: `firm query 'from task | limit 10'`
+
+**Complex query example:**
+```bash
+# Find incomplete tasks due soon from active projects
+firm query 'from project | where status == "in progress" | related(2) task | where is_completed == false | where due_date > 2025-01-01 | order due_date | limit 10'
+```
+
+**Composable operations:**
+Operations can be chained in any order. The query engine processes them left-to-right, with each operation transforming the result set for the next operation.
+
+**Field types in queries:**
+- Strings: `"value"` or `'value'`
+- Numbers: `42` or `3.14`
+- Booleans: `true` or `false`
+- Currency: `5000.50 USD`
+- DateTime: `2025-01-15` or `2025-01-15 at 14:00` or `2025-01-15 at 14:00 UTC` `2025-01-15 at 14:00 UTC+3`
+- References: `person.john_doe`
+- Enums: `enum"value"` or `"value"`
+- Paths: `path"./file.txt"`  or `"./file.txt"`
+
+### Manual Workflows
+Sometimes you might want to read or edit firm DSL directly.
+This is always a possibility if the CLI doesn't provide the necessary functionality, but you should always remember to build the workspace with the CLI afterwards to verify that the changes were valid.
+
+#### Adding a new contact and interaction
+
+When adding contacts via DSL, create a `.firm` file with the contact, their organization, and any interactions:
+
+```firm
+organization acme {
+    name = "Acme Corp"
+}
+
+person john_doe {
+    name = "John Doe"
+}
+
+contact john_at_acme {
+    person_ref = person.john_doe
+    account_ref = account.acme
+    role = "CEO"
+}
+
+interaction intro_call {
+    type = "Call"
+    subject = "Introduction call"
+    interaction_date = 2025-12-30 at 14:00 UTC
+    initiator_ref = person.me
+    primary_contact_ref = contact.john_at_acme
+}
+```
+
+#### Creating a task
+
+Tasks can reference other entities as their source:
+
+```firm
+task follow_up {
+    name = "Follow up with John"
+    source_ref = interaction.intro_call
+    assignee_ref = person.me
+    due_date = 2026-01-05
+    is_completed = false
+}
+```
+
 ### Output Formats
 
-Use `--format json` for structured output that's easy to parse:
+For structured output that's easy to parse programmatically, use `--format json`:
 
 ```bash
-firm list task --format json | jq '.[] | select(.is_completed == false)'
+firm list task --format json
+firm query 'from task | where is_completed == false' --format json
+
+# Combine with jq to extract specific data
+firm query 'from task | order due_date asc | limit 5' --format json | jq '.[].id'
 ```
 
 ### Notes for AI Agents
 
 - The workspace structure is validated by schemas defined in the `schemas/` directory
-- Entity IDs must be unique and follow snake_case naming
+- Entity IDs should be unique and follow snake_case naming
 - References between entities create a queryable graph structure
 - Always validate changes with `firm build` before committing
