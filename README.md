@@ -129,6 +129,29 @@ Initiator ref: person.jane_smith
 Primary contact ref: contact.john_doe
 ```
 
+#### Custom queries
+
+For deeper insights, use `firm query` with supports a SQL-like query language. This allows you to filter, traverse relationships, sort, and limit results all in one expression.
+
+**Basic syntax:**
+```
+from <type> | <operation> | <operation> | ...
+```
+
+**Available operations:**
+- `where <field> <operator> <value>` - Filter entities by field values
+- `related([degrees]) [<type>]` - Traverse relationships
+- `order <field> [asc|desc]` - Sort results
+- `limit <n>` - Limit the number of results
+
+**Example:** Find recent incomplete tasks related to active projects, sorted by due date:
+
+```bash
+$ firm query 'from project | where status == "in progress" | related(2) task | where is_completed == false | where due_date > 2025-01-01 | order due_date | limit 10'
+```
+
+You can filter by any field or metadata (`@type`, `@id`), traverse relationships multiple degrees deep, and compose operations to build the exact query you need.
+
 ## Installation
 The Firm CLI is available to download via [Github Releases](https://github.com/42futures/firm/releases/). Install scripts are provided to make the process easy.
 
