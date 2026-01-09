@@ -27,7 +27,7 @@ pub enum ParsedEntitySelector {
 pub enum ParsedOperation {
     Where(ParsedCondition),
     Related { degree: Option<usize>, selector: Option<ParsedEntitySelector> },
-    Order { field: String, direction: ParsedDirection },
+    Order { field: ParsedField, direction: ParsedDirection },
     Limit(usize),
 }
 

@@ -60,12 +60,11 @@ fn convert_operation(parsed: ParsedOperation) -> Result<QueryOperation, QueryCon
             Ok(QueryOperation::Where(filter_condition))
         }
         ParsedOperation::Limit(n) => Ok(QueryOperation::Limit(n)),
-        ParsedOperation::Order { field, direction } => Ok(QueryOperation::Order {
-            field: FieldId::new(&field),
-            direction: convert_direction(direction),
-        }),
+        ParsedOperation::Order { field, direction } => {
+            convert_order(field, direction)
+        }
         ParsedOperation::Related { degree, selector } => {
-            // For now, default to 1 degree if not specified
+            // Default to 1 degree if not specified
             let degrees = degree.unwrap_or(1);
             let entity_type = selector.and_then(|sel| match sel {
                 ParsedEntitySelector::Type(type_str) => Some(EntityType::new(&type_str)),
@@ -85,6 +84,16 @@ fn convert_condition(parsed: ParsedCondition) -> Result<FilterCondition, QueryCo
     let value = convert_value(parsed.value)?;
 
     Ok(FilterCondition::new(field, operator, value))
+}
+
+fn convert_order(field: ParsedField, direction: ParsedDirection) -> Result<QueryOperation, QueryConversionError> {
+    let field_ref = convert_field(field);
+    let sort_direction = convert_direction(direction);
+
+    Ok(QueryOperation::Order {
+        field: field_ref,
+        direction: sort_direction,
+    })
 }
 
 fn convert_field(parsed: ParsedField) -> FieldRef {

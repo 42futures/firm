@@ -303,8 +303,33 @@ fn parse_order_clause(pair: pest::iterators::Pair<Rule>) -> Result<ParsedOperati
 
     for inner_pair in pair.into_inner() {
         match inner_pair.as_rule() {
-            Rule::field_name => {
-                field = Some(inner_pair.as_str().to_string());
+            Rule::order_field => {
+                // order_field can be either metadata_field or field_name
+                let field_pair = inner_pair.into_inner().next().ok_or_else(|| {
+                    QueryParseError::SyntaxError("Invalid order field".to_string())
+                })?;
+
+                match field_pair.as_rule() {
+                    Rule::metadata_field => {
+                        let metadata_name = field_pair
+                            .into_inner()
+                            .next()
+                            .ok_or_else(|| {
+                                QueryParseError::SyntaxError("Invalid metadata field".to_string())
+                            })?
+                            .as_str()
+                            .to_string();
+                        field = Some(ParsedField::Metadata(metadata_name));
+                    }
+                    Rule::field_name => {
+                        field = Some(ParsedField::Regular(field_pair.as_str().to_string()));
+                    }
+                    _ => {
+                        return Err(QueryParseError::SyntaxError(
+                            "Invalid field in order clause".to_string(),
+                        ))
+                    }
+                }
             }
             Rule::direction => {
                 direction = match inner_pair.as_str() {
@@ -389,7 +414,7 @@ mod tests {
 
         let query = result.unwrap();
         if let Some(ParsedOperation::Order { field, direction }) = query.operations.first() {
-            assert_eq!(field, "due_date");
+            assert_eq!(*field, ParsedField::Regular("due_date".to_string()));
             assert_eq!(*direction, ParsedDirection::Descending);
         } else {
             panic!("Expected Order operation");

@@ -40,8 +40,9 @@ operator = {
 related_clause = { "related" ~ degree? ~ entity_selector? }
 degree = { "(" ~ number ~ ")" }
 
-// ORDER clause: "order field_name" or "order field_name desc"
-order_clause = { "order" ~ field_name ~ direction? }
+// ORDER clause: "order field_name" or "order field_name desc" or "order @type"
+order_clause = { "order" ~ order_field ~ direction? }
+order_field = { metadata_field | field_name }
 direction = { "asc" | "desc" }
 
 // LIMIT clause: "limit 10"

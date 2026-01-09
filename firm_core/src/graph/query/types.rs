@@ -1,7 +1,8 @@
 //! Core query types for executing queries against the entity graph
 
-use crate::{Entity, EntityType, FieldId};
+use crate::{Entity, EntityType};
 use super::filter::FilterCondition;
+use super::order::compare_entities_by_field;
 
 /// Sort direction
 #[derive(Debug, Clone, PartialEq)]
@@ -59,11 +60,16 @@ impl Query {
                 QueryOperation::Where(condition) => {
                     entities.into_iter().filter(|e| condition.matches(e)).collect()
                 }
+                QueryOperation::Order { field, direction } => {
+                    let mut entities = entities;
+                    entities.sort_by(|a, b| compare_entities_by_field(a, b, field, direction));
+                    entities
+                }
                 QueryOperation::Limit(n) => {
                     entities.into_iter().take(*n).collect()
                 }
-                // TODO: Implement other operations
-                _ => entities, // For now, unimplemented operations just pass through
+                // TODO: Implement related operation
+                QueryOperation::Related { .. } => entities, // Not implemented yet
             };
         }
 
@@ -90,15 +96,16 @@ pub enum QueryOperation {
         degrees: usize,
         entity_type: Option<EntityType>,
     },
-    /// Sort entities by a field
+    /// Sort entities by a field (or metadata)
     Order {
-        field: FieldId,
+        field: super::filter::FieldRef,
         direction: SortDirection,
     },
     /// Limit the number of results
     Limit(usize),
 }
 
+/// Compare two entities by a specific field for sorting
 #[cfg(test)]
 mod tests {
     use super::*;

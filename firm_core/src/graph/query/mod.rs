@@ -6,6 +6,7 @@
 //! - Query execution against the entity graph
 
 mod filter;
+mod order;
 mod types;
 
 // Re-export all public types
