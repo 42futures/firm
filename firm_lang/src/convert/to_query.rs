@@ -64,16 +64,7 @@ fn convert_operation(parsed: ParsedOperation) -> Result<QueryOperation, QueryCon
             convert_order(field, direction)
         }
         ParsedOperation::Related { degree, selector } => {
-            // Default to 1 degree if not specified
-            let degrees = degree.unwrap_or(1);
-            let entity_type = selector.and_then(|sel| match sel {
-                ParsedEntitySelector::Type(type_str) => Some(EntityType::new(&type_str)),
-                ParsedEntitySelector::Wildcard => None,
-            });
-            Ok(QueryOperation::Related {
-                degrees,
-                entity_type,
-            })
+            convert_related(degree, selector)
         }
     }
 }
@@ -93,6 +84,20 @@ fn convert_order(field: ParsedField, direction: ParsedDirection) -> Result<Query
     Ok(QueryOperation::Order {
         field: field_ref,
         direction: sort_direction,
+    })
+}
+
+fn convert_related(degree: Option<usize>, selector: Option<ParsedEntitySelector>) -> Result<QueryOperation, QueryConversionError> {
+    // Default to 1 degree if not specified
+    let degrees = degree.unwrap_or(1);
+    let entity_type = selector.and_then(|sel| match sel {
+        ParsedEntitySelector::Type(type_str) => Some(EntityType::new(&type_str)),
+        ParsedEntitySelector::Wildcard => None,
+    });
+
+    Ok(QueryOperation::Related {
+        degrees,
+        entity_type,
     })
 }
 
