@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use firm_lang::parser::parse_source;
+    use firm_lang::parser::dsl::parse_source;
 
     #[test]
     fn test_basic_schema_parsing() {

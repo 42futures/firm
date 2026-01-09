@@ -7,10 +7,12 @@ use serde::ser::SerializeMap;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 mod graph_errors;
+mod access;
 mod query;
 
 pub use graph_errors::GraphError;
 pub use petgraph::Direction;
+pub use query::*;
 
 use crate::{Entity, EntityId, EntityType, FieldId, FieldValue, ReferenceValue};
 

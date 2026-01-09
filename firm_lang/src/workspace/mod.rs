@@ -7,7 +7,7 @@ use std::{collections::HashMap, path::PathBuf};
 pub use build::WorkspaceBuild;
 pub use workspace_errors::WorkspaceError;
 
-use crate::parser::ParsedSource;
+use crate::parser::dsl::ParsedSource;
 
 /// Represents a collection of files to be processed by Firm.
 ///

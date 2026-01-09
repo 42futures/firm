@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use chrono::{Datelike, Offset, Timelike};
-    use firm_lang::parser::{ParsedValue, parse_source};
+    use firm_lang::parser::dsl::{ParsedValue, parse_source};
 
     #[test]
     fn test_basic_entity_parsing() {

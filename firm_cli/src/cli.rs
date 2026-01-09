@@ -78,4 +78,9 @@ pub enum FirmCliCommand {
         #[arg(long = "list-value", num_args = 2, value_names = ["FIELD_NAME", "VALUE"])]
         list_values: Vec<String>,
     },
+    /// Query entities in the workspace using a query language.
+    Query {
+        /// Query string (e.g., "from task | where is_completed == false | limit 5")
+        query: String,
+    },
 }
