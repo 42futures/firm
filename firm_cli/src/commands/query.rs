@@ -22,10 +22,6 @@ pub fn query_entities(
         CliError::QueryError
     })?;
 
-    ui::success(&format!("Query parsed successfully"));
-    ui::success(&format!("  From: {}", parsed_query.from.selector));
-    ui::success(&format!("  Operations: {}", parsed_query.operations.len()));
-
     // Convert to executable query
     let query: Query = parsed_query.try_into().map_err(|e| {
         ui::error(&format!("Failed to convert query: {}", e));
@@ -33,6 +29,7 @@ pub fn query_entities(
     })?;
 
     // Execute the query
+    ui::debug("Executing query");
     let results = query.execute(&graph);
 
     ui::success(&format!("Query returned {} entities", results.len()));
