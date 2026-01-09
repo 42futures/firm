@@ -7,8 +7,10 @@
 
 mod filter;
 mod order;
+mod related;
 mod types;
 
 // Re-export all public types
 pub use filter::*;
+pub use related::*;
 pub use types::*;

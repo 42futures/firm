@@ -68,8 +68,14 @@ impl Query {
                 QueryOperation::Limit(n) => {
                     entities.into_iter().take(*n).collect()
                 }
-                // TODO: Implement related operation
-                QueryOperation::Related { .. } => entities, // Not implemented yet
+                QueryOperation::Related { degrees, entity_type } => {
+                    super::related::get_related_entities(
+                        graph,
+                        entities,
+                        *degrees,
+                        entity_type.as_ref(),
+                    )
+                }
             };
         }
 
