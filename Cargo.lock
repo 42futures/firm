@@ -406,7 +406,7 @@ checksum = "52051878f80a721bb68ebfbc930e07b65ba72f2da88968ea5c06fd6ca3d3a127"
 
 [[package]]
 name = "firm-cli"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "chrono",
  "clap",
@@ -427,7 +427,7 @@ dependencies = [
 
 [[package]]
 name = "firm_core"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "assert_matches",
  "chrono",
@@ -443,7 +443,7 @@ dependencies = [
 
 [[package]]
 name = "firm_lang"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "assert_matches",
  "chrono",
