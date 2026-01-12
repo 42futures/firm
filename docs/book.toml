@@ -1,0 +1,23 @@
+[book]
+authors = ["Daniel Rothmann"]
+language = "en"
+src = "src"
+title = "Firm"
+
+[output.html]
+default-theme = "coal"
+preferred-dark-theme = "coal"
+git-repository-url = "https://github.com/42futures/firm"
+git-repository-icon = "fa-github"
+additional-css = ["theme/custom.css"]
+no-section-label = true
+
+[output.html.playground]
+editable = false
+
+[output.html.print]
+enable = false
+
+[output.html.fold]
+enable = true
+level = 0
