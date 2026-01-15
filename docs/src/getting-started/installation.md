@@ -36,8 +36,4 @@ firm --version
 
 You should see the version number printed to your terminal.
 
-## Next steps
 
-Now that you have Firm installed, you can:
-- [Get started with the quick start guide](./quick-start.md)
-- Learn about [workspaces](./workspace.md)

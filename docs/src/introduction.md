@@ -22,15 +22,11 @@ Version controlled, locally stored and structured as code with the Firm DSL. Thi
 
 ## Who is it for?
 
-I built Firm to help me run 42futures: a solo venture specializing in software pilots.
+I built Firm to help me run [42futures](https://42futures.com): a solo venture specializing in software pilots.
 
 The tool is suitable for:
 - **Freelancers** managing multiple clients and projects
 - **Technical teams** who prefer plain text and version control over SaaS dashboards
-- **Anyone** who wants to own their business data, not rent it from someone else's database
+- **Anyone** who wants to own their data and tools, not rent them from someone else
 
-## What's next?
 
-- [Install Firm](./getting-started/installation.md) and get started
-- Learn about [core concepts](./concepts/entities.md)
-- Explore [using Firm as a library](./library/getting-started.md)

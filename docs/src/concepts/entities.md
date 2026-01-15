@@ -52,8 +52,4 @@ Common built-in types:
 - `lead` - A sales opportunity
 - `interaction` - A meeting, call, or email
 
-## Next steps
 
-- Learn about [fields](./fields.md) and their types
-- Understand [relationships between entities](./relationships.md)
-- Explore [built-in entities](./built-in-entities.md)

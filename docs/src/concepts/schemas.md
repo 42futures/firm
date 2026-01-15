@@ -124,7 +124,4 @@ employee emp_001 {
 
 One `person` can be referenced by multiple `employee`, `contact`, and `partner` entities simultaneously.
 
-## Next steps
 
-- Explore [built-in entities and their schemas](./built-in-entities.md)
-- Learn about [fields and their types](./fields.md)

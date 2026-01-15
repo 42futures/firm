@@ -142,7 +142,4 @@ let person = entity.get_field(FieldId::new("name"))?;
 entity.set_field(FieldId::new("email"), FieldValue::String("john@example.com".to_string()));
 ```
 
-## Next steps
 
-- Learn about [relationships using references](./relationships.md)
-- Understand how [schemas validate fields](./schemas.md)

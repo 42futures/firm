@@ -12,7 +12,7 @@ firm init
 
 This interactive command will help you set up your workspace by:
 - Creating default schemas for common entity types (Person, Organization, Task, etc.)
-- Adding a `.gitignore` file
+- Adding a `.gitignore` file for Firm's graph files
 - Creating starter entities (you and your organization)
 - Adding AI context documentation for AI coding assistants
 
@@ -20,7 +20,7 @@ Once initialized, your workspace is ready to use!
 
 ## Add your first entity
 
-Use `firm add` to generate new entities. Out of the box, Firm supports a set of pre-built entity schemas for org mapping, customer relations and work management. The CLI will prompt you for the necessary info and generate corresponding DSL.
+Use `firm add` to generate new entities. The CLI will prompt you for the necessary info and generate corresponding DSL.
 
 ```bash
 $ firm add
@@ -59,8 +59,12 @@ Email: mega@corp.com
 Urls: ["corp.com"]
 ```
 
-## Next steps
+## Query your data
 
-- Learn more about [working with workspaces](./workspace.md)
-- Explore [adding entities](../guide/adding-entities.md)
-- Dive into [querying data](../guide/querying.md)
+Once you have a few entities, you can search and filter them using Firm's query language:
+
+```bash
+$ firm query 'from organization | where name contains "Mega"'
+```
+
+

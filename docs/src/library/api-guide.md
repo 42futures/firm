@@ -176,7 +176,4 @@ match workspace.load_directory("./workspace") {
 }
 ```
 
-## Next steps
 
-- Check the [API documentation](../reference/api-docs.md) for complete API reference
-- See the [architecture overview](../reference/architecture.md) for how the crates are organized

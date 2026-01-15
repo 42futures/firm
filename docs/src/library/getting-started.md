@@ -96,8 +96,4 @@ person john_doe {
 }
 ```
 
-## Next steps
 
-- Learn more about [working with the API](./api-guide.md)
-- See the [architecture overview](../reference/architecture.md)
-- Check the [API documentation](../reference/api-docs.md)

@@ -68,7 +68,4 @@ For code examples, see:
 - [API guide](../library/api-guide.md)
 - The `examples/` directory in the repository
 
-## Next steps
 
-- Browse the [API guide](../library/api-guide.md) for common patterns
-- Check the [architecture overview](./architecture.md) to understand the crate structure

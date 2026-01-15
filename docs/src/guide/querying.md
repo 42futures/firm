@@ -2,6 +2,21 @@
 
 Once you have entities in your workspace, you can query them using the CLI.
 
+## Getting an entity
+
+To view the full details of a single entity, use `firm get` followed by the entity's type and ID.
+
+```bash
+$ firm get person john_doe
+```
+```
+Found 'person' entity with ID 'john_doe'
+
+ID: person.john_doe
+Name: John Doe
+Email: john@doe.com
+```
+
 ## Listing entities
 
 Use `firm list` to see all entities of a specific type.
@@ -20,44 +35,11 @@ Assignee ref: person.jane_doe
 ...
 ```
 
-## Getting an entity
-
-To view the full details of a single entity, use `firm get` followed by the entity's type and ID.
-
-```bash
-$ firm get person john_doe
-```
-```
-Found 'person' entity with ID 'john_doe'
-
-ID: person.john_doe
-Name: John Doe
-Email: john@doe.com
-```
-
-## Exploring relationships
-
-The power of Firm lies in its ability to traverse a graph of your business. Use `firm related` to explore connections to/from any entity.
-
-```bash
-$ firm related contact john_doe
-```
-```
-Found 1 relationships for 'contact' entity with ID 'john_doe'
-
-ID: interaction.megacorp_intro
-Type: Call
-Subject: Initial discussion about Project X
-Interaction date: 2025-09-30 09:45:00 +02:00
-Initiator ref: person.jane_smith
-Primary contact ref: contact.john_doe
-```
-
 ## Custom queries
 
-For deeper insights, use `firm query` which supports a SQL-like query language. This allows you to filter, traverse relationships, sort, and limit results all in one expression.
+For deeper insights, use `firm query` which supports a SQL-like query language. This allows you to filter, traverse relationships, sort, and limit results in one expression.
 
-### Basic syntax
+### Query syntax
 
 ```
 from <type> | <operation> | <operation> | ...
@@ -65,6 +47,7 @@ from <type> | <operation> | <operation> | ...
 
 ### Available operations
 
+- `from <type>` - Selects the initial entity set
 - `where <field> <operator> <value>` - Filter entities by field values
 - `related([degrees]) [<type>]` - Traverse relationships
 - `order <field> [asc|desc]` - Sort results
@@ -99,7 +82,4 @@ You can filter by any field or metadata (`@type`, `@id`), traverse relationships
 - `>=` - Greater than or equal
 - `<=` - Less than or equal
 
-## Next steps
-
-- Learn about [relationships and the entity graph](../concepts/relationships.md)
-- Explore [built-in entities](../concepts/built-in-entities.md)
+For more details, see the [Query reference](../reference/query-reference.md).

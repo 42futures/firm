@@ -107,8 +107,4 @@ You can:
 
 The graph supports both forward and backward traversal.
 
-## Next steps
 
-- Learn about [schemas](./schemas.md) for defining relationship constraints
-- Explore [built-in entities](./built-in-entities.md) and their relationships
-- See the [querying guide](../guide/querying.md) for more query examples

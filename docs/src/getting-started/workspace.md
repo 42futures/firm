@@ -1,36 +1,18 @@
-# Working with your workspace
+# Your workspace
 
 ## What is a workspace?
 
-Firm operates on a "workspace": a directory containing all your `.firm` DSL files. The Firm CLI processes every file in this workspace to build a unified, queryable graph of your business.
+Firm operates on a directory containing all your `.firm` DSL files. That's what we call your "workspace". Firm processes every file in this workspace to build a graph of your business.
 
-You can add entities to your workspace either by using the CLI or by writing the DSL yourself.
+You can interact with entities in your workspace either by using the Firm CLI or by writing Firm DSL yourself.
 
-## Adding entities with the CLI
+The CLI by default uses your current working directory as the root of the workspace. If you'd like to use a different workspace, you can specify it with `firm --workspace <path>`, where the path can be relative or absolute.
 
-Use `firm add` to generate new entities. The CLI will prompt you for the necessary information and generate the corresponding DSL.
+## Writing DSL
 
-```bash
-$ firm add
-```
+You can create `.firm` files and write the DSL yourself. These files are automatically included when they're in a Firm workspace.
 
-The interactive prompt will guide you through selecting a type and providing field values.
-
-### Non-interactive mode
-
-You can also use `firm add` in non-interactive mode:
-
-```bash
-$ firm add --type organization --id megacorp --field name "Megacorp Ltd."
-```
-
-This is useful for scripting and automation.
-
-## Writing DSL manually
-
-Alternatively, you can create a `.firm` file and write the DSL yourself.
-
-Create a new file (e.g., `organizations.firm`):
+DSL example (e.g., `organizations.firm`):
 
 ```firm
 organization megacorp {
@@ -40,7 +22,7 @@ organization megacorp {
 }
 ```
 
-Both methods achieve the same result: a new entity defined in your Firm workspace.
+See the [DSL reference](../reference/dsl-reference.md) for more.
 
 ## Organizing your files
 
@@ -63,12 +45,9 @@ git commit -m "Initial workspace"
 ```
 
 This gives you:
-- Full history of changes
+- Auditable history of changes
 - Collaboration with teammates
 - Backup and recovery
 - Branch-based workflows for planning
 
-## Next steps
 
-- Learn about [adding entities](../guide/adding-entities.md)
-- Explore [querying your data](../guide/querying.md)

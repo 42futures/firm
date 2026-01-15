@@ -116,8 +116,4 @@ To see the full schema for any built-in entity type, you can:
 
 You can define your own entity types with [schemas](./schemas.md) to model your specific business domain.
 
-## Next steps
 
-- Learn how to [define custom schemas](./schemas.md)
-- Explore [relationships between entities](./relationships.md)
-- See [querying examples](../guide/querying.md)

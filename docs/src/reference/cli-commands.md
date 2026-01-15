@@ -169,7 +169,4 @@ For command-specific help:
 firm <command> --help
 ```
 
-## Next steps
 
-- Learn more about [querying](../guide/querying.md)
-- Explore the [query language syntax](../guide/querying.md#custom-queries)

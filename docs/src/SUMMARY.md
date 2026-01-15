@@ -5,29 +5,33 @@
 # Getting started
 
 - [Installation](./getting-started/installation.md)
-- [Quick Start](./getting-started/quick-start.md)
-- [Working with Your Workspace](./getting-started/workspace.md)
+- [Quick start](./getting-started/quick-start.md)
+- [Your workspace](./getting-started/workspace.md)
 
 # Guides
 
-- [Adding Entities](./guide/adding-entities.md)
-- [Querying Data](./guide/querying.md)
+- [Creating schemas](./guide/creating-schemas.md)
+- [Working with relationships](./guide/relationships.md)
+- [Querying data](./guide/querying.md)
+- [Automations and AI assistants](./guide/automations-and-ai.md)
 
 # Concepts
 
 - [Entities](./concepts/entities.md)
 - [Fields](./concepts/fields.md)
-- [Relationships & The Entity Graph](./concepts/relationships.md)
+- [Relationships & the entity graph](./concepts/relationships.md)
 - [Schemas](./concepts/schemas.md)
-- [Built-in Entities](./concepts/built-in-entities.md)
+- [Built-in entities](./concepts/built-in-entities.md)
 
-# Firm as a Library
+# Firm as a library
 
-- [Getting Started with Rust](./library/getting-started.md)
+- [Getting started with Rust](./library/getting-started.md)
 - [Working with the API](./library/api-guide.md)
 
 # Reference
 
 - [Architecture](./reference/architecture.md)
-- [CLI Commands](./reference/cli-commands.md)
-- [API Documentation](./reference/api-docs.md)
+- [DSL reference](./reference/dsl-reference.md)
+- [Query reference](./reference/query-reference.md)
+- [CLI reference](./reference/cli-reference.md)
+- [API documentation](./reference/api-docs.md)

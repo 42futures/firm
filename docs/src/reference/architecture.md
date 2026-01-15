@@ -127,7 +127,4 @@ Output
 - Efficient graph traversal
 - Minimal allocations in hot paths
 
-## Next steps
 
-- See the [API guide](../library/api-guide.md) for working with the crates
-- Check the [API documentation](./api-docs.md) for detailed API reference
