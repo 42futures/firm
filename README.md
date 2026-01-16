@@ -40,7 +40,7 @@ cd my_workspace
 firm init
 ```
 
-### Add your first entity
+### Add an entity
 
 ```bash
 firm add --type organization --id megacorp --field name "Megacorp Ltd."
@@ -53,7 +53,7 @@ firm list organization
 firm query 'from organization | where name contains "Megacorp"'
 ```
 
-**[Read the full documentation to learn more.](https://42futures.github.io/firm/)**
+**[Read the full documentation to learn more.](https://firm.42futures.com)**
 
 ## Contributing
 

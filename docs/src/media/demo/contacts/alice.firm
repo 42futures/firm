@@ -1,0 +1,9 @@
+person alice {
+    name = "Alice Chen"
+    company = "Acme Corp"
+}
+
+contact alice_acme {
+    person_ref = person.alice
+    role = "CTO"
+}

@@ -1,0 +1,5 @@
+project website {
+    name = "Website Redesign"
+    contact_ref = contact.alice_acme
+    status = "active"
+}

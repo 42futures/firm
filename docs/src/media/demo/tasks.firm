@@ -1,0 +1,23 @@
+task wireframes {
+    name = "Create wireframes"
+    project_ref = project.website
+    status = "open"
+}
+
+task content {
+    name = "Content audit"
+    project_ref = project.website
+    status = "done"
+}
+
+task api_docs {
+    name = "Write API docs"
+    project_ref = project.platform
+    status = "open"
+}
+
+task setup_ci {
+    name = "Setup CI pipeline"
+    project_ref = project.platform
+    status = "open"
+}

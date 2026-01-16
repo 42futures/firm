@@ -1,7 +1,7 @@
-Output ../media/demo.gif
+Output ../demo.gif
 Set FontSize 14
-Set Width 1000
-Set Height 600
+Set Width 1200
+Set Height 700
 Set WindowBar Colorful
 Set Margin 20
 Set MarginFill "#c566ff"
@@ -11,37 +11,24 @@ Set LineHeight 1.3
 Type "tree"
 Sleep 0.5s
 Enter
-Sleep 2s
+Sleep 2.5s
 
-Type "cat core/main.firm"
+Type "cat contacts/alice.firm"
 Sleep 0.5s
 Enter
 Sleep 3s
 
-Type "clear"
-Sleep 0.5s
-Enter
-Sleep 500ms
-
-# List entities
-Type "firm build"
-Sleep 0.5s
-Enter
-Sleep 2s
-
-# List entities
-Type "firm -c list contact"
+Type "firm related contact alice_acme"
 Sleep 0.5s
 Enter
 Sleep 3s
 
-# The killer feature: traverse the graph
-Type "firm -c related contact kent_smith"
+Type `firm add --type task --id review --field name 'Review' --field project_ref 'project.website'`
 Sleep 0.5s
 Enter
-Sleep 3s
+Sleep 2.5s
 
-Type "firm -c get task kent_lunch_meeting"
+Type `firm query 'from project | where status == "active" | related task'`
 Sleep 0.5s
 Enter
-Sleep 3s
+Sleep 4s
