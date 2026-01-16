@@ -108,8 +108,8 @@ Links to other entities:
 
 ```firm
 task design {
-    assignee = person.jane_doe
-    project = project.website_redesign
+    assignee_ref = person.jane_doe
+    project_ref = project.website_redesign
 }
 ```
 

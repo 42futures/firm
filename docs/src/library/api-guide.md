@@ -119,7 +119,7 @@ let related = graph.get_related_entities(&EntityId::new("organization.acme"))?;
 ### Follow a reference
 
 ```rust,no_run
-let assignee_ref = task.get_field(FieldId::new("assignee"))?;
+let assignee_ref = task.get_field(FieldId::new("assignee_ref"))?;
 if let FieldValue::Reference(ref_id) = assignee_ref {
     let assignee = graph.get_entity(ref_id)?;
     println!("Assigned to: {:?}", assignee);
@@ -139,7 +139,7 @@ let contact = contact_ref.resolve_entity_reference(&graph)?;
 use firm_core::{EntitySchema, FieldType};
 
 let schema = EntitySchema::new(EntityType::new("task"))
-    .with_required_field(FieldId::new("title"), FieldType::String)
+    .with_required_field(FieldId::new("name"), FieldType::String)
     .with_optional_field(FieldId::new("due_date"), FieldType::DateTime);
 
 schema.validate(&task_entity)?;

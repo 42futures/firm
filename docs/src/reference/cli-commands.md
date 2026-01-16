@@ -44,7 +44,7 @@ firm add
 firm add --type person --id john_doe --field name "John Doe" --field email "john@example.com"
 
 # Multiple fields
-firm add --type task --id design_homepage --field title "Design homepage" --field priority 1
+firm add --type task --id design_homepage --field name "Design homepage" --field priority 1
 ```
 
 ## firm list

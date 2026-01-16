@@ -22,7 +22,7 @@ Here's a basic schema for a task entity:
 ```firm
 schema task {
     field {
-        name = "title"
+        name = "name"
         type = "string"
         required = true
     }
@@ -45,7 +45,7 @@ Now you can define entities that adhere to this schema:
 
 ```firm
 task design_homepage {
-    title = "Design new homepage"
+    name = "Design new homepage"
     description = "Create mockups for the new homepage design"
     completed = false
 }

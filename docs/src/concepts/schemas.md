@@ -24,7 +24,7 @@ This gives you structure where you need it, while allowing flexibility for addit
 ```firm
 schema task {
     field {
-        name = "title"
+        name = "name"
         type = "string"
         required = true
     }
@@ -37,14 +37,14 @@ schema task {
 }
 
 task design_homepage {
-    title = "Design new homepage"
+    name = "Design new homepage"
     completed = false
     custom_priority = "high"  # Not in schema, but allowed
 }
 ```
 
 This entity is valid because:
-- It has all required fields (`title` and `completed`)
+- It has all required fields (`name` and `completed`)
 - Those fields have the correct types
 - The extra `custom_priority` field is allowed
 

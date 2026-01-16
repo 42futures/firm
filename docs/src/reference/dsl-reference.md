@@ -39,7 +39,7 @@ Define a schema for an entity type:
 ```firm
 schema task {
     field {
-        name = "title"
+        name = "name"
         type = "string"
         required = true
     }
@@ -150,7 +150,7 @@ Syntax: `YYYY-MM-DD at HH:MM [UTC[+/-]Z]`
 Entity references:
 
 ```firm
-assignee = person.john_doe
+assignee_ref = person.john_doe
 ```
 
 Field references:

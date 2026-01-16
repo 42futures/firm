@@ -96,7 +96,7 @@ where due_date > 2025-01-15
 where created_at >= 2025-01-15 at 09:00 UTC
 
 # Reference
-where assignee == person.john_doe
+where assignee_ref == person.john_doe
 
 # Enum
 where status == enum"active"

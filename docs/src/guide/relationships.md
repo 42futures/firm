@@ -12,7 +12,7 @@ Entity references point to an entire entity using the format `type.id`. This is 
 
 ```firm
 task design_homepage {
-    assignee = person.john_doe
+    assignee_ref = person.john_doe
 }
 ```
 
@@ -39,13 +39,13 @@ person john_doe {
 }
 
 task design_homepage {
-    title = "Design new homepage"
-    assignee = person.john_doe
+    name = "Design new homepage"
+    assignee_ref = person.john_doe
     completed = false
 }
 ```
 
-The `assignee` field contains a reference to `person.john_doe`, creating a connection from the task to the person.
+The `assignee_ref` field contains a reference to `person.john_doe`, creating a connection from the task to the person.
 
 ## Multiple references
 
@@ -88,7 +88,7 @@ project website_redesign {
 }
 
 task design_mockups {
-    title = "Design mockups"
+    name = "Design mockups"
     project_ref = project.website_redesign
     assignee_ref = person.jane_smith
 }
