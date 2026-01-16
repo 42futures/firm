@@ -1,0 +1,4 @@
+person me {
+    name = "Sam Developer"
+    email = "sam@example.com"
+}

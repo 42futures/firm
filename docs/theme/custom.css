@@ -1,0 +1,234 @@
+/* 42futures.com inspired styling for Firm documentation */
+
+:root {
+    /* Color scheme matching 42futures.com */
+    --bg-primary: #161618;
+    --bg-secondary: #1f1f22;
+    --accent-purple: #c566ff;
+    --accent-green: #02a82b;
+    --accent-orange: #ff7744;
+    --text-primary: #ffffff;
+    --text-secondary: #a0a0a0;
+    --text-tertiary: #6a6a6a;
+
+    /* Typography */
+    --font-family:
+        -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue",
+        "Roboto", "Inter", sans-serif;
+    --font-mono: "Menlo", "Monaco", "Courier New", monospace;
+    --font-weight-heavy: 800;
+}
+
+/* Override mdBook coal theme colors */
+.coal {
+    --bg: var(--bg-primary);
+    --fg: var(--text-primary);
+    --sidebar-bg: var(--bg-secondary);
+    --sidebar-fg: var(--text-secondary);
+    --sidebar-non-existant: var(--text-tertiary);
+    --sidebar-active: var(--accent-purple);
+    --sidebar-spacer: var(--bg-primary);
+    --scrollbar: var(--text-tertiary);
+    --icons: var(--text-secondary);
+    --icons-hover: var(--accent-purple);
+    --links: var(--accent-purple);
+    --inline-code-color: var(--accent-green);
+    --theme-popup-bg: var(--bg-secondary);
+    --theme-popup-border: var(--text-tertiary);
+    --theme-hover: var(--bg-primary);
+    --quote-bg: var(--bg-secondary);
+    --quote-border: var(--accent-purple);
+    --table-border-color: var(--text-tertiary);
+    --table-header-bg: var(--bg-secondary);
+    --table-alternate-bg: var(--bg-secondary);
+    --searchbar-border-color: var(--text-tertiary);
+    --searchbar-bg: var(--bg-secondary);
+    --searchbar-fg: var(--text-primary);
+    --search-mark-bg: var(--accent-orange);
+}
+
+/* Typography overrides */
+body {
+    font-family: var(--font-family);
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+/* Heavy weight headings like 42futures */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-weight: var(--font-weight-heavy);
+    color: var(--text-primary);
+}
+
+h1 {
+    color: var(--accent-purple);
+    border-bottom: 2px solid var(--accent-purple);
+    margin-top: 0;
+}
+
+h2 {
+    color: var(--text-primary);
+    margin-top: 1.5em;
+}
+
+h3 {
+    margin-top: 1.2em;
+}
+
+/* Code blocks */
+code {
+    font-family: var(--font-mono);
+    background-color: var(--bg-secondary);
+    color: var(--accent-green);
+    padding: 0.1em 0.3em;
+    border-radius: 3px;
+}
+
+pre {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--text-tertiary);
+    border-radius: 4px;
+}
+
+pre code {
+    color: var(--text-primary);
+}
+
+/* Links */
+a {
+    color: var(--accent-purple);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Sidebar styling */
+.sidebar {
+    background-color: var(--bg-secondary);
+}
+
+.sidebar-scrollbox {
+    background-color: var(--bg-secondary);
+}
+
+.chapter {
+    color: var(--text-secondary);
+}
+
+.chapter.active {
+    color: var(--accent-purple);
+    font-weight: 600;
+}
+
+.chapter:hover {
+    color: var(--text-primary);
+}
+
+/* Content area */
+.content {
+    max-width: 70ch;
+    color: var(--text-primary);
+}
+
+/* Generous spacing like 42futures */
+.content p {
+    line-height: 1.7;
+    margin-bottom: 1.2em;
+}
+
+.content ul,
+.content ol {
+    line-height: 1.7;
+    margin-bottom: 1.2em;
+}
+
+/* Blockquotes */
+blockquote {
+    border-left: 4px solid var(--accent-purple);
+    background-color: var(--bg-secondary);
+    padding: 1em;
+    margin: 1.5em 0;
+}
+
+/* Tables */
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1.5em 0;
+}
+
+table thead {
+    background-color: var(--bg-secondary);
+}
+
+table th,
+table td {
+    border: 1px solid var(--text-tertiary);
+    padding: 0.5em 1em;
+}
+
+/* Search bar */
+#searchbar {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--text-tertiary);
+    color: var(--text-primary);
+}
+
+/* Navigation buttons */
+.nav-chapters {
+    color: var(--text-secondary);
+}
+
+.nav-chapters:hover {
+    color: var(--accent-purple);
+    text-decoration: none;
+}
+
+/* Menu bar */
+.menu-bar {
+    background-color: var(--bg-secondary);
+    border-bottom: 1px solid var(--text-tertiary);
+}
+
+/* Buttons */
+button {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--text-tertiary);
+}
+
+button:hover {
+    background-color: var(--bg-primary);
+    border-color: var(--accent-purple);
+}
+
+/* Improve contrast for better readability */
+.content main {
+    padding-top: 2em;
+    padding-bottom: 3em;
+}
+
+/* Hide theme selector */
+#theme-toggle {
+    display: none;
+}
+
+/* Remove double box around code blocks */
+.content pre {
+    margin: 0;
+}
+
+.content figure {
+    margin: 1.5em 0;
+}
+
+.content figure pre {
+    margin: 0;
+}

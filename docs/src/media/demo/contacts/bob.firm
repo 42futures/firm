@@ -1,0 +1,9 @@
+person bob {
+    name = "Bob Martinez"
+    company = "TechCo"
+}
+
+contact bob_techco {
+    person_ref = person.bob
+    role = "VP Engineering"
+}

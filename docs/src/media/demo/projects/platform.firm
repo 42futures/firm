@@ -1,0 +1,5 @@
+project platform {
+    name = "Platform Build"
+    contact_ref = contact.bob_techco
+    status = "active"
+}
