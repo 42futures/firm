@@ -91,6 +91,13 @@ task design {
 }
 ```
 
+**Timezone handling:**
+- When you specify just a date (like `2025-01-15`), Firm assumes midnight (00:00) in your local timezone
+- When you specify date and time without a timezone (like `2025-01-15 at 17:00`), Firm uses your local timezone
+- When you specify a UTC offset (like `UTC+3` or `UTC-5`), Firm uses that timezone
+- If you write `UTC` with no offset, it uses UTC+0
+- Only `UTC` timezone offsets are supported (`EST`, `CET`, etc. are not)
+
 ### List
 
 Collections of values. Lists are required to have homogeneous types (all items must be the same type):

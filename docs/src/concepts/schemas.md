@@ -11,7 +11,9 @@ Schemas specify:
 
 ## Validation and flexibility
 
-When Firm builds the entity graph, it validates each entity against its schema. The validation rules are:
+Entities follow an open data model in the entity graph itself. Cchema validation occurs when you build your workspace (using `firm build` or any command that builds the workspace). At build time, Firm validates each entity against its schema.
+
+The validation rules are:
 
 - **Fields in the schema must match the defined types** - A field marked as `boolean` cannot contain a number
 - **Required fields must be present** - If a field is marked `required = true`, the entity must have it

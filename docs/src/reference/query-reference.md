@@ -14,7 +14,9 @@ The query grammar is defined using [Pest](https://pest.rs/) and can be found in 
 
 ### Bag of entities model
 
-Firm queries always operate on a "bag of entities". There is no `select` operator - the output is always a set of entities. The `from` clause selects the initial set of entities, and every subsequent operation filters, expands, limits, or orders that entity set. This keeps the query language simple and focused on navigating the entity graph.
+Firm queries always operate on a "bag of entities". At every stage in query execution, you're processing complete, unmodified entities - we only read, filter, and traverse them, but never modify them or extract individual fields.
+
+The `from` clause selects the initial set of entities, and every subsequent operation filters, expands, limits, or orders that entity set. This keeps the query language simple and focused on navigating the entity graph.
 
 ## Basic syntax
 
