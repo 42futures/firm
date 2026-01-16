@@ -31,7 +31,6 @@
 
 # Reference
 
+- [CLI reference](./reference/cli-reference.md)
 - [DSL reference](./reference/dsl-reference.md)
 - [Query reference](./reference/query-reference.md)
-- [CLI reference](./reference/cli-reference.md)
-- [API documentation](./reference/api-docs.md)
