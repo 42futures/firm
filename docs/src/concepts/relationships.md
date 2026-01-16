@@ -1,10 +1,10 @@
-# Relationships and the entity graph
+# Relationships
 
-The power of Firm comes from connecting entities. You create relationships using `Reference` fields.
+The power of Firm comes from connecting entities using reference fields.
 
-## Creating relationships
+## Making relationships
 
-When you add a reference field to an entity, you create a directed edge in the entity graph:
+When you add a reference field to an entity, you create a relationship:
 
 ```firm
 contact john_at_acme {
@@ -13,98 +13,31 @@ contact john_at_acme {
 }
 ```
 
-This creates:
-- An edge from `contact.john_at_acme` to `person.john_doe`
-- An edge from `contact.john_at_acme` to `organization.acme_corp`
+This creates two relationships:
+- From `contact.john_at_acme` to `person.john_doe`
+- From `contact.john_at_acme` to `organization.acme_corp`
 
 ## The entity graph
 
-When Firm processes your workspace, it builds the **entity graph**: a representation of all your entities (as nodes) and their relationships (as directed edges).
+When Firm processes your workspace, it builds the **entity graph**: an in-memory data structure representing all your entities (as nodes) and their relationships (as directed edges).
 
-This graph is what enables:
-- Traversal queries (e.g., "find all tasks for this project")
-- Relationship exploration (e.g., "who works at this organization?")
-- Multi-hop queries (e.g., "find tasks assigned to people at this organization")
+The process:
+1. Parse all `.firm` files in your workspace
+2. Build entity objects with their fields
+3. Read reference fields to identify relationships
+4. Build directed edges between entities
+5. Serialize and cache the graph for future queries
 
-## Traversing relationships
+The entity graph is central to how Firm works. When you run queries, traverse relationships, or explore connections, you're working with this graph.
 
-Use `firm related` to explore connections:
+## Graph caching
 
-```bash
-$ firm related organization acme_corp
-```
+When the graph is built, it's serialized and stored in your workspace. This way it can be used again for future queries if you don't wish to rebuild the graph on every interaction.
 
-This shows all entities that reference `organization.acme_corp`, or that are referenced by it.
+The `.gitignore` provided with `firm init` by default ignores the graph files.
 
-### Multi-degree traversal
+When you rebuild the graph and it would overwrite the existing cached one, Firm backs it up. Your workspace will therefore usually have:
+- `current.firm.graph` - The current graph
+- `backup.firm.graph` - The previous graph
 
-With the query language, you can traverse multiple degrees:
-
-```bash
-$ firm query 'from organization | where @id == "acme_corp" | related(2)'
-```
-
-This finds entities within 2 hops of the organization.
-
-### Type-filtered traversal
-
-You can filter by entity type during traversal:
-
-```bash
-$ firm query 'from organization | where @id == "acme_corp" | related task'
-```
-
-This finds only tasks related to the organization.
-
-## Graph queries
-
-The query language enables complex graph traversal:
-
-```bash
-$ firm query 'from organization | where industry == "tech" | related contact | related person | where skills contains "rust"'
-```
-
-This finds:
-1. Organizations in the tech industry
-2. Contacts at those organizations
-3. People linked to those contacts
-4. Filtered to those with "rust" in their skills
-
-## Working with relationships in Rust
-
-**In Rust**, you build the graph and traverse it programmatically:
-
-```rust,no_run
-// Build the graph
-let mut graph = EntityGraph::new();
-graph.add_entities(workspace.build()?.entities)?;
-graph.build(); // Resolves all references
-
-// Get an entity
-let contact = graph.get_entity(&EntityId::new("contact.john_at_acme"))?;
-
-// Follow a reference
-let person_ref = contact.get_field(FieldId::new("person_ref"))?;
-let person = person_ref.resolve_entity_reference(&graph)?;
-
-// Find related entities
-let related = graph.get_related_entities(&EntityId::new("organization.acme_corp"))?;
-```
-
-## Bidirectional relationships
-
-Relationships in Firm are directional, but you can query in both directions:
-
-```firm
-task design {
-    assignee = person.jane
-}
-```
-
-You can:
-- Start from the task and find the assignee
-- Start from the person and find all tasks assigned to them
-
-The graph supports both forward and backward traversal.
-
-
+The contents of the serialized graph is JSON, so it can be used if you want to do more advanced queries and automations outside of the provided Rust crates.

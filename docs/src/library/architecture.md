@@ -31,8 +31,12 @@ Core data structures and graph operations.
 ```rust,no_run
 use firm_core::{Entity, EntityGraph, EntityId, FieldId, FieldValue};
 
-let entity = Entity::new(EntityId::new("john"), EntityType::new("person"))
-    .with_field(FieldId::new("name"), FieldValue::String("John".to_string()));
+let entity = Entity::new(
+        EntityId::new("john"),
+        EntityType::new("person"))
+    .with_field(
+        FieldId::new("name"),
+        FieldValue::String("John".to_string()));
 
 let mut graph = EntityGraph::new();
 graph.add_entity(entity)?;
@@ -44,15 +48,16 @@ graph.build();
 DSL parsing and generation.
 
 **Responsibilities:**
-- Tree-sitter-based parser for `.firm` files
-- Conversion between DSL and entities
+- Tree-sitter-based DSL parser for `.firm` files
+- Pest-based query language parser for the CLI
+- Converting and generating DSL
 - Workspace support for multi-file projects
-- DSL generation from entities
 
 **Key types:**
 - `Workspace` - Multi-file workspace manager
-- Parser integration with tree-sitter-firm
-- DSL generator
+- `parser::dsl` - DSL parsing
+- `parser::query` - Query parsing
+- `generate` - DSL generation
 
 **Usage:**
 ```rust,no_run
@@ -62,8 +67,6 @@ let mut workspace = Workspace::new();
 workspace.load_directory("./my_workspace")?;
 let build = workspace.build()?;
 ```
-
-The grammar is defined in [tree-sitter-firm](https://github.com/42futures/tree-sitter-firm).
 
 ## firm_cli
 
@@ -88,43 +91,3 @@ firm init
 firm add --type person --id john
 firm query 'from person | where name == "John"'
 ```
-
-## Data flow
-
-```
-.firm files
-    ↓
-[firm_lang] Parse DSL → Entities
-    ↓
-[firm_core] Build graph → EntityGraph
-    ↓
-[firm_core] Query → Results
-    ↓
-[firm_lang] Generate DSL (optional)
-    ↓
-Output
-```
-
-## Design principles
-
-### Separation of concerns
-- `firm_core` knows nothing about DSL syntax
-- `firm_lang` knows nothing about CLI commands
-- `firm_cli` orchestrates both
-
-### Type safety
-- Strong typing throughout
-- Compile-time guarantees where possible
-- Clear error types
-
-### Composability
-- Entities reference each other, not extend
-- Graph operations are composable
-- Small, focused functions
-
-### Performance
-- Lazy evaluation where appropriate
-- Efficient graph traversal
-- Minimal allocations in hot paths
-
-

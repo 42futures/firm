@@ -41,6 +41,16 @@ schema task {
 }
 ```
 
+Now you can define entities that adhere to this schema:
+
+```firm
+task design_homepage {
+    title = "Design new homepage"
+    description = "Create mockups for the new homepage design"
+    completed = false
+}
+```
+
 ## Available field types
 
 When creating or customizing schemas, you can use these field types:

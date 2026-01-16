@@ -1,35 +1,37 @@
-# Built-in entities
+# Default entity types
 
-Firm includes schemas for a range of built-in entities like Person, Organization, and Industry.
+When you run `firm init`, you get a set of default schemas for common business entities. These schemas reflect a design philosophy focused on flexibility, composability, and real-world business modeling.
 
-## Entity taxonomy
+## Design philosophy
 
-Firm's entity taxonomy is built on the [REA model (Resources, Events, Agents)](https://en.wikipedia.org/wiki/Resources,_Events,_Agents) with inspiration from [Schema.org](https://schema.org/Person), designed for flexible composition and efficient queries.
+### REA model foundation
 
-Every entity maps to:
-- **Resource** - Thing with value
-- **Event** - Thing that happens
-- **Agent** - Thing that acts
+The default entity types are built on the [REA model (Resources, Events, Agents)](https://en.wikipedia.org/wiki/Resources,_Events,_Agents), a proven accounting and business modeling framework.
 
-## Fundamental vs. contextual entities
+Every entity maps to one of these categories:
+- **Resource** - Things with value (projects, documents)
+- **Event** - Things that happen (interactions, transactions)
+- **Agent** - Things that act (people, organizations)
+
+### Fundamental vs. contextual entities
 
 We separate objective reality from business relationships:
 
 **Fundamental entities** represent things that exist independently:
-- `person` - An individual
+- `person` - An individual human being
 - `organization` - A company or group
-- `document` - A file or artifact
+- `file_asset` - A file or artifact
 
 **Contextual entities** represent your business relationships and processes:
 - `contact` - Your business relationship with a person
 - `lead` - A sales opportunity
 - `project` - A body of work
-- `employee` - An employment relationship
-- `partner` - A partnership relationship
 
-## Composition over inheritance
+The same `person` can be a `contact` at one organization, an `employee` at yours, and a `partner` in a joint venture—all simultaneously.
 
-Entities reference each other rather than extending. One `person` can be referenced by multiple `contact`, `employee`, and `partner` entities simultaneously.
+### Composition over inheritance
+
+Entities reference each other rather than extending each other. This provides more flexibility:
 
 ```firm
 person john_doe {
@@ -47,73 +49,42 @@ employee john_employee {
     person_ref = person.john_doe
     organization_ref = organization.my_company
     role = "Consultant"
-    start_date = 2024-01-15 at 00:00 UTC
 }
 ```
 
-## Entity graph
+One `person` entity, multiple relationship contexts.
 
-When the entity graph is built, all `Reference` values automatically create directed edges between entities. This enables traversal queries like "find all Tasks for Opportunities whose Contacts work at Organization X" without complex joins.
+## Included default types
 
-## Common entity types
+### Core entities
+- **person** - An individual
+- **organization** - A company or group
+- **industry** - A business sector or classification
 
-### Agents
+### Customer relations
+- **account** - Business relationship with an organization
+- **channel** - Communication or marketing channel
+- **lead** - Potential business lead
+- **contact** - Person in a business relationship context
+- **interaction** - Communication or meeting
+- **opportunity** - Potential sale or business deal
 
-**person**
-- Represents an individual
-- Fields: name, email, phone, urls, etc.
-
-**organization**
-- Represents a company or group
-- Fields: name, email, phone, urls, industry, etc.
+### Work management
+- **strategy** - High-level, long-term plan or goal
+- **objective** - Specific, measurable goal contributing to a strategy
+- **key_result** - Measurable outcome tracking an objective
+- **project** - Planned initiative to achieve objectives
+- **task** - Single, actionable unit of work
+- **review** - Periodic review or meeting
 
 ### Resources
+- **file_asset** - Digital file or document
 
-**project**
-- A body of work
-- Fields: name, description, status, budget, etc.
+## Customization
 
-**task**
-- A unit of work
-- Fields: title, description, assignee, due_date, completed, etc.
+These default schemas are a starting point. You can:
+- Modify them to fit your needs
+- Add new custom entity types
+- Remove types you don't use
 
-**document**
-- A file or artifact
-- Fields: title, path, type, etc.
-
-### Events
-
-**interaction**
-- A meeting, call, email, or other communication
-- Fields: subject, type, date, participants, etc.
-
-### Contextual
-
-**contact**
-- Your business relationship with a person at an organization
-- Fields: person_ref, organization_ref, role, etc.
-
-**lead**
-- A sales opportunity
-- Fields: name, contact_ref, value, status, etc.
-
-**employee**
-- An employment relationship
-- Fields: person_ref, organization_ref, role, start_date, etc.
-
-**partner**
-- A partnership relationship
-- Fields: organization_ref, type, start_date, etc.
-
-## Viewing schemas
-
-To see the full schema for any built-in entity type, you can:
-
-1. Run `firm init` which creates schema definitions in your workspace
-2. Check the [source code](https://github.com/42futures/firm) for schema definitions
-
-## Custom entities
-
-You can define your own entity types with [schemas](./schemas.md) to model your specific business domain.
-
-
+See the [Creating schemas guide](../guide/creating-schemas.md) for details on customization.

@@ -1,127 +1,53 @@
 # Schemas
 
-Schemas allow you to define and enforce a structure for your entities, ensuring data consistency. You can specify which fields are required or optional and what their types should be.
+Schemas define the structure and validation rules for entity types in your workspace. They provide consistency and ensure data integrity across your business data.
 
-## Defining schemas
+## What schemas do
 
-**In the DSL**, you can define a schema that other entities can adhere to:
+Schemas specify:
+- Which fields are available for an entity type
+- Which fields are required vs optional
+- The expected data type for each field
+
+## Validation and flexibility
+
+When Firm builds the entity graph, it validates each entity against its schema. The validation rules are:
+
+- **Fields in the schema must match the defined types** - A field marked as `boolean` cannot contain a number
+- **Required fields must be present** - If a field is marked `required = true`, the entity must have it
+- **Entities can have fields not defined in their schema** - Schemas define minimum requirements, not maximum constraints
+
+This gives you structure where you need it, while allowing flexibility for additional custom data.
+
+## Example
 
 ```firm
-schema custom_project {
+schema task {
     field {
         name = "title"
         type = "string"
         required = true
     }
+
     field {
-        name = "budget"
-        type = "currency"
-        required = false
-    }
-    field {
-        name = "status"
-        type = "enum"
-        required = false
-        allowed_values = ["planned", "in-progress", "completed"]
-    }
-}
-```
-
-## Using schemas
-
-Once defined, entities of that type will be validated against the schema:
-
-```firm
-custom_project my_project {
-    title  = "My custom project"
-    budget = 42000 EUR
-    status = enum"planned"
-}
-```
-
-If you omit a required field or use an invalid value, Firm will report an error.
-
-## Field definitions
-
-Each field in a schema can specify:
-
-- **name**: The field identifier
-- **type**: The field type (string, integer, float, boolean, currency, datetime, reference, path, enum, list)
-- **required**: Whether the field must be present (true/false)
-- **allowed_values**: For enum fields, the valid values
-
-## Built-in schemas
-
-Firm includes schemas for common entity types:
-
-- `person` - Individuals
-- `organization` - Companies and groups
-- `contact` - Business relationships
-- `project` - Bodies of work
-- `task` - Units of work
-- `lead` - Sales opportunities
-- `interaction` - Communications
-
-See [Built-in entities](./built-in-entities.md) for complete definitions.
-
-## Custom schemas
-
-You can define your own schemas to model your specific business domain:
-
-```firm
-schema customer {
-    field {
-        name = "company_name"
-        type = "string"
+        name = "completed"
+        type = "boolean"
         required = true
     }
-    field {
-        name = "annual_revenue"
-        type = "currency"
-        required = false
-    }
-    field {
-        name = "segment"
-        type = "enum"
-        required = true
-        allowed_values = ["enterprise", "mid-market", "smb"]
-    }
 }
 
-customer acme {
-    company_name = "Acme Corp"
-    annual_revenue = 10000000 USD
-    segment = enum"enterprise"
+task design_homepage {
+    title = "Design new homepage"
+    completed = false
+    custom_priority = "high"  # Not in schema, but allowed
 }
 ```
 
-## Schemas in Rust
+This entity is valid because:
+- It has all required fields (`title` and `completed`)
+- Those fields have the correct types
+- The extra `custom_priority` field is allowed
 
-**In Rust**, you can define schemas programmatically to validate entities:
+## Default schemas
 
-```rust,no_run
-let schema = EntitySchema::new(EntityType::new("project"))
-    .with_required_field(FieldId::new("title"), FieldType::String)
-    .with_optional_field(FieldId::new("budget"), FieldType::Currency);
-
-schema.validate(&some_project_entity)?;
-```
-
-This allows you to enforce constraints when building tools and automations.
-
-## Schema inheritance
-
-Currently, schemas don't support inheritance, but you can compose entities with references:
-
-```firm
-employee emp_001 {
-    person_ref = person.john_doe
-    organization_ref = organization.acme_corp
-    role = "Senior Engineer"
-    start_date = 2024-01-15 at 00:00 UTC
-}
-```
-
-One `person` can be referenced by multiple `employee`, `contact`, and `partner` entities simultaneously.
-
-
+When you run `firm init`, you get default schemas for common entity types like `person`, `organization`, `task`, and `project`. See the [Quick start guide](../getting-started/quick-start.md) to learn more about initializing a workspace.

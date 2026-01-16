@@ -68,11 +68,16 @@ h6 {
 h1 {
     color: var(--accent-purple);
     border-bottom: 2px solid var(--accent-purple);
+    margin-top: 0;
 }
 
 h2 {
     color: var(--text-primary);
-    margin-top: 2em;
+    margin-top: 1.5em;
+}
+
+h3 {
+    margin-top: 1.2em;
 }
 
 /* Code blocks */

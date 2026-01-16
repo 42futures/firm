@@ -19,18 +19,18 @@
 
 - [Entities](./concepts/entities.md)
 - [Fields](./concepts/fields.md)
-- [Relationships & the entity graph](./concepts/relationships.md)
+- [Relationships](./concepts/relationships.md)
 - [Schemas](./concepts/schemas.md)
-- [Built-in entities](./concepts/built-in-entities.md)
+- [Default entity types](./concepts/built-in-entities.md)
 
 # Firm as a library
 
-- [Getting started with Rust](./library/getting-started.md)
-- [Working with the API](./library/api-guide.md)
+- [Architecture](./library/architecture.md)
+- [Using the Rust crates](./library/getting-started.md)
+- [Examples](./library/examples.md)
 
 # Reference
 
-- [Architecture](./reference/architecture.md)
 - [DSL reference](./reference/dsl-reference.md)
 - [Query reference](./reference/query-reference.md)
 - [CLI reference](./reference/cli-reference.md)

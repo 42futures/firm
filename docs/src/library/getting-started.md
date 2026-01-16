@@ -1,6 +1,6 @@
-# Getting started with Rust
+# Using the RustRust crates
 
-Beyond the CLI, you can integrate Firm's core logic directly into your own software using the `firm_core` and `firm_lang` Rust packages. This allows you to build more powerful automations and integrations on top of Firm.
+Beyond the CLI, you can integrate Firm's core logic directly into your own software using the `firm_core` and `firm_lang` Rust packages. This allows you to build automations and tools on top of Firm.
 
 ## Adding dependencies
 
@@ -14,7 +14,7 @@ firm_lang = { git = "https://github.com/42futures/firm.git" }
 
 ## Basic usage
 
-Here's a simple example of loading a workspace and querying the entity graph:
+Here's an example of loading a workspace and querying the entity graph:
 
 ```rust,no_run
 use firm_lang::workspace::Workspace;
@@ -39,7 +39,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-## Working with entities
+## Working with references
 
 You can traverse relationships and access field values:
 
@@ -81,7 +81,7 @@ graph.add_entity(person)?;
 You can also generate DSL from entities:
 
 ```rust,no_run
-use firm_lang::generator::generate_dsl;
+use firm_lang::generate::generate_dsl;
 
 let dsl = generate_dsl(&entity)?;
 println!("{}", dsl);
@@ -95,5 +95,3 @@ person john_doe {
     email = "john@example.com"
 }
 ```
-
-

@@ -15,9 +15,22 @@ person john {
 }
 ```
 
+For multiline strings, use triple quotes.
+
+```firm
+project website {
+    description = """
+        # Complete redesign
+        Includes new homepage, about page, and contact form.
+    """
+}
+```
+
+Common indentation across the multiline string is removed when parsed.
+
 ### Integer
 
-Whole numbers:
+Numbers without a decimal place:
 
 ```firm
 task design {
@@ -28,7 +41,7 @@ task design {
 
 ### Float
 
-Decimal numbers:
+Numbers with a decimal place:
 
 ```firm
 person john {
@@ -59,22 +72,28 @@ project website {
 }
 ```
 
-Supported currency codes include USD, EUR, GBP, and many others.
+Firm supports ISO 4217 currency codes (USD, EUR, GBP, JPY, etc.).
 
 ### DateTime
 
-Dates and times with timezone:
+Dates and times support three variants:
 
 ```firm
 task design {
-    due_date = 2024-12-01 at 17:00 UTC
-    created = 2024-01-15 at 09:30 EST
+    # Date only (YYYY-MM-DD)
+    start_date = 2025-01-15
+
+    # Date and time (YYYY-MM-DD at HH:MM)
+    due_date = 2025-01-15 at 17:00
+
+    # Date and time with UTC offset (YYYY-MM-DD at HH:MM UTC+Z)
+    created = 2025-01-15 at 17:00 UTC+3
 }
 ```
 
 ### List
 
-Collections of values:
+Collections of values. Lists are required to have homogeneous types (all items must be the same type):
 
 ```firm
 person john {
@@ -82,8 +101,6 @@ person john {
     skills = ["rust", "python", "javascript"]
 }
 ```
-
-Lists can contain any type of value, including other lists.
 
 ### Reference
 
@@ -105,11 +122,11 @@ Local file paths:
 ```firm
 project website {
     deliverable = path"./deliverables/website.zip"
-    contract = path"./contracts/megacorp_contract.pdf"
+    contract = path"/Users/john/Documents/contracts/megacorp_contract.pdf"
 }
 ```
 
-Paths are relative to your workspace directory.
+Paths are specified relative to the `.firm` source file. When parsed, they are transformed to be relative to the workspace root. Absolute paths are left unchanged.
 
 ### Enum
 
@@ -123,23 +140,3 @@ task design {
 ```
 
 Enums are useful when combined with [schemas](./schemas.md) that define allowed values.
-
-## Working with fields in Rust
-
-**In Rust**, fields are represented by the `FieldValue` enum:
-
-```rust,no_run
-let name = FieldValue::String("John Doe".to_string());
-let age = FieldValue::Integer(30);
-let active = FieldValue::Boolean(true);
-let budget = FieldValue::Currency(Money::new(5000.00, "USD"));
-```
-
-You can get and set fields on entities:
-
-```rust,no_run
-let person = entity.get_field(FieldId::new("name"))?;
-entity.set_field(FieldId::new("email"), FieldValue::String("john@example.com".to_string()));
-```
-
-
