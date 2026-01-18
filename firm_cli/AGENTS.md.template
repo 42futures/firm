@@ -41,12 +41,19 @@ firm query <query_string>
 #### `firm build`
 Validate the workspace and build the entity graph.
 
-#### `firm get <entity_type> <entity_id>`
-Get details for a specific entity.
+#### `firm get <target_type> <target_id>`
+Get details for a specific entity or schema.
 
-Example: `firm get contact john_at_acme`
+Examples:
+```bash
+# Get an entity
+firm get contact john_at_acme
 
-#### `firm list <entity_type>`
+# Get a schema
+firm get schema project
+```
+
+#### `firm list <target_type>`
 List all entities of a type. Use `firm list schema` to see available schemas.
 
 Example: `firm list task`

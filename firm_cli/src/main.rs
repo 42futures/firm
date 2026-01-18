@@ -53,15 +53,11 @@ fn main() -> ExitCode {
         FirmCliCommand::Init => commands::init_workspace(&workspace_path),
         FirmCliCommand::Build => build_and_save_graph(&workspace_path),
         FirmCliCommand::Get {
-            entity_type,
-            entity_id,
-        } => commands::get_entity_by_id(&workspace_path, entity_type, entity_id, cli.format),
+            target_type,
+            target_id,
+        } => commands::get_item(&workspace_path, target_type, target_id, cli.format),
         FirmCliCommand::List { target_type } => {
-            if target_type == "schema" {
-                commands::list_schemas(&workspace_path, cli.format)
-            } else {
-                commands::list_entities_by_type(&workspace_path, target_type, cli.format)
-            }
+            commands::list_items(&workspace_path, target_type, cli.format)
         }
         FirmCliCommand::Related {
             entity_type,
@@ -97,7 +93,7 @@ fn main() -> ExitCode {
         FirmCliCommand::Source {
             target_type,
             target_id,
-        } => commands::find_entity_source(&workspace_path, target_type, target_id, cli.format),
+        } => commands::find_item_source(&workspace_path, target_type, target_id, cli.format),
     };
 
     result.map_or(ExitCode::FAILURE, |_| ExitCode::SUCCESS)

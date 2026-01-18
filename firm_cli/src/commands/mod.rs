@@ -3,12 +3,16 @@ mod build;
 mod field_prompt;
 mod get;
 mod init;
+mod list;
 mod query;
+mod related;
 mod source;
 
 pub use add::add_entity;
 pub use build::{build_and_save_graph, build_workspace, load_workspace_files};
-pub use get::{get_entity_by_id, get_related_entities, list_entities_by_type, list_schemas};
+pub use get::get_item;
 pub use init::init_workspace;
+pub use list::list_items;
 pub use query::query_entities;
-pub use source::find_entity_source;
+pub use related::get_related_entities;
+pub use source::find_item_source;
