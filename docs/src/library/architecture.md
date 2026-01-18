@@ -84,6 +84,7 @@ Command-line interface, making the Firm workspace interactive.
 - `firm get` - Get a specific entity
 - `firm related` - Find related entities
 - `firm query` - Run custom queries
+- `firm source` - Get the source file path for an entity
 
 **Usage:**
 ```bash
