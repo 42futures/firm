@@ -6,8 +6,8 @@ use serde::de::{MapAccess, Visitor};
 use serde::ser::SerializeMap;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-mod graph_errors;
 mod access;
+mod graph_errors;
 mod query;
 
 pub use graph_errors::GraphError;

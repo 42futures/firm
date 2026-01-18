@@ -1,8 +1,8 @@
 //! Entity ordering/sorting logic for queries
 
-use crate::{Entity, FieldValue};
-use super::types::SortDirection;
 use super::filter::{FieldRef, MetadataField};
+use super::types::SortDirection;
+use crate::{Entity, FieldValue};
 
 /// Compare two entities by a specific field (or metadata) for sorting
 pub fn compare_entities_by_field(
@@ -30,11 +30,16 @@ pub fn compare_entities_by_field(
             match metadata {
                 MetadataField::Type => {
                     // Compare entity types (case-insensitive string comparison)
-                    a.entity_type.as_str().to_lowercase().cmp(&b.entity_type.as_str().to_lowercase())
+                    a.entity_type
+                        .as_str()
+                        .to_lowercase()
+                        .cmp(&b.entity_type.as_str().to_lowercase())
                 }
                 MetadataField::Id => {
                     // Compare entity IDs (case-insensitive string comparison)
-                    a.id.as_str().to_lowercase().cmp(&b.id.as_str().to_lowercase())
+                    a.id.as_str()
+                        .to_lowercase()
+                        .cmp(&b.id.as_str().to_lowercase())
                 }
             }
         }
@@ -49,8 +54,8 @@ pub fn compare_entities_by_field(
 
 /// Compare two field values for sorting
 fn compare_field_values(a: &FieldValue, b: &FieldValue) -> std::cmp::Ordering {
-    use std::cmp::Ordering;
     use FieldValue::*;
+    use std::cmp::Ordering;
 
     match (a, b) {
         // Same types - natural comparison
@@ -69,9 +74,18 @@ fn compare_field_values(a: &FieldValue, b: &FieldValue) -> std::cmp::Ordering {
             }
         }
         (String(a), String(b)) => a.to_lowercase().cmp(&b.to_lowercase()), // Case-insensitive
-        (Enum(a), Enum(b)) => a.to_lowercase().cmp(&b.to_lowercase()), // Case-insensitive
+        (Enum(a), Enum(b)) => a.to_lowercase().cmp(&b.to_lowercase()),     // Case-insensitive
         (DateTime(a), DateTime(b)) => a.cmp(b),
-        (Currency { amount: a_amt, currency: a_cur }, Currency { amount: b_amt, currency: b_cur }) => {
+        (
+            Currency {
+                amount: a_amt,
+                currency: a_cur,
+            },
+            Currency {
+                amount: b_amt,
+                currency: b_cur,
+            },
+        ) => {
             // Only compare if same currency
             if a_cur.code() == b_cur.code() {
                 a_amt.cmp(b_amt)
@@ -80,9 +94,10 @@ fn compare_field_values(a: &FieldValue, b: &FieldValue) -> std::cmp::Ordering {
                 a_cur.code().cmp(b_cur.code())
             }
         }
-        (Reference(a), Reference(b)) => {
-            a.to_string().to_lowercase().cmp(&b.to_string().to_lowercase())
-        }
+        (Reference(a), Reference(b)) => a
+            .to_string()
+            .to_lowercase()
+            .cmp(&b.to_string().to_lowercase()),
         (Path(a), Path(b)) => a.cmp(b),
 
         // Cross-type: Integer vs Float
@@ -152,7 +167,12 @@ mod tests {
             .with_field(FieldId::new(field), value)
     }
 
-    fn create_entity_with_type(id: &str, entity_type: &str, field: &str, value: FieldValue) -> Entity {
+    fn create_entity_with_type(
+        id: &str,
+        entity_type: &str,
+        field: &str,
+        value: FieldValue,
+    ) -> Entity {
         Entity::new(EntityId::new(id), EntityType::new(entity_type))
             .with_field(FieldId::new(field), value)
     }
@@ -163,7 +183,12 @@ mod tests {
         let e1 = create_entity("e1", "flag", FieldValue::Boolean(true));
         let e2 = create_entity("e2", "flag", FieldValue::Boolean(false));
 
-        let result = compare_entities_by_field(&e1, &e2, &FieldRef::Regular(FieldId::new("flag")), &SortDirection::Ascending);
+        let result = compare_entities_by_field(
+            &e1,
+            &e2,
+            &FieldRef::Regular(FieldId::new("flag")),
+            &SortDirection::Ascending,
+        );
         assert_eq!(result, std::cmp::Ordering::Greater); // true > false
     }
 
@@ -172,7 +197,12 @@ mod tests {
         let e1 = create_entity("e1", "flag", FieldValue::Boolean(true));
         let e2 = create_entity("e2", "flag", FieldValue::Boolean(false));
 
-        let result = compare_entities_by_field(&e1, &e2, &FieldRef::Regular(FieldId::new("flag")), &SortDirection::Descending);
+        let result = compare_entities_by_field(
+            &e1,
+            &e2,
+            &FieldRef::Regular(FieldId::new("flag")),
+            &SortDirection::Descending,
+        );
         assert_eq!(result, std::cmp::Ordering::Less); // reversed
     }
 
@@ -182,7 +212,12 @@ mod tests {
         let e1 = create_entity("e1", "count", FieldValue::Integer(10));
         let e2 = create_entity("e2", "count", FieldValue::Integer(5));
 
-        let result = compare_entities_by_field(&e1, &e2, &FieldRef::Regular(FieldId::new("count")), &SortDirection::Ascending);
+        let result = compare_entities_by_field(
+            &e1,
+            &e2,
+            &FieldRef::Regular(FieldId::new("count")),
+            &SortDirection::Ascending,
+        );
         assert_eq!(result, std::cmp::Ordering::Greater);
     }
 
@@ -191,7 +226,12 @@ mod tests {
         let e1 = create_entity("e1", "count", FieldValue::Integer(10));
         let e2 = create_entity("e2", "count", FieldValue::Integer(5));
 
-        let result = compare_entities_by_field(&e1, &e2, &FieldRef::Regular(FieldId::new("count")), &SortDirection::Descending);
+        let result = compare_entities_by_field(
+            &e1,
+            &e2,
+            &FieldRef::Regular(FieldId::new("count")),
+            &SortDirection::Descending,
+        );
         assert_eq!(result, std::cmp::Ordering::Less);
     }
 
@@ -201,7 +241,12 @@ mod tests {
         let e1 = create_entity("e1", "score", FieldValue::Float(3.14));
         let e2 = create_entity("e2", "score", FieldValue::Float(2.71));
 
-        let result = compare_entities_by_field(&e1, &e2, &FieldRef::Regular(FieldId::new("score")), &SortDirection::Ascending);
+        let result = compare_entities_by_field(
+            &e1,
+            &e2,
+            &FieldRef::Regular(FieldId::new("score")),
+            &SortDirection::Ascending,
+        );
         assert_eq!(result, std::cmp::Ordering::Greater);
     }
 
@@ -210,7 +255,12 @@ mod tests {
         let e1 = create_entity("e1", "score", FieldValue::Float(3.14));
         let e2 = create_entity("e2", "score", FieldValue::Float(2.71));
 
-        let result = compare_entities_by_field(&e1, &e2, &FieldRef::Regular(FieldId::new("score")), &SortDirection::Descending);
+        let result = compare_entities_by_field(
+            &e1,
+            &e2,
+            &FieldRef::Regular(FieldId::new("score")),
+            &SortDirection::Descending,
+        );
         assert_eq!(result, std::cmp::Ordering::Less);
     }
 
@@ -219,7 +269,12 @@ mod tests {
         let e1 = create_entity("e1", "score", FieldValue::Float(f64::NAN));
         let e2 = create_entity("e2", "score", FieldValue::Float(3.14));
 
-        let result = compare_entities_by_field(&e1, &e2, &FieldRef::Regular(FieldId::new("score")), &SortDirection::Ascending);
+        let result = compare_entities_by_field(
+            &e1,
+            &e2,
+            &FieldRef::Regular(FieldId::new("score")),
+            &SortDirection::Ascending,
+        );
         assert_eq!(result, std::cmp::Ordering::Greater); // NaN sorts after normal values
     }
 
@@ -229,7 +284,12 @@ mod tests {
         let e1 = create_entity("e1", "name", FieldValue::String("Zebra".to_string()));
         let e2 = create_entity("e2", "name", FieldValue::String("Apple".to_string()));
 
-        let result = compare_entities_by_field(&e1, &e2, &FieldRef::Regular(FieldId::new("name")), &SortDirection::Ascending);
+        let result = compare_entities_by_field(
+            &e1,
+            &e2,
+            &FieldRef::Regular(FieldId::new("name")),
+            &SortDirection::Ascending,
+        );
         assert_eq!(result, std::cmp::Ordering::Greater);
     }
 
@@ -238,7 +298,12 @@ mod tests {
         let e1 = create_entity("e1", "name", FieldValue::String("Zebra".to_string()));
         let e2 = create_entity("e2", "name", FieldValue::String("Apple".to_string()));
 
-        let result = compare_entities_by_field(&e1, &e2, &FieldRef::Regular(FieldId::new("name")), &SortDirection::Descending);
+        let result = compare_entities_by_field(
+            &e1,
+            &e2,
+            &FieldRef::Regular(FieldId::new("name")),
+            &SortDirection::Descending,
+        );
         assert_eq!(result, std::cmp::Ordering::Less);
     }
 
@@ -247,7 +312,12 @@ mod tests {
         let e1 = create_entity("e1", "name", FieldValue::String("zebra".to_string()));
         let e2 = create_entity("e2", "name", FieldValue::String("APPLE".to_string()));
 
-        let result = compare_entities_by_field(&e1, &e2, &FieldRef::Regular(FieldId::new("name")), &SortDirection::Ascending);
+        let result = compare_entities_by_field(
+            &e1,
+            &e2,
+            &FieldRef::Regular(FieldId::new("name")),
+            &SortDirection::Ascending,
+        );
         assert_eq!(result, std::cmp::Ordering::Greater); // Case-insensitive comparison
     }
 
@@ -257,7 +327,12 @@ mod tests {
         let e1 = create_entity("e1", "status", FieldValue::Enum("pending".to_string()));
         let e2 = create_entity("e2", "status", FieldValue::Enum("active".to_string()));
 
-        let result = compare_entities_by_field(&e1, &e2, &FieldRef::Regular(FieldId::new("status")), &SortDirection::Ascending);
+        let result = compare_entities_by_field(
+            &e1,
+            &e2,
+            &FieldRef::Regular(FieldId::new("status")),
+            &SortDirection::Ascending,
+        );
         assert_eq!(result, std::cmp::Ordering::Greater);
     }
 
@@ -266,105 +341,189 @@ mod tests {
         let e1 = create_entity("e1", "status", FieldValue::Enum("pending".to_string()));
         let e2 = create_entity("e2", "status", FieldValue::Enum("active".to_string()));
 
-        let result = compare_entities_by_field(&e1, &e2, &FieldRef::Regular(FieldId::new("status")), &SortDirection::Descending);
+        let result = compare_entities_by_field(
+            &e1,
+            &e2,
+            &FieldRef::Regular(FieldId::new("status")),
+            &SortDirection::Descending,
+        );
         assert_eq!(result, std::cmp::Ordering::Less);
     }
 
     // DateTime tests
     #[test]
     fn test_order_datetime_ascending() {
-        let dt1 = FixedOffset::east_opt(0).unwrap().with_ymd_and_hms(2024, 6, 1, 10, 0, 0).unwrap();
-        let dt2 = FixedOffset::east_opt(0).unwrap().with_ymd_and_hms(2024, 1, 1, 10, 0, 0).unwrap();
+        let dt1 = FixedOffset::east_opt(0)
+            .unwrap()
+            .with_ymd_and_hms(2024, 6, 1, 10, 0, 0)
+            .unwrap();
+        let dt2 = FixedOffset::east_opt(0)
+            .unwrap()
+            .with_ymd_and_hms(2024, 1, 1, 10, 0, 0)
+            .unwrap();
 
         let e1 = create_entity("e1", "date", FieldValue::DateTime(dt1));
         let e2 = create_entity("e2", "date", FieldValue::DateTime(dt2));
 
-        let result = compare_entities_by_field(&e1, &e2, &FieldRef::Regular(FieldId::new("date")), &SortDirection::Ascending);
+        let result = compare_entities_by_field(
+            &e1,
+            &e2,
+            &FieldRef::Regular(FieldId::new("date")),
+            &SortDirection::Ascending,
+        );
         assert_eq!(result, std::cmp::Ordering::Greater);
     }
 
     #[test]
     fn test_order_datetime_descending() {
-        let dt1 = FixedOffset::east_opt(0).unwrap().with_ymd_and_hms(2024, 6, 1, 10, 0, 0).unwrap();
-        let dt2 = FixedOffset::east_opt(0).unwrap().with_ymd_and_hms(2024, 1, 1, 10, 0, 0).unwrap();
+        let dt1 = FixedOffset::east_opt(0)
+            .unwrap()
+            .with_ymd_and_hms(2024, 6, 1, 10, 0, 0)
+            .unwrap();
+        let dt2 = FixedOffset::east_opt(0)
+            .unwrap()
+            .with_ymd_and_hms(2024, 1, 1, 10, 0, 0)
+            .unwrap();
 
         let e1 = create_entity("e1", "date", FieldValue::DateTime(dt1));
         let e2 = create_entity("e2", "date", FieldValue::DateTime(dt2));
 
-        let result = compare_entities_by_field(&e1, &e2, &FieldRef::Regular(FieldId::new("date")), &SortDirection::Descending);
+        let result = compare_entities_by_field(
+            &e1,
+            &e2,
+            &FieldRef::Regular(FieldId::new("date")),
+            &SortDirection::Descending,
+        );
         assert_eq!(result, std::cmp::Ordering::Less);
     }
 
     // Currency tests
     #[test]
     fn test_order_currency_same_code_ascending() {
-        let e1 = create_entity("e1", "price", FieldValue::Currency {
-            amount: Decimal::from_str("100.50").unwrap(),
-            currency: Currency::from_code("USD").unwrap(),
-        });
-        let e2 = create_entity("e2", "price", FieldValue::Currency {
-            amount: Decimal::from_str("50.25").unwrap(),
-            currency: Currency::from_code("USD").unwrap(),
-        });
+        let e1 = create_entity(
+            "e1",
+            "price",
+            FieldValue::Currency {
+                amount: Decimal::from_str("100.50").unwrap(),
+                currency: Currency::from_code("USD").unwrap(),
+            },
+        );
+        let e2 = create_entity(
+            "e2",
+            "price",
+            FieldValue::Currency {
+                amount: Decimal::from_str("50.25").unwrap(),
+                currency: Currency::from_code("USD").unwrap(),
+            },
+        );
 
-        let result = compare_entities_by_field(&e1, &e2, &FieldRef::Regular(FieldId::new("price")), &SortDirection::Ascending);
+        let result = compare_entities_by_field(
+            &e1,
+            &e2,
+            &FieldRef::Regular(FieldId::new("price")),
+            &SortDirection::Ascending,
+        );
         assert_eq!(result, std::cmp::Ordering::Greater);
     }
 
     #[test]
     fn test_order_currency_same_code_descending() {
-        let e1 = create_entity("e1", "price", FieldValue::Currency {
-            amount: Decimal::from_str("100.50").unwrap(),
-            currency: Currency::from_code("USD").unwrap(),
-        });
-        let e2 = create_entity("e2", "price", FieldValue::Currency {
-            amount: Decimal::from_str("50.25").unwrap(),
-            currency: Currency::from_code("USD").unwrap(),
-        });
+        let e1 = create_entity(
+            "e1",
+            "price",
+            FieldValue::Currency {
+                amount: Decimal::from_str("100.50").unwrap(),
+                currency: Currency::from_code("USD").unwrap(),
+            },
+        );
+        let e2 = create_entity(
+            "e2",
+            "price",
+            FieldValue::Currency {
+                amount: Decimal::from_str("50.25").unwrap(),
+                currency: Currency::from_code("USD").unwrap(),
+            },
+        );
 
-        let result = compare_entities_by_field(&e1, &e2, &FieldRef::Regular(FieldId::new("price")), &SortDirection::Descending);
+        let result = compare_entities_by_field(
+            &e1,
+            &e2,
+            &FieldRef::Regular(FieldId::new("price")),
+            &SortDirection::Descending,
+        );
         assert_eq!(result, std::cmp::Ordering::Less);
     }
 
     #[test]
     fn test_order_currency_different_codes() {
-        let e1 = create_entity("e1", "price", FieldValue::Currency {
-            amount: Decimal::from_str("100.00").unwrap(),
-            currency: Currency::from_code("USD").unwrap(),
-        });
-        let e2 = create_entity("e2", "price", FieldValue::Currency {
-            amount: Decimal::from_str("100.00").unwrap(),
-            currency: Currency::from_code("EUR").unwrap(),
-        });
+        let e1 = create_entity(
+            "e1",
+            "price",
+            FieldValue::Currency {
+                amount: Decimal::from_str("100.00").unwrap(),
+                currency: Currency::from_code("USD").unwrap(),
+            },
+        );
+        let e2 = create_entity(
+            "e2",
+            "price",
+            FieldValue::Currency {
+                amount: Decimal::from_str("100.00").unwrap(),
+                currency: Currency::from_code("EUR").unwrap(),
+            },
+        );
 
-        let result = compare_entities_by_field(&e1, &e2, &FieldRef::Regular(FieldId::new("price")), &SortDirection::Ascending);
+        let result = compare_entities_by_field(
+            &e1,
+            &e2,
+            &FieldRef::Regular(FieldId::new("price")),
+            &SortDirection::Ascending,
+        );
         assert_eq!(result, std::cmp::Ordering::Greater); // USD > EUR alphabetically
     }
 
     // Reference tests
     #[test]
     fn test_order_reference_ascending() {
-        let e1 = create_entity("e1", "ref", FieldValue::Reference(
-            ReferenceValue::Entity(EntityId::new("person.zebra"))
-        ));
-        let e2 = create_entity("e2", "ref", FieldValue::Reference(
-            ReferenceValue::Entity(EntityId::new("person.apple"))
-        ));
+        let e1 = create_entity(
+            "e1",
+            "ref",
+            FieldValue::Reference(ReferenceValue::Entity(EntityId::new("person.zebra"))),
+        );
+        let e2 = create_entity(
+            "e2",
+            "ref",
+            FieldValue::Reference(ReferenceValue::Entity(EntityId::new("person.apple"))),
+        );
 
-        let result = compare_entities_by_field(&e1, &e2, &FieldRef::Regular(FieldId::new("ref")), &SortDirection::Ascending);
+        let result = compare_entities_by_field(
+            &e1,
+            &e2,
+            &FieldRef::Regular(FieldId::new("ref")),
+            &SortDirection::Ascending,
+        );
         assert_eq!(result, std::cmp::Ordering::Greater);
     }
 
     #[test]
     fn test_order_reference_descending() {
-        let e1 = create_entity("e1", "ref", FieldValue::Reference(
-            ReferenceValue::Entity(EntityId::new("person.zebra"))
-        ));
-        let e2 = create_entity("e2", "ref", FieldValue::Reference(
-            ReferenceValue::Entity(EntityId::new("person.apple"))
-        ));
+        let e1 = create_entity(
+            "e1",
+            "ref",
+            FieldValue::Reference(ReferenceValue::Entity(EntityId::new("person.zebra"))),
+        );
+        let e2 = create_entity(
+            "e2",
+            "ref",
+            FieldValue::Reference(ReferenceValue::Entity(EntityId::new("person.apple"))),
+        );
 
-        let result = compare_entities_by_field(&e1, &e2, &FieldRef::Regular(FieldId::new("ref")), &SortDirection::Descending);
+        let result = compare_entities_by_field(
+            &e1,
+            &e2,
+            &FieldRef::Regular(FieldId::new("ref")),
+            &SortDirection::Descending,
+        );
         assert_eq!(result, std::cmp::Ordering::Less);
     }
 
@@ -374,7 +533,12 @@ mod tests {
         let e1 = create_entity("e1", "file", FieldValue::Path(PathBuf::from("/z/file.txt")));
         let e2 = create_entity("e2", "file", FieldValue::Path(PathBuf::from("/a/file.txt")));
 
-        let result = compare_entities_by_field(&e1, &e2, &FieldRef::Regular(FieldId::new("file")), &SortDirection::Ascending);
+        let result = compare_entities_by_field(
+            &e1,
+            &e2,
+            &FieldRef::Regular(FieldId::new("file")),
+            &SortDirection::Ascending,
+        );
         assert_eq!(result, std::cmp::Ordering::Greater);
     }
 
@@ -383,36 +547,63 @@ mod tests {
         let e1 = create_entity("e1", "file", FieldValue::Path(PathBuf::from("/z/file.txt")));
         let e2 = create_entity("e2", "file", FieldValue::Path(PathBuf::from("/a/file.txt")));
 
-        let result = compare_entities_by_field(&e1, &e2, &FieldRef::Regular(FieldId::new("file")), &SortDirection::Descending);
+        let result = compare_entities_by_field(
+            &e1,
+            &e2,
+            &FieldRef::Regular(FieldId::new("file")),
+            &SortDirection::Descending,
+        );
         assert_eq!(result, std::cmp::Ordering::Less);
     }
 
     // List tests
     #[test]
     fn test_order_list_ascending() {
-        let e1 = create_entity("e1", "tags", FieldValue::List(vec![
-            FieldValue::String("b".to_string()),
-            FieldValue::String("c".to_string()),
-        ]));
-        let e2 = create_entity("e2", "tags", FieldValue::List(vec![
-            FieldValue::String("a".to_string()),
-            FieldValue::String("c".to_string()),
-        ]));
+        let e1 = create_entity(
+            "e1",
+            "tags",
+            FieldValue::List(vec![
+                FieldValue::String("b".to_string()),
+                FieldValue::String("c".to_string()),
+            ]),
+        );
+        let e2 = create_entity(
+            "e2",
+            "tags",
+            FieldValue::List(vec![
+                FieldValue::String("a".to_string()),
+                FieldValue::String("c".to_string()),
+            ]),
+        );
 
-        let result = compare_entities_by_field(&e1, &e2, &FieldRef::Regular(FieldId::new("tags")), &SortDirection::Ascending);
+        let result = compare_entities_by_field(
+            &e1,
+            &e2,
+            &FieldRef::Regular(FieldId::new("tags")),
+            &SortDirection::Ascending,
+        );
         assert_eq!(result, std::cmp::Ordering::Greater); // First element differs
     }
 
     #[test]
     fn test_order_list_descending() {
-        let e1 = create_entity("e1", "tags", FieldValue::List(vec![
-            FieldValue::String("b".to_string()),
-        ]));
-        let e2 = create_entity("e2", "tags", FieldValue::List(vec![
-            FieldValue::String("a".to_string()),
-        ]));
+        let e1 = create_entity(
+            "e1",
+            "tags",
+            FieldValue::List(vec![FieldValue::String("b".to_string())]),
+        );
+        let e2 = create_entity(
+            "e2",
+            "tags",
+            FieldValue::List(vec![FieldValue::String("a".to_string())]),
+        );
 
-        let result = compare_entities_by_field(&e1, &e2, &FieldRef::Regular(FieldId::new("tags")), &SortDirection::Descending);
+        let result = compare_entities_by_field(
+            &e1,
+            &e2,
+            &FieldRef::Regular(FieldId::new("tags")),
+            &SortDirection::Descending,
+        );
         assert_eq!(result, std::cmp::Ordering::Less);
     }
 
@@ -422,7 +613,12 @@ mod tests {
         let e1 = create_entity("e1", "value", FieldValue::Integer(42));
         let e2 = create_entity("e2", "value", FieldValue::Float(3.14));
 
-        let result = compare_entities_by_field(&e1, &e2, &FieldRef::Regular(FieldId::new("value")), &SortDirection::Ascending);
+        let result = compare_entities_by_field(
+            &e1,
+            &e2,
+            &FieldRef::Regular(FieldId::new("value")),
+            &SortDirection::Ascending,
+        );
         assert_eq!(result, std::cmp::Ordering::Greater); // 42 > 3.14
     }
 
@@ -431,7 +627,12 @@ mod tests {
         let e1 = create_entity("e1", "value", FieldValue::Float(3.14));
         let e2 = create_entity("e2", "value", FieldValue::Integer(42));
 
-        let result = compare_entities_by_field(&e1, &e2, &FieldRef::Regular(FieldId::new("value")), &SortDirection::Ascending);
+        let result = compare_entities_by_field(
+            &e1,
+            &e2,
+            &FieldRef::Regular(FieldId::new("value")),
+            &SortDirection::Ascending,
+        );
         assert_eq!(result, std::cmp::Ordering::Less); // 3.14 < 42
     }
 
@@ -442,25 +643,47 @@ mod tests {
         let e_bool = create_entity("e1", "field", FieldValue::Boolean(true));
         let e_int = create_entity("e2", "field", FieldValue::Integer(42));
         let e_str = create_entity("e3", "field", FieldValue::String("test".to_string()));
-        let e_dt = create_entity("e4", "field", FieldValue::DateTime(
-            FixedOffset::east_opt(0).unwrap().with_ymd_and_hms(2024, 1, 1, 0, 0, 0).unwrap()
-        ));
+        let e_dt = create_entity(
+            "e4",
+            "field",
+            FieldValue::DateTime(
+                FixedOffset::east_opt(0)
+                    .unwrap()
+                    .with_ymd_and_hms(2024, 1, 1, 0, 0, 0)
+                    .unwrap(),
+            ),
+        );
 
         // Boolean < Integer
         assert_eq!(
-            compare_entities_by_field(&e_bool, &e_int, &FieldRef::Regular(FieldId::new("field")), &SortDirection::Ascending),
+            compare_entities_by_field(
+                &e_bool,
+                &e_int,
+                &FieldRef::Regular(FieldId::new("field")),
+                &SortDirection::Ascending
+            ),
             std::cmp::Ordering::Less
         );
 
         // Integer < String
         assert_eq!(
-            compare_entities_by_field(&e_int, &e_str, &FieldRef::Regular(FieldId::new("field")), &SortDirection::Ascending),
+            compare_entities_by_field(
+                &e_int,
+                &e_str,
+                &FieldRef::Regular(FieldId::new("field")),
+                &SortDirection::Ascending
+            ),
             std::cmp::Ordering::Less
         );
 
         // String < DateTime
         assert_eq!(
-            compare_entities_by_field(&e_str, &e_dt, &FieldRef::Regular(FieldId::new("field")), &SortDirection::Ascending),
+            compare_entities_by_field(
+                &e_str,
+                &e_dt,
+                &FieldRef::Regular(FieldId::new("field")),
+                &SortDirection::Ascending
+            ),
             std::cmp::Ordering::Less
         );
     }
@@ -471,7 +694,12 @@ mod tests {
         let e1 = Entity::new(EntityId::new("e1"), EntityType::new("test")); // No field
         let e2 = create_entity("e2", "value", FieldValue::Integer(42));
 
-        let result = compare_entities_by_field(&e1, &e2, &FieldRef::Regular(FieldId::new("value")), &SortDirection::Ascending);
+        let result = compare_entities_by_field(
+            &e1,
+            &e2,
+            &FieldRef::Regular(FieldId::new("value")),
+            &SortDirection::Ascending,
+        );
         assert_eq!(result, std::cmp::Ordering::Greater); // Missing sorts after present
     }
 
@@ -480,35 +708,73 @@ mod tests {
         let e1 = Entity::new(EntityId::new("e1"), EntityType::new("test"));
         let e2 = Entity::new(EntityId::new("e2"), EntityType::new("test"));
 
-        let result = compare_entities_by_field(&e1, &e2, &FieldRef::Regular(FieldId::new("value")), &SortDirection::Ascending);
+        let result = compare_entities_by_field(
+            &e1,
+            &e2,
+            &FieldRef::Regular(FieldId::new("value")),
+            &SortDirection::Ascending,
+        );
         assert_eq!(result, std::cmp::Ordering::Equal);
     }
 
     // Metadata: @type tests
     #[test]
     fn test_order_metadata_type_ascending() {
-        let e1 = create_entity_with_type("e1", "task", "name", FieldValue::String("test".to_string()));
-        let e2 = create_entity_with_type("e2", "person", "name", FieldValue::String("test".to_string()));
+        let e1 =
+            create_entity_with_type("e1", "task", "name", FieldValue::String("test".to_string()));
+        let e2 = create_entity_with_type(
+            "e2",
+            "person",
+            "name",
+            FieldValue::String("test".to_string()),
+        );
 
-        let result = compare_entities_by_field(&e1, &e2, &FieldRef::Metadata(MetadataField::Type), &SortDirection::Ascending);
+        let result = compare_entities_by_field(
+            &e1,
+            &e2,
+            &FieldRef::Metadata(MetadataField::Type),
+            &SortDirection::Ascending,
+        );
         assert_eq!(result, std::cmp::Ordering::Greater); // task > person alphabetically
     }
 
     #[test]
     fn test_order_metadata_type_descending() {
-        let e1 = create_entity_with_type("e1", "task", "name", FieldValue::String("test".to_string()));
-        let e2 = create_entity_with_type("e2", "person", "name", FieldValue::String("test".to_string()));
+        let e1 =
+            create_entity_with_type("e1", "task", "name", FieldValue::String("test".to_string()));
+        let e2 = create_entity_with_type(
+            "e2",
+            "person",
+            "name",
+            FieldValue::String("test".to_string()),
+        );
 
-        let result = compare_entities_by_field(&e1, &e2, &FieldRef::Metadata(MetadataField::Type), &SortDirection::Descending);
+        let result = compare_entities_by_field(
+            &e1,
+            &e2,
+            &FieldRef::Metadata(MetadataField::Type),
+            &SortDirection::Descending,
+        );
         assert_eq!(result, std::cmp::Ordering::Less); // reversed
     }
 
     #[test]
     fn test_order_metadata_type_case_insensitive() {
-        let e1 = create_entity_with_type("e1", "TASK", "name", FieldValue::String("test".to_string()));
-        let e2 = create_entity_with_type("e2", "person", "name", FieldValue::String("test".to_string()));
+        let e1 =
+            create_entity_with_type("e1", "TASK", "name", FieldValue::String("test".to_string()));
+        let e2 = create_entity_with_type(
+            "e2",
+            "person",
+            "name",
+            FieldValue::String("test".to_string()),
+        );
 
-        let result = compare_entities_by_field(&e1, &e2, &FieldRef::Metadata(MetadataField::Type), &SortDirection::Ascending);
+        let result = compare_entities_by_field(
+            &e1,
+            &e2,
+            &FieldRef::Metadata(MetadataField::Type),
+            &SortDirection::Ascending,
+        );
         assert_eq!(result, std::cmp::Ordering::Greater); // Case-insensitive: task > person
     }
 
@@ -518,7 +784,12 @@ mod tests {
         let e1 = Entity::new(EntityId::new("zebra"), EntityType::new("test"));
         let e2 = Entity::new(EntityId::new("apple"), EntityType::new("test"));
 
-        let result = compare_entities_by_field(&e1, &e2, &FieldRef::Metadata(MetadataField::Id), &SortDirection::Ascending);
+        let result = compare_entities_by_field(
+            &e1,
+            &e2,
+            &FieldRef::Metadata(MetadataField::Id),
+            &SortDirection::Ascending,
+        );
         assert_eq!(result, std::cmp::Ordering::Greater); // zebra > apple
     }
 
@@ -527,7 +798,12 @@ mod tests {
         let e1 = Entity::new(EntityId::new("zebra"), EntityType::new("test"));
         let e2 = Entity::new(EntityId::new("apple"), EntityType::new("test"));
 
-        let result = compare_entities_by_field(&e1, &e2, &FieldRef::Metadata(MetadataField::Id), &SortDirection::Descending);
+        let result = compare_entities_by_field(
+            &e1,
+            &e2,
+            &FieldRef::Metadata(MetadataField::Id),
+            &SortDirection::Descending,
+        );
         assert_eq!(result, std::cmp::Ordering::Less); // reversed
     }
 
@@ -536,7 +812,12 @@ mod tests {
         let e1 = Entity::new(EntityId::new("ZEBRA"), EntityType::new("test"));
         let e2 = Entity::new(EntityId::new("apple"), EntityType::new("test"));
 
-        let result = compare_entities_by_field(&e1, &e2, &FieldRef::Metadata(MetadataField::Id), &SortDirection::Ascending);
+        let result = compare_entities_by_field(
+            &e1,
+            &e2,
+            &FieldRef::Metadata(MetadataField::Id),
+            &SortDirection::Ascending,
+        );
         assert_eq!(result, std::cmp::Ordering::Greater); // Case-insensitive: zebra > apple
     }
 }

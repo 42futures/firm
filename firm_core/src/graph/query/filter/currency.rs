@@ -1,8 +1,8 @@
 //! Currency comparison logic for filters
 
-use rust_decimal::Decimal;
-use iso_currency::Currency;
 use super::types::{FilterOperator, FilterValue};
+use iso_currency::Currency;
+use rust_decimal::Decimal;
 
 /// Compare a currency value against a filter
 pub fn compare_currency(

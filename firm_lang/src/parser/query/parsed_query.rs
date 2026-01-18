@@ -26,8 +26,14 @@ pub enum ParsedEntitySelector {
 #[derive(Debug, Clone, PartialEq)]
 pub enum ParsedOperation {
     Where(ParsedCondition),
-    Related { degree: Option<usize>, selector: Option<ParsedEntitySelector> },
-    Order { field: ParsedField, direction: ParsedDirection },
+    Related {
+        degree: Option<usize>,
+        selector: Option<ParsedEntitySelector>,
+    },
+    Order {
+        field: ParsedField,
+        direction: ParsedDirection,
+    },
     Limit(usize),
 }
 
@@ -42,8 +48,8 @@ pub struct ParsedCondition {
 /// Field reference (metadata or regular field)
 #[derive(Debug, Clone, PartialEq)]
 pub enum ParsedField {
-    Metadata(String),  // @type, @id
-    Regular(String),   // field_name
+    Metadata(String), // @type, @id
+    Regular(String),  // field_name
 }
 
 /// Comparison operators

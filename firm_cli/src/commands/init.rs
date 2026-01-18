@@ -215,8 +215,8 @@ fn create_or_update_gitignore(workspace_path: &Path) -> Result<(), CliError> {
         }
 
         // Read existing content
-        let existing_content = fs::read_to_string(&gitignore_path)
-            .map_err(|_| CliError::FileError)?;
+        let existing_content =
+            fs::read_to_string(&gitignore_path).map_err(|_| CliError::FileError)?;
 
         // Check if entries already exist
         if existing_content.contains(".DS_Store") && existing_content.contains("*.firm.graph") {
@@ -231,7 +231,11 @@ fn create_or_update_gitignore(workspace_path: &Path) -> Result<(), CliError> {
             .map_err(|_| CliError::FileError)?;
 
         // Add a newline before our entries if file doesn't end with one
-        let prefix = if existing_content.ends_with('\n') { "" } else { "\n" };
+        let prefix = if existing_content.ends_with('\n') {
+            ""
+        } else {
+            "\n"
+        };
         file.write_all(format!("{}{}", prefix, gitignore_entries).as_bytes())
             .map_err(|_| CliError::FileError)?;
 
@@ -249,8 +253,7 @@ fn create_or_update_gitignore(workspace_path: &Path) -> Result<(), CliError> {
         }
 
         // Create new file
-        fs::write(&gitignore_path, gitignore_entries)
-            .map_err(|_| CliError::FileError)?;
+        fs::write(&gitignore_path, gitignore_entries).map_err(|_| CliError::FileError)?;
 
         ui::success("Created .gitignore");
     }

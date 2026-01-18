@@ -10,9 +10,7 @@ use std::io::Write;
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use super::{
-    build_workspace, field_prompt::prompt_for_field_value, load_workspace_files,
-};
+use super::{build_workspace, field_prompt::prompt_for_field_value, load_workspace_files};
 use crate::errors::CliError;
 use crate::files::load_current_graph;
 use crate::ui::{self, OutputFormat};
@@ -41,7 +39,11 @@ pub fn add_entity(
     output_format: OutputFormat,
 ) -> Result<(), CliError> {
     // Check if we're in non-interactive mode
-    let is_non_interactive = entity_type.is_some() || entity_id.is_some() || !fields.is_empty() || !lists.is_empty() || !list_values.is_empty();
+    let is_non_interactive = entity_type.is_some()
+        || entity_id.is_some()
+        || !fields.is_empty()
+        || !lists.is_empty()
+        || !list_values.is_empty();
 
     if is_non_interactive {
         // Validate that both type and id are provided
@@ -89,7 +91,10 @@ fn add_entity_non_interactive(
         .iter()
         .find(|s| s.entity_type.to_string() == entity_type)
         .ok_or_else(|| {
-            ui::error(&format!("Schema for '{}' not found in workspace", entity_type));
+            ui::error(&format!(
+                "Schema for '{}' not found in workspace",
+                entity_type
+            ));
             CliError::InputError
         })?;
 
@@ -108,7 +113,8 @@ fn add_entity_non_interactive(
     let mut entity = Entity::new(composite_id.clone(), schema.entity_type.to_owned());
 
     // Parse list declarations (--list field_name item_type)
-    let mut list_types: std::collections::HashMap<String, String> = std::collections::HashMap::new();
+    let mut list_types: std::collections::HashMap<String, String> =
+        std::collections::HashMap::new();
     for chunk in lists.chunks(2) {
         if chunk.len() == 2 {
             list_types.insert(chunk[0].to_string(), chunk[1].to_string());
@@ -116,15 +122,20 @@ fn add_entity_non_interactive(
     }
 
     // Group list values by field name (--list-value field_name value)
-    let mut list_value_groups: std::collections::HashMap<String, Vec<String>> = std::collections::HashMap::new();
+    let mut list_value_groups: std::collections::HashMap<String, Vec<String>> =
+        std::collections::HashMap::new();
     for chunk in list_values.chunks(2) {
         if chunk.len() == 2 {
-            list_value_groups.entry(chunk[0].to_string()).or_insert_with(Vec::new).push(chunk[1].to_string());
+            list_value_groups
+                .entry(chunk[0].to_string())
+                .or_insert_with(Vec::new)
+                .push(chunk[1].to_string());
         }
     }
 
     // Compute the generated file path early so we can use it for path parsing
-    let generated_file_path = compute_dsl_path(workspace_path, to_file.clone(), entity_type.clone());
+    let generated_file_path =
+        compute_dsl_path(workspace_path, to_file.clone(), entity_type.clone());
 
     // Process regular fields (--field field_name value)
     for chunk in fields.chunks(2) {
@@ -135,11 +146,23 @@ fn add_entity_non_interactive(
 
             // Find the field in the schema to get its expected type
             let schema_field = schema.fields.get(&field_id).ok_or_else(|| {
-                ui::error(&format!("Field '{}' is not defined in schema '{}'", field_name, entity_type));
+                ui::error(&format!(
+                    "Field '{}' is not defined in schema '{}'",
+                    field_name, entity_type
+                ));
                 ui::error("\nAvailable fields in this schema:");
                 for (field_id, field_def) in &schema.fields {
-                    let required_str = if field_def.is_required() { "required" } else { "optional" };
-                    ui::error(&format!("  - {} ({}, {})", field_id.as_str(), field_def.expected_type(), required_str));
+                    let required_str = if field_def.is_required() {
+                        "required"
+                    } else {
+                        "optional"
+                    };
+                    ui::error(&format!(
+                        "  - {} ({}, {})",
+                        field_id.as_str(),
+                        field_def.expected_type(),
+                        required_str
+                    ));
                 }
                 CliError::InputError
             })?;
@@ -147,9 +170,16 @@ fn add_entity_non_interactive(
             let expected_type = schema_field.expected_type();
 
             // Parse the field value
-            let parsed_value = parse_field_value_from_string(field_value_str, expected_type, &generated_file_path)?;
+            let parsed_value = parse_field_value_from_string(
+                field_value_str,
+                expected_type,
+                &generated_file_path,
+            )?;
             let field_value: FieldValue = parsed_value.try_into().map_err(|_| {
-                ui::error(&format!("Failed to convert parsed value for field '{}'", field_name));
+                ui::error(&format!(
+                    "Failed to convert parsed value for field '{}'",
+                    field_name
+                ));
                 CliError::InputError
             })?;
 
@@ -163,18 +193,33 @@ fn add_entity_non_interactive(
 
         // Validate field exists in schema
         let schema_field = schema.fields.get(&field_id).ok_or_else(|| {
-            ui::error(&format!("List field '{}' is not defined in schema '{}'", list_field_name, entity_type));
+            ui::error(&format!(
+                "List field '{}' is not defined in schema '{}'",
+                list_field_name, entity_type
+            ));
             ui::error("\nAvailable fields in this schema:");
             for (field_id, field_def) in &schema.fields {
-                let required_str = if field_def.is_required() { "required" } else { "optional" };
-                ui::error(&format!("  - {} ({}, {})", field_id.as_str(), field_def.expected_type(), required_str));
+                let required_str = if field_def.is_required() {
+                    "required"
+                } else {
+                    "optional"
+                };
+                ui::error(&format!(
+                    "  - {} ({}, {})",
+                    field_id.as_str(),
+                    field_def.expected_type(),
+                    required_str
+                ));
             }
             CliError::InputError
         })?;
 
         // Verify this field is actually a list type in the schema
         if !matches!(schema_field.expected_type(), FieldType::List) {
-            ui::error(&format!("Field '{}' is not a list type in the schema", list_field_name));
+            ui::error(&format!(
+                "Field '{}' is not a list type in the schema",
+                list_field_name
+            ));
             return Err(CliError::InputError);
         }
 
@@ -183,25 +228,38 @@ fn add_entity_non_interactive(
 
         // Get the values for this list
         let values = list_value_groups.get(list_field_name).ok_or_else(|| {
-            ui::error(&format!("No values provided for list '{}' (use --list-value)", list_field_name));
+            ui::error(&format!(
+                "No values provided for list '{}' (use --list-value)",
+                list_field_name
+            ));
             CliError::InputError
         })?;
 
         // Parse each value using the declared item type
         let mut parsed_items = Vec::new();
         for value_str in values {
-            let item = parse_field_value_from_string(value_str.as_str(), &item_field_type, &generated_file_path)?;
+            let item = parse_field_value_from_string(
+                value_str.as_str(),
+                &item_field_type,
+                &generated_file_path,
+            )?;
             parsed_items.push(item);
         }
 
         // Validate homogeneity and create list
         let parsed_list = ParsedValue::parse_list_from_vec(parsed_items).map_err(|e| {
-            ui::error(&format!("Failed to create list for field '{}': {}", list_field_name, e));
+            ui::error(&format!(
+                "Failed to create list for field '{}': {}",
+                list_field_name, e
+            ));
             CliError::InputError
         })?;
 
         let field_value: FieldValue = parsed_list.try_into().map_err(|_| {
-            ui::error(&format!("Failed to convert list for field '{}'", list_field_name));
+            ui::error(&format!(
+                "Failed to convert list for field '{}'",
+                list_field_name
+            ));
             CliError::InputError
         })?;
 
@@ -472,7 +530,10 @@ fn parse_field_type(type_str: &str) -> Result<FieldType, CliError> {
         "path" => Ok(FieldType::Path),
         "enum" => Ok(FieldType::Enum),
         _ => {
-            ui::error(&format!("Unknown field type '{}'. Valid types: string, integer, float, boolean, currency, reference, datetime, path, enum", type_str));
+            ui::error(&format!(
+                "Unknown field type '{}'. Valid types: string, integer, float, boolean, currency, reference, datetime, path, enum",
+                type_str
+            ));
             Err(CliError::InputError)
         }
     }
@@ -492,8 +553,7 @@ fn parse_field_value_from_string(
         FieldType::Reference => ParsedValue::parse_reference(value_str),
         FieldType::DateTime => {
             // Try parsing as datetime first, then as date
-            ParsedValue::parse_datetime(value_str)
-                .or_else(|_| ParsedValue::parse_date(value_str))
+            ParsedValue::parse_datetime(value_str).or_else(|_| ParsedValue::parse_date(value_str))
         }
         FieldType::Enum => ParsedValue::parse_enum(value_str),
         FieldType::Path => {
@@ -515,9 +575,13 @@ fn parse_field_value_from_string(
 
             // Now make it relative to the source file's parent directory
             // Canonicalize both paths to ensure diff_paths works correctly
-            let canonical_target = absolute_path.canonicalize().unwrap_or(absolute_path.clone());
+            let canonical_target = absolute_path
+                .canonicalize()
+                .unwrap_or(absolute_path.clone());
             let source_dir = source_path.parent().unwrap_or(std::path::Path::new(""));
-            let canonical_source_dir = source_dir.canonicalize().unwrap_or(source_dir.to_path_buf());
+            let canonical_source_dir = source_dir
+                .canonicalize()
+                .unwrap_or(source_dir.to_path_buf());
 
             let relative_to_source = pathdiff::diff_paths(&canonical_target, &canonical_source_dir)
                 .unwrap_or(canonical_target.clone());

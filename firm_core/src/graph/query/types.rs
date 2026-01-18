@@ -1,8 +1,8 @@
 //! Core query types for executing queries against the entity graph
 
-use crate::{Entity, EntityType};
 use super::filter::FilterCondition;
 use super::order::compare_entities_by_field;
+use crate::{Entity, EntityType};
 
 /// Sort direction
 #[derive(Debug, Clone, PartialEq)]
@@ -57,25 +57,25 @@ impl Query {
         // Apply each operation in sequence
         for operation in &self.operations {
             entities = match operation {
-                QueryOperation::Where(condition) => {
-                    entities.into_iter().filter(|e| condition.matches(e)).collect()
-                }
+                QueryOperation::Where(condition) => entities
+                    .into_iter()
+                    .filter(|e| condition.matches(e))
+                    .collect(),
                 QueryOperation::Order { field, direction } => {
                     let mut entities = entities;
                     entities.sort_by(|a, b| compare_entities_by_field(a, b, field, direction));
                     entities
                 }
-                QueryOperation::Limit(n) => {
-                    entities.into_iter().take(*n).collect()
-                }
-                QueryOperation::Related { degrees, entity_type } => {
-                    super::related::get_related_entities(
-                        graph,
-                        entities,
-                        *degrees,
-                        entity_type.as_ref(),
-                    )
-                }
+                QueryOperation::Limit(n) => entities.into_iter().take(*n).collect(),
+                QueryOperation::Related {
+                    degrees,
+                    entity_type,
+                } => super::related::get_related_entities(
+                    graph,
+                    entities,
+                    *degrees,
+                    entity_type.as_ref(),
+                ),
             };
         }
 
@@ -136,7 +136,9 @@ mod tests {
             .with_field(FieldId::new("title"), "Pending Task")
             .with_field(FieldId::new("is_completed"), false);
 
-        graph.add_entities(vec![person1, person2, task1, task2]).unwrap();
+        graph
+            .add_entities(vec![person1, person2, task1, task2])
+            .unwrap();
         graph.build();
 
         graph
@@ -165,14 +167,13 @@ mod tests {
     #[test]
     fn test_query_with_where() {
         let graph = create_test_graph();
-        let query = Query::new(EntitySelector::Type(EntityType::new("task")))
-            .with_operation(QueryOperation::Where(
-                super::super::FilterCondition::new(
-                    super::super::FieldRef::Regular(FieldId::new("is_completed")),
-                    super::super::FilterOperator::Equal,
-                    super::super::FilterValue::Boolean(false),
-                )
-            ));
+        let query = Query::new(EntitySelector::Type(EntityType::new("task"))).with_operation(
+            QueryOperation::Where(super::super::FilterCondition::new(
+                super::super::FieldRef::Regular(FieldId::new("is_completed")),
+                super::super::FilterOperator::Equal,
+                super::super::FilterValue::Boolean(false),
+            )),
+        );
 
         let results = query.execute(&graph);
         assert_eq!(results.len(), 1);
@@ -182,8 +183,7 @@ mod tests {
     #[test]
     fn test_query_with_limit() {
         let graph = create_test_graph();
-        let query = Query::new(EntitySelector::All)
-            .with_operation(QueryOperation::Limit(2));
+        let query = Query::new(EntitySelector::All).with_operation(QueryOperation::Limit(2));
 
         let results = query.execute(&graph);
         assert_eq!(results.len(), 2);
@@ -193,13 +193,11 @@ mod tests {
     fn test_query_with_where_and_limit() {
         let graph = create_test_graph();
         let query = Query::new(EntitySelector::Type(EntityType::new("person")))
-            .with_operation(QueryOperation::Where(
-                super::super::FilterCondition::new(
-                    super::super::FieldRef::Regular(FieldId::new("age")),
-                    super::super::FilterOperator::GreaterThan,
-                    super::super::FilterValue::Integer(20),
-                )
-            ))
+            .with_operation(QueryOperation::Where(super::super::FilterCondition::new(
+                super::super::FieldRef::Regular(FieldId::new("age")),
+                super::super::FilterOperator::GreaterThan,
+                super::super::FilterValue::Integer(20),
+            )))
             .with_operation(QueryOperation::Limit(1));
 
         let results = query.execute(&graph);

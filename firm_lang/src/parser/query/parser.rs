@@ -62,7 +62,9 @@ pub fn parse_query(input: &str) -> Result<ParsedQuery, QueryParseError> {
     Ok(ParsedQuery { from, operations })
 }
 
-fn parse_from_clause(pair: pest::iterators::Pair<Rule>) -> Result<ParsedFromClause, QueryParseError> {
+fn parse_from_clause(
+    pair: pest::iterators::Pair<Rule>,
+) -> Result<ParsedFromClause, QueryParseError> {
     for inner_pair in pair.into_inner() {
         if inner_pair.as_rule() == Rule::entity_selector {
             let selector = parse_entity_selector(inner_pair)?;
@@ -103,7 +105,9 @@ fn parse_operation(pair: pest::iterators::Pair<Rule>) -> Result<ParsedOperation,
     }
 }
 
-fn parse_where_clause(pair: pest::iterators::Pair<Rule>) -> Result<ParsedOperation, QueryParseError> {
+fn parse_where_clause(
+    pair: pest::iterators::Pair<Rule>,
+) -> Result<ParsedOperation, QueryParseError> {
     for inner_pair in pair.into_inner() {
         if inner_pair.as_rule() == Rule::condition {
             let condition = parse_condition(inner_pair)?;
@@ -127,9 +131,7 @@ fn parse_condition(pair: pest::iterators::Pair<Rule>) -> Result<ParsedCondition,
             let metadata_name = field_pair
                 .into_inner()
                 .next()
-                .ok_or_else(|| {
-                    QueryParseError::SyntaxError("Invalid metadata field".to_string())
-                })?
+                .ok_or_else(|| QueryParseError::SyntaxError("Invalid metadata field".to_string()))?
                 .as_str()
                 .to_string();
             ParsedField::Metadata(metadata_name)
@@ -138,13 +140,13 @@ fn parse_condition(pair: pest::iterators::Pair<Rule>) -> Result<ParsedCondition,
         _ => {
             return Err(QueryParseError::SyntaxError(
                 "Invalid field in condition".to_string(),
-            ))
+            ));
         }
     };
 
-    let operator_pair = inner.next().ok_or_else(|| {
-        QueryParseError::SyntaxError("Missing operator in condition".to_string())
-    })?;
+    let operator_pair = inner
+        .next()
+        .ok_or_else(|| QueryParseError::SyntaxError("Missing operator in condition".to_string()))?;
     let operator = parse_operator(operator_pair)?;
 
     let value_pair = inner
@@ -209,7 +211,9 @@ fn parse_value(pair: pest::iterators::Pair<Rule>) -> Result<ParsedQueryValue, Qu
             let mut inner_pairs = inner.into_inner();
             let num_str = inner_pairs
                 .next()
-                .ok_or_else(|| QueryParseError::SyntaxError("Missing amount in currency".to_string()))?
+                .ok_or_else(|| {
+                    QueryParseError::SyntaxError("Missing amount in currency".to_string())
+                })?
                 .as_str();
             let amount = num_str.parse::<f64>().map_err(|_| {
                 QueryParseError::InvalidNumber(format!("Cannot parse currency amount: {}", num_str))
@@ -221,12 +225,8 @@ fn parse_value(pair: pest::iterators::Pair<Rule>) -> Result<ParsedQueryValue, Qu
                 .to_string();
             Ok(ParsedQueryValue::Currency { amount, code })
         }
-        Rule::datetime => {
-            Ok(ParsedQueryValue::DateTime(inner.as_str().to_string()))
-        }
-        Rule::reference => {
-            Ok(ParsedQueryValue::Reference(inner.as_str().to_string()))
-        }
+        Rule::datetime => Ok(ParsedQueryValue::DateTime(inner.as_str().to_string())),
+        Rule::reference => Ok(ParsedQueryValue::Reference(inner.as_str().to_string())),
         Rule::path => {
             let string_pair = inner
                 .into_inner()
@@ -269,16 +269,19 @@ fn parse_value(pair: pest::iterators::Pair<Rule>) -> Result<ParsedQueryValue, Qu
     }
 }
 
-fn parse_related_clause(pair: pest::iterators::Pair<Rule>) -> Result<ParsedOperation, QueryParseError> {
+fn parse_related_clause(
+    pair: pest::iterators::Pair<Rule>,
+) -> Result<ParsedOperation, QueryParseError> {
     let mut degree = None;
     let mut selector = None;
 
     for inner_pair in pair.into_inner() {
         match inner_pair.as_rule() {
             Rule::degree => {
-                let degree_pair = inner_pair.into_inner().next().ok_or_else(|| {
-                    QueryParseError::SyntaxError("Invalid degree".to_string())
-                })?;
+                let degree_pair = inner_pair
+                    .into_inner()
+                    .next()
+                    .ok_or_else(|| QueryParseError::SyntaxError("Invalid degree".to_string()))?;
                 let degree_num = degree_pair.as_str().parse::<usize>().map_err(|_| {
                     QueryParseError::InvalidNumber(format!(
                         "Invalid degree number: {}",
@@ -297,7 +300,9 @@ fn parse_related_clause(pair: pest::iterators::Pair<Rule>) -> Result<ParsedOpera
     Ok(ParsedOperation::Related { degree, selector })
 }
 
-fn parse_order_clause(pair: pest::iterators::Pair<Rule>) -> Result<ParsedOperation, QueryParseError> {
+fn parse_order_clause(
+    pair: pest::iterators::Pair<Rule>,
+) -> Result<ParsedOperation, QueryParseError> {
     let mut field = None;
     let mut direction = ParsedDirection::default();
 
@@ -327,7 +332,7 @@ fn parse_order_clause(pair: pest::iterators::Pair<Rule>) -> Result<ParsedOperati
                     _ => {
                         return Err(QueryParseError::SyntaxError(
                             "Invalid field in order clause".to_string(),
-                        ))
+                        ));
                     }
                 }
             }
@@ -342,14 +347,15 @@ fn parse_order_clause(pair: pest::iterators::Pair<Rule>) -> Result<ParsedOperati
         }
     }
 
-    let field = field.ok_or_else(|| {
-        QueryParseError::SyntaxError("Missing field in order clause".to_string())
-    })?;
+    let field = field
+        .ok_or_else(|| QueryParseError::SyntaxError("Missing field in order clause".to_string()))?;
 
     Ok(ParsedOperation::Order { field, direction })
 }
 
-fn parse_limit_clause(pair: pest::iterators::Pair<Rule>) -> Result<ParsedOperation, QueryParseError> {
+fn parse_limit_clause(
+    pair: pest::iterators::Pair<Rule>,
+) -> Result<ParsedOperation, QueryParseError> {
     for inner_pair in pair.into_inner() {
         if inner_pair.as_rule() == Rule::number {
             let limit = inner_pair.as_str().parse::<usize>().map_err(|_| {

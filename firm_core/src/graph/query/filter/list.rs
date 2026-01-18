@@ -1,8 +1,8 @@
 //! List comparison logic for filters
 
-use crate::FieldValue;
 use super::types::{FilterOperator, FilterValue};
-use super::{boolean, numeric, string, currency, datetime, reference};
+use super::{boolean, currency, datetime, numeric, reference, string};
+use crate::FieldValue;
 
 /// Compare a list value against a filter
 pub fn compare_list(
@@ -22,7 +22,7 @@ pub fn compare_list(
                         string::compare_string(s, &FilterOperator::Contains, filter_value)
                     }
                     // For all other types, use equality
-                    _ => compare_list_item(item, &FilterOperator::Equal, filter_value)
+                    _ => compare_list_item(item, &FilterOperator::Equal, filter_value),
                 }
             })
         }
@@ -34,9 +34,12 @@ pub fn compare_list(
                         return false;
                     }
                     // Compare each item using equality
-                    items.iter().zip(filter_items.iter()).all(|(item, filter_item)| {
-                        compare_list_item(item, &FilterOperator::Equal, filter_item)
-                    })
+                    items
+                        .iter()
+                        .zip(filter_items.iter())
+                        .all(|(item, filter_item)| {
+                            compare_list_item(item, &FilterOperator::Equal, filter_item)
+                        })
                 }
                 _ => false,
             }
@@ -47,13 +50,19 @@ pub fn compare_list(
 
 /// Compare individual list items by delegating to type-specific comparators
 /// This leverages all the existing comparison logic we've already tested
-fn compare_list_item(item: &FieldValue, operator: &FilterOperator, filter_value: &FilterValue) -> bool {
+fn compare_list_item(
+    item: &FieldValue,
+    operator: &FilterOperator,
+    filter_value: &FilterValue,
+) -> bool {
     match item {
         FieldValue::String(s) => string::compare_string(s, operator, filter_value),
         FieldValue::Integer(i) => numeric::compare_integer(*i, operator, filter_value),
         FieldValue::Float(f) => numeric::compare_float(*f, operator, filter_value),
         FieldValue::Boolean(b) => boolean::compare_boolean(*b, operator, filter_value),
-        FieldValue::Currency { amount, currency } => currency::compare_currency(amount, currency, operator, filter_value),
+        FieldValue::Currency { amount, currency } => {
+            currency::compare_currency(amount, currency, operator, filter_value)
+        }
         FieldValue::DateTime(dt) => datetime::compare_datetime(dt, operator, filter_value),
         FieldValue::Reference(r) => reference::compare_reference(r, operator, filter_value),
         FieldValue::Enum(e) => string::compare_string(e, operator, filter_value), // Enums are strings
@@ -72,7 +81,7 @@ fn compare_list_item(item: &FieldValue, operator: &FilterOperator, filter_value:
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{ReferenceValue, EntityId};
+    use crate::{EntityId, ReferenceValue};
     use chrono::{FixedOffset, TimeZone};
     use iso_currency::Currency;
     use rust_decimal::Decimal;
@@ -87,9 +96,21 @@ mod tests {
             FieldValue::String("cherry".to_string()),
         ];
 
-        assert!(compare_list(&items, &FilterOperator::Contains, &FilterValue::String("banana".to_string())));
-        assert!(compare_list(&items, &FilterOperator::Contains, &FilterValue::String("APPLE".to_string()))); // Case insensitive
-        assert!(!compare_list(&items, &FilterOperator::Contains, &FilterValue::String("grape".to_string())));
+        assert!(compare_list(
+            &items,
+            &FilterOperator::Contains,
+            &FilterValue::String("banana".to_string())
+        ));
+        assert!(compare_list(
+            &items,
+            &FilterOperator::Contains,
+            &FilterValue::String("APPLE".to_string())
+        )); // Case insensitive
+        assert!(!compare_list(
+            &items,
+            &FilterOperator::Contains,
+            &FilterValue::String("grape".to_string())
+        ));
     }
 
     #[test]
@@ -100,9 +121,21 @@ mod tests {
         ];
 
         // Should match substring
-        assert!(compare_list(&items, &FilterOperator::Contains, &FilterValue::String("linkedin".to_string())));
-        assert!(compare_list(&items, &FilterOperator::Contains, &FilterValue::String("TWITTER".to_string()))); // Case insensitive
-        assert!(!compare_list(&items, &FilterOperator::Contains, &FilterValue::String("github".to_string())));
+        assert!(compare_list(
+            &items,
+            &FilterOperator::Contains,
+            &FilterValue::String("linkedin".to_string())
+        ));
+        assert!(compare_list(
+            &items,
+            &FilterOperator::Contains,
+            &FilterValue::String("TWITTER".to_string())
+        )); // Case insensitive
+        assert!(!compare_list(
+            &items,
+            &FilterOperator::Contains,
+            &FilterValue::String("github".to_string())
+        ));
     }
 
     #[test]
@@ -113,8 +146,16 @@ mod tests {
             FieldValue::Integer(3),
         ];
 
-        assert!(compare_list(&items, &FilterOperator::Contains, &FilterValue::Integer(2)));
-        assert!(!compare_list(&items, &FilterOperator::Contains, &FilterValue::Integer(5)));
+        assert!(compare_list(
+            &items,
+            &FilterOperator::Contains,
+            &FilterValue::Integer(2)
+        ));
+        assert!(!compare_list(
+            &items,
+            &FilterOperator::Contains,
+            &FilterValue::Integer(5)
+        ));
     }
 
     #[test]
@@ -125,19 +166,32 @@ mod tests {
             FieldValue::Float(3.5),
         ];
 
-        assert!(compare_list(&items, &FilterOperator::Contains, &FilterValue::Float(2.5)));
-        assert!(!compare_list(&items, &FilterOperator::Contains, &FilterValue::Float(4.5)));
+        assert!(compare_list(
+            &items,
+            &FilterOperator::Contains,
+            &FilterValue::Float(2.5)
+        ));
+        assert!(!compare_list(
+            &items,
+            &FilterOperator::Contains,
+            &FilterValue::Float(4.5)
+        ));
     }
 
     #[test]
     fn test_list_contains_boolean() {
-        let items = vec![
-            FieldValue::Boolean(true),
-            FieldValue::Boolean(false),
-        ];
+        let items = vec![FieldValue::Boolean(true), FieldValue::Boolean(false)];
 
-        assert!(compare_list(&items, &FilterOperator::Contains, &FilterValue::Boolean(true)));
-        assert!(compare_list(&items, &FilterOperator::Contains, &FilterValue::Boolean(false)));
+        assert!(compare_list(
+            &items,
+            &FilterOperator::Contains,
+            &FilterValue::Boolean(true)
+        ));
+        assert!(compare_list(
+            &items,
+            &FilterOperator::Contains,
+            &FilterValue::Boolean(false)
+        ));
     }
 
     #[test]
@@ -153,30 +207,49 @@ mod tests {
             },
         ];
 
-        assert!(compare_list(&items, &FilterOperator::Contains, &FilterValue::Currency {
-            amount: 100.50,
-            code: "USD".to_string(),
-        }));
+        assert!(compare_list(
+            &items,
+            &FilterOperator::Contains,
+            &FilterValue::Currency {
+                amount: 100.50,
+                code: "USD".to_string(),
+            }
+        ));
 
         // Different currency code should not match
-        assert!(!compare_list(&items, &FilterOperator::Contains, &FilterValue::Currency {
-            amount: 100.50,
-            code: "EUR".to_string(),
-        }));
+        assert!(!compare_list(
+            &items,
+            &FilterOperator::Contains,
+            &FilterValue::Currency {
+                amount: 100.50,
+                code: "EUR".to_string(),
+            }
+        ));
     }
 
     #[test]
     fn test_list_contains_datetime() {
-        let dt1 = FixedOffset::east_opt(0).unwrap().with_ymd_and_hms(2024, 1, 15, 10, 30, 0).unwrap();
-        let dt2 = FixedOffset::east_opt(0).unwrap().with_ymd_and_hms(2024, 2, 20, 14, 45, 0).unwrap();
+        let dt1 = FixedOffset::east_opt(0)
+            .unwrap()
+            .with_ymd_and_hms(2024, 1, 15, 10, 30, 0)
+            .unwrap();
+        let dt2 = FixedOffset::east_opt(0)
+            .unwrap()
+            .with_ymd_and_hms(2024, 2, 20, 14, 45, 0)
+            .unwrap();
 
-        let items = vec![
-            FieldValue::DateTime(dt1),
-            FieldValue::DateTime(dt2),
-        ];
+        let items = vec![FieldValue::DateTime(dt1), FieldValue::DateTime(dt2)];
 
-        assert!(compare_list(&items, &FilterOperator::Contains, &FilterValue::DateTime("2024-01-15T10:30:00+00:00".to_string())));
-        assert!(!compare_list(&items, &FilterOperator::Contains, &FilterValue::DateTime("2024-03-01T00:00:00+00:00".to_string())));
+        assert!(compare_list(
+            &items,
+            &FilterOperator::Contains,
+            &FilterValue::DateTime("2024-01-15T10:30:00+00:00".to_string())
+        ));
+        assert!(!compare_list(
+            &items,
+            &FilterOperator::Contains,
+            &FilterValue::DateTime("2024-03-01T00:00:00+00:00".to_string())
+        ));
     }
 
     #[test]
@@ -186,9 +259,21 @@ mod tests {
             FieldValue::Reference(ReferenceValue::Entity(EntityId::new("person.jane"))),
         ];
 
-        assert!(compare_list(&items, &FilterOperator::Contains, &FilterValue::Reference("person.john".to_string())));
-        assert!(compare_list(&items, &FilterOperator::Contains, &FilterValue::Reference("PERSON.JOHN".to_string()))); // Case insensitive
-        assert!(!compare_list(&items, &FilterOperator::Contains, &FilterValue::Reference("person.bob".to_string())));
+        assert!(compare_list(
+            &items,
+            &FilterOperator::Contains,
+            &FilterValue::Reference("person.john".to_string())
+        ));
+        assert!(compare_list(
+            &items,
+            &FilterOperator::Contains,
+            &FilterValue::Reference("PERSON.JOHN".to_string())
+        )); // Case insensitive
+        assert!(!compare_list(
+            &items,
+            &FilterOperator::Contains,
+            &FilterValue::Reference("person.bob".to_string())
+        ));
     }
 
     #[test]
@@ -199,9 +284,21 @@ mod tests {
             FieldValue::Enum("completed".to_string()),
         ];
 
-        assert!(compare_list(&items, &FilterOperator::Contains, &FilterValue::Enum("pending".to_string())));
-        assert!(compare_list(&items, &FilterOperator::Contains, &FilterValue::Enum("ACTIVE".to_string()))); // Case insensitive
-        assert!(!compare_list(&items, &FilterOperator::Contains, &FilterValue::Enum("cancelled".to_string())));
+        assert!(compare_list(
+            &items,
+            &FilterOperator::Contains,
+            &FilterValue::Enum("pending".to_string())
+        ));
+        assert!(compare_list(
+            &items,
+            &FilterOperator::Contains,
+            &FilterValue::Enum("ACTIVE".to_string())
+        )); // Case insensitive
+        assert!(!compare_list(
+            &items,
+            &FilterOperator::Contains,
+            &FilterValue::Enum("cancelled".to_string())
+        ));
     }
 
     #[test]
@@ -211,8 +308,16 @@ mod tests {
             FieldValue::Path(PathBuf::from("/path/to/file2.txt")),
         ];
 
-        assert!(compare_list(&items, &FilterOperator::Contains, &FilterValue::Path("/path/to/file1.txt".to_string())));
-        assert!(!compare_list(&items, &FilterOperator::Contains, &FilterValue::Path("/path/to/file3.txt".to_string())));
+        assert!(compare_list(
+            &items,
+            &FilterOperator::Contains,
+            &FilterValue::Path("/path/to/file1.txt".to_string())
+        ));
+        assert!(!compare_list(
+            &items,
+            &FilterOperator::Contains,
+            &FilterValue::Path("/path/to/file3.txt".to_string())
+        ));
     }
 
     #[test]
@@ -227,7 +332,11 @@ mod tests {
             FilterValue::String("banana".to_string()),
         ];
 
-        assert!(compare_list(&items, &FilterOperator::Equal, &FilterValue::List(filter_items)));
+        assert!(compare_list(
+            &items,
+            &FilterOperator::Equal,
+            &FilterValue::List(filter_items)
+        ));
     }
 
     #[test]
@@ -242,7 +351,11 @@ mod tests {
             FilterValue::String("BANANA".to_string()),
         ];
 
-        assert!(compare_list(&items, &FilterOperator::Equal, &FilterValue::List(filter_items)));
+        assert!(compare_list(
+            &items,
+            &FilterOperator::Equal,
+            &FilterValue::List(filter_items)
+        ));
     }
 
     #[test]
@@ -258,7 +371,11 @@ mod tests {
         ];
 
         // Order matters for equality
-        assert!(!compare_list(&items, &FilterOperator::Equal, &FilterValue::List(filter_items)));
+        assert!(!compare_list(
+            &items,
+            &FilterOperator::Equal,
+            &FilterValue::List(filter_items)
+        ));
     }
 
     #[test]
@@ -268,11 +385,13 @@ mod tests {
             FieldValue::String("banana".to_string()),
         ];
 
-        let filter_items = vec![
-            FilterValue::String("apple".to_string()),
-        ];
+        let filter_items = vec![FilterValue::String("apple".to_string())];
 
-        assert!(!compare_list(&items, &FilterOperator::Equal, &FilterValue::List(filter_items)));
+        assert!(!compare_list(
+            &items,
+            &FilterOperator::Equal,
+            &FilterValue::List(filter_items)
+        ));
     }
 
     #[test]
@@ -289,37 +408,37 @@ mod tests {
             FilterValue::Integer(3),
         ];
 
-        assert!(compare_list(&items, &FilterOperator::Equal, &FilterValue::List(filter_items)));
+        assert!(compare_list(
+            &items,
+            &FilterOperator::Equal,
+            &FilterValue::List(filter_items)
+        ));
     }
 
     #[test]
     fn test_list_equal_floats() {
-        let items = vec![
-            FieldValue::Float(1.5),
-            FieldValue::Float(2.5),
-        ];
+        let items = vec![FieldValue::Float(1.5), FieldValue::Float(2.5)];
 
-        let filter_items = vec![
-            FilterValue::Float(1.5),
-            FilterValue::Float(2.5),
-        ];
+        let filter_items = vec![FilterValue::Float(1.5), FilterValue::Float(2.5)];
 
-        assert!(compare_list(&items, &FilterOperator::Equal, &FilterValue::List(filter_items)));
+        assert!(compare_list(
+            &items,
+            &FilterOperator::Equal,
+            &FilterValue::List(filter_items)
+        ));
     }
 
     #[test]
     fn test_list_equal_booleans() {
-        let items = vec![
-            FieldValue::Boolean(true),
-            FieldValue::Boolean(false),
-        ];
+        let items = vec![FieldValue::Boolean(true), FieldValue::Boolean(false)];
 
-        let filter_items = vec![
-            FilterValue::Boolean(true),
-            FilterValue::Boolean(false),
-        ];
+        let filter_items = vec![FilterValue::Boolean(true), FilterValue::Boolean(false)];
 
-        assert!(compare_list(&items, &FilterOperator::Equal, &FilterValue::List(filter_items)));
+        assert!(compare_list(
+            &items,
+            &FilterOperator::Equal,
+            &FilterValue::List(filter_items)
+        ));
     }
 
     #[test]
@@ -346,25 +465,36 @@ mod tests {
             },
         ];
 
-        assert!(compare_list(&items, &FilterOperator::Equal, &FilterValue::List(filter_items)));
+        assert!(compare_list(
+            &items,
+            &FilterOperator::Equal,
+            &FilterValue::List(filter_items)
+        ));
     }
 
     #[test]
     fn test_list_equal_datetime() {
-        let dt1 = FixedOffset::east_opt(0).unwrap().with_ymd_and_hms(2024, 1, 15, 10, 30, 0).unwrap();
-        let dt2 = FixedOffset::east_opt(0).unwrap().with_ymd_and_hms(2024, 2, 20, 14, 45, 0).unwrap();
+        let dt1 = FixedOffset::east_opt(0)
+            .unwrap()
+            .with_ymd_and_hms(2024, 1, 15, 10, 30, 0)
+            .unwrap();
+        let dt2 = FixedOffset::east_opt(0)
+            .unwrap()
+            .with_ymd_and_hms(2024, 2, 20, 14, 45, 0)
+            .unwrap();
 
-        let items = vec![
-            FieldValue::DateTime(dt1),
-            FieldValue::DateTime(dt2),
-        ];
+        let items = vec![FieldValue::DateTime(dt1), FieldValue::DateTime(dt2)];
 
         let filter_items = vec![
             FilterValue::DateTime("2024-01-15T10:30:00+00:00".to_string()),
             FilterValue::DateTime("2024-02-20T14:45:00+00:00".to_string()),
         ];
 
-        assert!(compare_list(&items, &FilterOperator::Equal, &FilterValue::List(filter_items)));
+        assert!(compare_list(
+            &items,
+            &FilterOperator::Equal,
+            &FilterValue::List(filter_items)
+        ));
     }
 
     #[test]
@@ -379,7 +509,11 @@ mod tests {
             FilterValue::Reference("person.jane".to_string()),
         ];
 
-        assert!(compare_list(&items, &FilterOperator::Equal, &FilterValue::List(filter_items)));
+        assert!(compare_list(
+            &items,
+            &FilterOperator::Equal,
+            &FilterValue::List(filter_items)
+        ));
     }
 
     #[test]
@@ -396,7 +530,11 @@ mod tests {
             FilterValue::Boolean(true),
         ];
 
-        assert!(compare_list(&items, &FilterOperator::Equal, &FilterValue::List(filter_items)));
+        assert!(compare_list(
+            &items,
+            &FilterOperator::Equal,
+            &FilterValue::List(filter_items)
+        ));
     }
 
     #[test]
@@ -411,14 +549,22 @@ mod tests {
             FilterValue::Integer(100),
         ];
 
-        assert!(!compare_list(&items, &FilterOperator::Equal, &FilterValue::List(filter_items)));
+        assert!(!compare_list(
+            &items,
+            &FilterOperator::Equal,
+            &FilterValue::List(filter_items)
+        ));
     }
 
     #[test]
     fn test_list_contains_empty_list() {
         let items: Vec<FieldValue> = vec![];
 
-        assert!(!compare_list(&items, &FilterOperator::Contains, &FilterValue::String("test".to_string())));
+        assert!(!compare_list(
+            &items,
+            &FilterOperator::Contains,
+            &FilterValue::String("test".to_string())
+        ));
     }
 
     #[test]
@@ -426,55 +572,73 @@ mod tests {
         let items: Vec<FieldValue> = vec![];
         let filter_items: Vec<FilterValue> = vec![];
 
-        assert!(compare_list(&items, &FilterOperator::Equal, &FilterValue::List(filter_items)));
+        assert!(compare_list(
+            &items,
+            &FilterOperator::Equal,
+            &FilterValue::List(filter_items)
+        ));
     }
 
     #[test]
     fn test_list_unsupported_operator() {
-        let items = vec![
-            FieldValue::String("apple".to_string()),
-        ];
+        let items = vec![FieldValue::String("apple".to_string())];
 
         // GreaterThan not supported for lists
-        assert!(!compare_list(&items, &FilterOperator::GreaterThan, &FilterValue::String("apple".to_string())));
-        assert!(!compare_list(&items, &FilterOperator::LessThan, &FilterValue::String("apple".to_string())));
+        assert!(!compare_list(
+            &items,
+            &FilterOperator::GreaterThan,
+            &FilterValue::String("apple".to_string())
+        ));
+        assert!(!compare_list(
+            &items,
+            &FilterOperator::LessThan,
+            &FilterValue::String("apple".to_string())
+        ));
     }
 
     #[test]
     fn test_list_contains_cross_type_numeric() {
-        let items = vec![
-            FieldValue::Integer(42),
-            FieldValue::Integer(100),
-        ];
+        let items = vec![FieldValue::Integer(42), FieldValue::Integer(100)];
 
         // Should work: comparing integer list item against float filter
-        assert!(compare_list(&items, &FilterOperator::Contains, &FilterValue::Float(42.0)));
-        assert!(!compare_list(&items, &FilterOperator::Contains, &FilterValue::Float(43.0)));
+        assert!(compare_list(
+            &items,
+            &FilterOperator::Contains,
+            &FilterValue::Float(42.0)
+        ));
+        assert!(!compare_list(
+            &items,
+            &FilterOperator::Contains,
+            &FilterValue::Float(43.0)
+        ));
     }
 
     #[test]
     fn test_list_equal_cross_type_numeric() {
-        let items = vec![
-            FieldValue::Integer(42),
-            FieldValue::Float(3.14),
-        ];
+        let items = vec![FieldValue::Integer(42), FieldValue::Float(3.14)];
 
         let filter_items = vec![
             FilterValue::Float(42.0), // Cross-type: int vs float
             FilterValue::Float(3.14),
         ];
 
-        assert!(compare_list(&items, &FilterOperator::Equal, &FilterValue::List(filter_items)));
+        assert!(compare_list(
+            &items,
+            &FilterOperator::Equal,
+            &FilterValue::List(filter_items)
+        ));
     }
 
     #[test]
     fn test_list_contains_nested_list_not_supported() {
         let nested = vec![FieldValue::String("inner".to_string())];
-        let items = vec![
-            FieldValue::List(nested),
-        ];
+        let items = vec![FieldValue::List(nested)];
 
         // Nested lists are not supported
-        assert!(!compare_list(&items, &FilterOperator::Contains, &FilterValue::String("inner".to_string())));
+        assert!(!compare_list(
+            &items,
+            &FilterOperator::Contains,
+            &FilterValue::String("inner".to_string())
+        ));
     }
 }

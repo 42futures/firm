@@ -1,13 +1,13 @@
 //! Filter condition types and matching logic
 
-mod types;
-mod string;
-mod numeric;
 mod boolean;
 mod currency;
 mod datetime;
-mod reference;
 mod list;
+mod numeric;
+mod reference;
+mod string;
+mod types;
 
 // Re-export types
 pub use types::*;

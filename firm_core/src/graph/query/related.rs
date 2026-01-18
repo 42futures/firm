@@ -1,7 +1,7 @@
 //! Related entity traversal for queries
 
-use crate::{Entity, EntityId, EntityType};
 use crate::graph::EntityGraph;
+use crate::{Entity, EntityId, EntityType};
 use std::collections::HashSet;
 
 const MAX_DEGREES: usize = 5;
@@ -35,16 +35,10 @@ pub fn get_related_entities<'a>(
     }
 
     // Track all entities we've seen (including starting entities)
-    let mut all_entities: HashSet<&EntityId> = starting_entities
-        .iter()
-        .map(|e| &e.id)
-        .collect();
+    let mut all_entities: HashSet<&EntityId> = starting_entities.iter().map(|e| &e.id).collect();
 
     // Current level starts with the starting entities
-    let mut current_level: HashSet<&EntityId> = starting_entities
-        .iter()
-        .map(|e| &e.id)
-        .collect();
+    let mut current_level: HashSet<&EntityId> = starting_entities.iter().map(|e| &e.id).collect();
 
     // Traverse N degrees
     for _ in 0..degrees {
@@ -160,7 +154,9 @@ mod tests {
                 FieldValue::Reference(ReferenceValue::Entity(EntityId::new("task2"))),
             );
 
-        graph.add_entities(vec![person1, person2, task1, task2, project1]).unwrap();
+        graph
+            .add_entities(vec![person1, person2, task1, task2, project1])
+            .unwrap();
         graph.build();
 
         graph
@@ -262,7 +258,12 @@ mod tests {
         let graph = create_test_graph_linear();
         let person = graph.get_entity(&EntityId::new("person1")).unwrap();
 
-        let result = get_related_entities(&graph, vec![person], 2, Some(&EntityType::new("organization")));
+        let result = get_related_entities(
+            &graph,
+            vec![person],
+            2,
+            Some(&EntityType::new("organization")),
+        );
 
         // No organizations in the graph
         assert_eq!(result.len(), 0);

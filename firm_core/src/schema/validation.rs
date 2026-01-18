@@ -177,11 +177,14 @@ mod tests {
 
     #[test]
     fn test_validate_enum_with_valid_value() {
-        let schema = EntitySchema::new(EntityType::new("account"))
-            .with_required_enum(
-                FieldId::new("status"),
-                vec!["prospect".to_string(), "customer".to_string(), "partner".to_string()],
-            );
+        let schema = EntitySchema::new(EntityType::new("account")).with_required_enum(
+            FieldId::new("status"),
+            vec![
+                "prospect".to_string(),
+                "customer".to_string(),
+                "partner".to_string(),
+            ],
+        );
 
         let entity = Entity::new(EntityId::new("test_account"), EntityType::new("account"))
             .with_field(
@@ -195,11 +198,10 @@ mod tests {
 
     #[test]
     fn test_validate_enum_with_case_insensitive_match() {
-        let schema = EntitySchema::new(EntityType::new("account"))
-            .with_required_enum(
-                FieldId::new("status"),
-                vec!["prospect".to_string(), "customer".to_string()],
-            );
+        let schema = EntitySchema::new(EntityType::new("account")).with_required_enum(
+            FieldId::new("status"),
+            vec!["prospect".to_string(), "customer".to_string()],
+        );
 
         let entity = Entity::new(EntityId::new("test_account"), EntityType::new("account"))
             .with_field(
@@ -213,11 +215,10 @@ mod tests {
 
     #[test]
     fn test_validate_enum_with_whitespace_trimmed() {
-        let schema = EntitySchema::new(EntityType::new("account"))
-            .with_required_enum(
-                FieldId::new("status"),
-                vec!["prospect".to_string(), "customer".to_string()],
-            );
+        let schema = EntitySchema::new(EntityType::new("account")).with_required_enum(
+            FieldId::new("status"),
+            vec!["prospect".to_string(), "customer".to_string()],
+        );
 
         let entity = Entity::new(EntityId::new("test_account"), EntityType::new("account"))
             .with_field(
@@ -231,11 +232,14 @@ mod tests {
 
     #[test]
     fn test_validate_enum_with_invalid_value() {
-        let schema = EntitySchema::new(EntityType::new("account"))
-            .with_required_enum(
-                FieldId::new("status"),
-                vec!["prospect".to_string(), "customer".to_string(), "partner".to_string()],
-            );
+        let schema = EntitySchema::new(EntityType::new("account")).with_required_enum(
+            FieldId::new("status"),
+            vec![
+                "prospect".to_string(),
+                "customer".to_string(),
+                "partner".to_string(),
+            ],
+        );
 
         let entity = Entity::new(EntityId::new("test_account"), EntityType::new("account"))
             .with_field(
@@ -259,11 +263,10 @@ mod tests {
 
     #[test]
     fn test_validate_optional_enum_can_be_missing() {
-        let schema = EntitySchema::new(EntityType::new("account"))
-            .with_optional_enum(
-                FieldId::new("status"),
-                vec!["prospect".to_string(), "customer".to_string()],
-            );
+        let schema = EntitySchema::new(EntityType::new("account")).with_optional_enum(
+            FieldId::new("status"),
+            vec!["prospect".to_string(), "customer".to_string()],
+        );
 
         let entity = Entity::new(EntityId::new("test_account"), EntityType::new("account"));
 
@@ -273,11 +276,10 @@ mod tests {
 
     #[test]
     fn test_validate_optional_enum_validates_when_present() {
-        let schema = EntitySchema::new(EntityType::new("account"))
-            .with_optional_enum(
-                FieldId::new("status"),
-                vec!["prospect".to_string(), "customer".to_string()],
-            );
+        let schema = EntitySchema::new(EntityType::new("account")).with_optional_enum(
+            FieldId::new("status"),
+            vec!["prospect".to_string(), "customer".to_string()],
+        );
 
         let entity = Entity::new(EntityId::new("test_account"), EntityType::new("account"))
             .with_field(

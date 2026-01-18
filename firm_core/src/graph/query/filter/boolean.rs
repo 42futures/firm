@@ -20,71 +20,127 @@ mod tests {
 
     #[test]
     fn test_true_equals_true() {
-        assert!(compare_boolean(true, &FilterOperator::Equal, &FilterValue::Boolean(true)));
+        assert!(compare_boolean(
+            true,
+            &FilterOperator::Equal,
+            &FilterValue::Boolean(true)
+        ));
     }
 
     #[test]
     fn test_false_equals_false() {
-        assert!(compare_boolean(false, &FilterOperator::Equal, &FilterValue::Boolean(false)));
+        assert!(compare_boolean(
+            false,
+            &FilterOperator::Equal,
+            &FilterValue::Boolean(false)
+        ));
     }
 
     #[test]
     fn test_true_not_equals_false() {
-        assert!(!compare_boolean(true, &FilterOperator::Equal, &FilterValue::Boolean(false)));
+        assert!(!compare_boolean(
+            true,
+            &FilterOperator::Equal,
+            &FilterValue::Boolean(false)
+        ));
     }
 
     #[test]
     fn test_false_not_equals_true() {
-        assert!(!compare_boolean(false, &FilterOperator::Equal, &FilterValue::Boolean(true)));
+        assert!(!compare_boolean(
+            false,
+            &FilterOperator::Equal,
+            &FilterValue::Boolean(true)
+        ));
     }
 
     #[test]
     fn test_true_not_equal_false() {
-        assert!(compare_boolean(true, &FilterOperator::NotEqual, &FilterValue::Boolean(false)));
+        assert!(compare_boolean(
+            true,
+            &FilterOperator::NotEqual,
+            &FilterValue::Boolean(false)
+        ));
     }
 
     #[test]
     fn test_false_not_equal_true() {
-        assert!(compare_boolean(false, &FilterOperator::NotEqual, &FilterValue::Boolean(true)));
+        assert!(compare_boolean(
+            false,
+            &FilterOperator::NotEqual,
+            &FilterValue::Boolean(true)
+        ));
     }
 
     #[test]
     fn test_true_not_not_equal_true() {
-        assert!(!compare_boolean(true, &FilterOperator::NotEqual, &FilterValue::Boolean(true)));
+        assert!(!compare_boolean(
+            true,
+            &FilterOperator::NotEqual,
+            &FilterValue::Boolean(true)
+        ));
     }
 
     #[test]
     fn test_false_not_not_equal_false() {
-        assert!(!compare_boolean(false, &FilterOperator::NotEqual, &FilterValue::Boolean(false)));
+        assert!(!compare_boolean(
+            false,
+            &FilterOperator::NotEqual,
+            &FilterValue::Boolean(false)
+        ));
     }
 
     #[test]
     fn test_unsupported_operator_greater_than() {
-        assert!(!compare_boolean(true, &FilterOperator::GreaterThan, &FilterValue::Boolean(false)));
+        assert!(!compare_boolean(
+            true,
+            &FilterOperator::GreaterThan,
+            &FilterValue::Boolean(false)
+        ));
     }
 
     #[test]
     fn test_unsupported_operator_less_than() {
-        assert!(!compare_boolean(false, &FilterOperator::LessThan, &FilterValue::Boolean(true)));
+        assert!(!compare_boolean(
+            false,
+            &FilterOperator::LessThan,
+            &FilterValue::Boolean(true)
+        ));
     }
 
     #[test]
     fn test_unsupported_operator_contains() {
-        assert!(!compare_boolean(true, &FilterOperator::Contains, &FilterValue::Boolean(true)));
+        assert!(!compare_boolean(
+            true,
+            &FilterOperator::Contains,
+            &FilterValue::Boolean(true)
+        ));
     }
 
     #[test]
     fn test_wrong_filter_type_string() {
-        assert!(!compare_boolean(true, &FilterOperator::Equal, &FilterValue::String("true".to_string())));
+        assert!(!compare_boolean(
+            true,
+            &FilterOperator::Equal,
+            &FilterValue::String("true".to_string())
+        ));
     }
 
     #[test]
     fn test_wrong_filter_type_integer() {
-        assert!(!compare_boolean(true, &FilterOperator::Equal, &FilterValue::Integer(1)));
+        assert!(!compare_boolean(
+            true,
+            &FilterOperator::Equal,
+            &FilterValue::Integer(1)
+        ));
     }
 
     #[test]
     fn test_wrong_filter_type_float() {
-        assert!(!compare_boolean(false, &FilterOperator::Equal, &FilterValue::Float(0.0)));
+        assert!(!compare_boolean(
+            false,
+            &FilterOperator::Equal,
+            &FilterValue::Float(0.0)
+        ));
     }
 }

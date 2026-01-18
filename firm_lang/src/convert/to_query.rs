@@ -1,8 +1,8 @@
 //! Conversion from ParsedQuery to executable Query
 
 use firm_core::graph::{
-    EntitySelector, FilterCondition, FilterOperator, FilterValue, FieldRef, MetadataField,
-    Query, QueryOperation, SortDirection,
+    EntitySelector, FieldRef, FilterCondition, FilterOperator, FilterValue, MetadataField, Query,
+    QueryOperation, SortDirection,
 };
 use firm_core::{EntityType, FieldId};
 
@@ -60,12 +60,8 @@ fn convert_operation(parsed: ParsedOperation) -> Result<QueryOperation, QueryCon
             Ok(QueryOperation::Where(filter_condition))
         }
         ParsedOperation::Limit(n) => Ok(QueryOperation::Limit(n)),
-        ParsedOperation::Order { field, direction } => {
-            convert_order(field, direction)
-        }
-        ParsedOperation::Related { degree, selector } => {
-            convert_related(degree, selector)
-        }
+        ParsedOperation::Order { field, direction } => convert_order(field, direction),
+        ParsedOperation::Related { degree, selector } => convert_related(degree, selector),
     }
 }
 
@@ -77,7 +73,10 @@ fn convert_condition(parsed: ParsedCondition) -> Result<FilterCondition, QueryCo
     Ok(FilterCondition::new(field, operator, value))
 }
 
-fn convert_order(field: ParsedField, direction: ParsedDirection) -> Result<QueryOperation, QueryConversionError> {
+fn convert_order(
+    field: ParsedField,
+    direction: ParsedDirection,
+) -> Result<QueryOperation, QueryConversionError> {
     let field_ref = convert_field(field);
     let sort_direction = convert_direction(direction);
 
@@ -87,7 +86,10 @@ fn convert_order(field: ParsedField, direction: ParsedDirection) -> Result<Query
     })
 }
 
-fn convert_related(degree: Option<usize>, selector: Option<ParsedEntitySelector>) -> Result<QueryOperation, QueryConversionError> {
+fn convert_related(
+    degree: Option<usize>,
+    selector: Option<ParsedEntitySelector>,
+) -> Result<QueryOperation, QueryConversionError> {
     // Default to 1 degree if not specified
     let degrees = degree.unwrap_or(1);
     let entity_type = selector.and_then(|sel| match sel {

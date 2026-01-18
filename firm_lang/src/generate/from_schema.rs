@@ -11,7 +11,10 @@ pub fn generate_schema(schema: &EntitySchema, options: &GeneratorOptions) -> Str
 
     // Generate fields in order
     for (field_id, field_schema) in schema.ordered_fields() {
-        output.push_str(&format!("{}field {{\n", options.indent_style.indent_string(1)));
+        output.push_str(&format!(
+            "{}field {{\n",
+            options.indent_style.indent_string(1)
+        ));
         output.push_str(&format!(
             "{}name = \"{}\"\n",
             options.indent_style.indent_string(2),

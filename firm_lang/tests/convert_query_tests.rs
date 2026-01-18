@@ -1,8 +1,11 @@
 //! Tests for query conversion from parsed AST to executable queries
 
-use firm_lang::parser::query::parse_query;
-use firm_core::graph::{Query, QueryOperation, EntitySelector, FilterOperator, FilterValue, FieldRef, MetadataField, SortDirection};
 use firm_core::EntityType;
+use firm_core::graph::{
+    EntitySelector, FieldRef, FilterOperator, FilterValue, MetadataField, Query, QueryOperation,
+    SortDirection,
+};
+use firm_lang::parser::query::parse_query;
 
 #[test]
 fn test_convert_simple_query() {
@@ -48,7 +51,10 @@ fn test_convert_where_with_metadata_field() {
 
     assert_eq!(query.operations.len(), 1);
     if let QueryOperation::Where(condition) = &query.operations[0] {
-        assert!(matches!(condition.field, FieldRef::Metadata(MetadataField::Type)));
+        assert!(matches!(
+            condition.field,
+            FieldRef::Metadata(MetadataField::Type)
+        ));
         assert!(matches!(condition.value, FilterValue::String(_)));
     } else {
         panic!("Expected Where operation");
@@ -92,7 +98,11 @@ fn test_convert_related_with_degree() {
     let query: Query = parsed.try_into().unwrap();
 
     assert_eq!(query.operations.len(), 1);
-    if let QueryOperation::Related { degrees, entity_type } = &query.operations[0] {
+    if let QueryOperation::Related {
+        degrees,
+        entity_type,
+    } = &query.operations[0]
+    {
         assert_eq!(*degrees, 2);
         assert!(entity_type.is_none());
     } else {
@@ -107,7 +117,11 @@ fn test_convert_related_with_type_filter() {
     let query: Query = parsed.try_into().unwrap();
 
     assert_eq!(query.operations.len(), 1);
-    if let QueryOperation::Related { degrees, entity_type } = &query.operations[0] {
+    if let QueryOperation::Related {
+        degrees,
+        entity_type,
+    } = &query.operations[0]
+    {
         assert_eq!(*degrees, 1); // Default degree
         assert!(entity_type.is_some());
         assert_eq!(entity_type.as_ref().unwrap(), &EntityType::new("task"));
@@ -123,7 +137,11 @@ fn test_convert_related_with_degree_and_type() {
     let query: Query = parsed.try_into().unwrap();
 
     assert_eq!(query.operations.len(), 1);
-    if let QueryOperation::Related { degrees, entity_type } = &query.operations[0] {
+    if let QueryOperation::Related {
+        degrees,
+        entity_type,
+    } = &query.operations[0]
+    {
         assert_eq!(*degrees, 3);
         assert!(entity_type.is_some());
         assert_eq!(entity_type.as_ref().unwrap(), &EntityType::new("task"));

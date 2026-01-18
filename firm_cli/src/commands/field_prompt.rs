@@ -54,7 +54,7 @@ pub fn prompt_for_field_value(
             source_path,
             workspace_dir.clone(),
         ),
-        FieldType::Enum => enum_prompt(skippable, &field_id_prompt, allowed_values)
+        FieldType::Enum => enum_prompt(skippable, &field_id_prompt, allowed_values),
     }
 }
 
@@ -605,7 +605,11 @@ fn get_path_suggestions(
 }
 
 /// Prompts for an enum field.
-fn enum_prompt(skippable: bool, field_id_prompt: &String, allowed_values: Option<&Vec<String>>) -> Result<Option<FieldValue>, CliError> {
+fn enum_prompt(
+    skippable: bool,
+    field_id_prompt: &String,
+    allowed_values: Option<&Vec<String>>,
+) -> Result<Option<FieldValue>, CliError> {
     match allowed_values {
         Some(values) => {
             let skip_message = get_skippable_prompt(skippable);
@@ -616,11 +620,9 @@ fn enum_prompt(skippable: bool, field_id_prompt: &String, allowed_values: Option
                 .map_err(|_| CliError::InputError)?;
 
             Ok(Some(FieldValue::Enum(selected_option)))
-        },
+        }
         None => return Err(CliError::InputError),
     }
-
-
 }
 
 /// Helper to get a prompt message fragment or empty string depending on whether field is skippable.

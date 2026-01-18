@@ -36,11 +36,7 @@ impl FieldSchema {
     }
 
     /// Creates a new enum field schema with allowed values (normalized to lowercase).
-    pub fn new_enum(
-        field_mode: FieldMode,
-        order: usize,
-        allowed_values: Vec<String>,
-    ) -> Self {
+    pub fn new_enum(field_mode: FieldMode, order: usize, allowed_values: Vec<String>) -> Self {
         let normalized_values: Vec<String> = allowed_values
             .iter()
             .map(|v| v.trim().to_lowercase())
@@ -115,13 +111,19 @@ impl EntitySchema {
     /// Builder method to add a required enum field with allowed values.
     pub fn with_required_enum(self, id: FieldId, allowed_values: Vec<String>) -> Self {
         let order = self.next_order();
-        self.add_field_schema(id, FieldSchema::new_enum(FieldMode::Required, order, allowed_values))
+        self.add_field_schema(
+            id,
+            FieldSchema::new_enum(FieldMode::Required, order, allowed_values),
+        )
     }
 
     /// Builder method to add an optional enum field with allowed values.
     pub fn with_optional_enum(self, id: FieldId, allowed_values: Vec<String>) -> Self {
         let order = self.next_order();
-        self.add_field_schema(id, FieldSchema::new_enum(FieldMode::Optional, order, allowed_values))
+        self.add_field_schema(
+            id,
+            FieldSchema::new_enum(FieldMode::Optional, order, allowed_values),
+        )
     }
 
     /// Builder method to add common metadata fields to the schema.

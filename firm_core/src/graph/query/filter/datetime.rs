@@ -1,7 +1,7 @@
 //! DateTime comparison logic for filters
 
-use chrono::{DateTime, FixedOffset};
 use super::types::{FilterOperator, FilterValue};
+use chrono::{DateTime, FixedOffset};
 
 /// Compare a datetime value against a filter
 pub fn compare_datetime(
@@ -47,13 +47,22 @@ pub fn compare_datetime(
 
 #[cfg(test)]
 mod tests {
-    use chrono::TimeZone;
     use super::*;
+    use chrono::TimeZone;
 
     // Helper to create a datetime
-    fn make_datetime(year: i32, month: u32, day: u32, hour: u32, min: u32, offset_hours: i32) -> DateTime<FixedOffset> {
+    fn make_datetime(
+        year: i32,
+        month: u32,
+        day: u32,
+        hour: u32,
+        min: u32,
+        offset_hours: i32,
+    ) -> DateTime<FixedOffset> {
         let offset = FixedOffset::east_opt(offset_hours * 3600).unwrap();
-        offset.with_ymd_and_hms(year, month, day, hour, min, 0).unwrap()
+        offset
+            .with_ymd_and_hms(year, month, day, hour, min, 0)
+            .unwrap()
     }
 
     #[test]

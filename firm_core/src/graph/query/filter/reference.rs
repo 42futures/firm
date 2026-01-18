@@ -1,7 +1,7 @@
 //! Reference comparison logic for filters
 
-use crate::ReferenceValue;
 use super::types::{FilterOperator, FilterValue};
+use crate::ReferenceValue;
 
 /// Compare a reference value against a filter
 pub fn compare_reference(
@@ -41,8 +41,8 @@ pub fn compare_reference(
 
 #[cfg(test)]
 mod tests {
-    use crate::{EntityId, FieldId};
     use super::*;
+    use crate::{EntityId, FieldId};
 
     #[test]
     fn test_entity_reference_equal_with_reference_value() {
@@ -86,10 +86,8 @@ mod tests {
 
     #[test]
     fn test_field_reference_equal() {
-        let reference = ReferenceValue::Field(
-            EntityId::new("person.john_doe"),
-            FieldId::new("name"),
-        );
+        let reference =
+            ReferenceValue::Field(EntityId::new("person.john_doe"), FieldId::new("name"));
         assert!(compare_reference(
             &reference,
             &FilterOperator::Equal,
@@ -99,10 +97,8 @@ mod tests {
 
     #[test]
     fn test_field_reference_equal_with_string() {
-        let reference = ReferenceValue::Field(
-            EntityId::new("person.john_doe"),
-            FieldId::new("email"),
-        );
+        let reference =
+            ReferenceValue::Field(EntityId::new("person.john_doe"), FieldId::new("email"));
         assert!(compare_reference(
             &reference,
             &FilterOperator::Equal,
@@ -112,10 +108,8 @@ mod tests {
 
     #[test]
     fn test_field_reference_not_equal() {
-        let reference = ReferenceValue::Field(
-            EntityId::new("person.john_doe"),
-            FieldId::new("name"),
-        );
+        let reference =
+            ReferenceValue::Field(EntityId::new("person.john_doe"), FieldId::new("name"));
         assert!(!compare_reference(
             &reference,
             &FilterOperator::Equal,
@@ -125,10 +119,8 @@ mod tests {
 
     #[test]
     fn test_field_reference_case_insensitive() {
-        let reference = ReferenceValue::Field(
-            EntityId::new("person.john_doe"),
-            FieldId::new("name"),
-        );
+        let reference =
+            ReferenceValue::Field(EntityId::new("person.john_doe"), FieldId::new("name"));
         assert!(compare_reference(
             &reference,
             &FilterOperator::Equal,

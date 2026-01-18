@@ -1,7 +1,8 @@
 //! Tests for query language parsing
 
 use firm_lang::parser::query::{
-    parse_query, ParsedEntitySelector, ParsedOperation, ParsedQueryValue, ParsedField, ParsedDirection,
+    ParsedDirection, ParsedEntitySelector, ParsedField, ParsedOperation, ParsedQueryValue,
+    parse_query,
 };
 
 #[test]
@@ -11,7 +12,10 @@ fn test_parse_simple_query() {
     assert!(result.is_ok());
 
     let query = result.unwrap();
-    assert_eq!(query.from.selector, ParsedEntitySelector::Type("task".to_string()));
+    assert_eq!(
+        query.from.selector,
+        ParsedEntitySelector::Type("task".to_string())
+    );
     assert_eq!(query.operations.len(), 2);
 }
 
@@ -34,7 +38,10 @@ fn test_parse_related_with_degree() {
     let query = result.unwrap();
     if let Some(ParsedOperation::Related { degree, selector }) = query.operations.first() {
         assert_eq!(*degree, Some(2));
-        assert_eq!(*selector, Some(ParsedEntitySelector::Type("task".to_string())));
+        assert_eq!(
+            *selector,
+            Some(ParsedEntitySelector::Type("task".to_string()))
+        );
     } else {
         panic!("Expected Related operation");
     }
