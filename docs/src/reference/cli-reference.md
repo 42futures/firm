@@ -240,6 +240,37 @@ firm query 'from task | order due_date desc | limit 5'
 
 See the [Query reference](./query-reference.md) for complete query language documentation.
 
+### source
+
+Find the source file path where an entity or schema is defined.
+
+```bash
+firm source <target_type> <target_id>
+```
+
+**Arguments:**
+- `target_type` - Entity type (e.g., `person`, `organization`) or `schema`
+- `target_id` - Entity ID or schema name
+
+**Examples:**
+
+```bash
+# Find where a person entity is defined
+firm source person john_doe
+
+# Find where an organization is defined
+firm source organization acme_corp
+
+# Find where a schema is defined
+firm source schema project
+
+# Output as JSON
+firm --format json source person john_doe
+```
+
+**Output:**
+Returns the absolute path to the `.firm` file containing the definition. This is useful for locating and editing entity or schema definitions.
+
 ## Exit codes
 
 - `0` - Success

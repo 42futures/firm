@@ -83,4 +83,11 @@ pub enum FirmCliCommand {
         /// Query string (e.g., "from task | where is_completed == false | limit 5")
         query: String,
     },
+    /// Find the source file for an entity or schema.
+    Source {
+        /// Entity type (e.g. person, organization) or "schema"
+        target_type: String,
+        /// Entity ID (e.g. john_doe) or schema name (e.g. project)
+        target_id: String,
+    },
 }

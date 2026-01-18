@@ -29,6 +29,40 @@ impl Workspace {
     pub fn num_files(&self) -> usize {
         self.files.len()
     }
+
+    /// Finds the source file path for an entity by its type and ID.
+    ///
+    /// This performs a linear search through all parsed files in the workspace,
+    /// returning the absolute path of the first file containing a matching entity.
+    ///
+    /// Returns None if no matching entity is found.
+    pub fn find_entity_source(&self, entity_type: &str, entity_id: &str) -> Option<PathBuf> {
+        for (path, file) in &self.files {
+            for entity in file.parsed.entities() {
+                if entity.entity_type() == Some(entity_type) && entity.id() == Some(entity_id) {
+                    return Some(path.clone());
+                }
+            }
+        }
+        None
+    }
+
+    /// Finds the source file path for a schema by its name.
+    ///
+    /// This performs a linear search through all parsed files in the workspace,
+    /// returning the absolute path of the first file containing a matching schema.
+    ///
+    /// Returns None if no matching schema is found.
+    pub fn find_schema_source(&self, schema_name: &str) -> Option<PathBuf> {
+        for (path, file) in &self.files {
+            for schema in file.parsed.schemas() {
+                if schema.name() == Some(schema_name) {
+                    return Some(path.clone());
+                }
+            }
+        }
+        None
+    }
 }
 
 /// Represents a parsed file in the workspace.

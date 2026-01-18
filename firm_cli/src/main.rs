@@ -34,8 +34,14 @@ fn main() -> ExitCode {
         Err(_) => return ExitCode::FAILURE,
     };
 
-    // Pre-build the graph unless we're using cache or doing a build/init command
-    if !cli.cached && cli.command != FirmCliCommand::Build && cli.command != FirmCliCommand::Init {
+    // Pre-build the graph unless we're using cache or doing a build/init/source command
+    let skip_build = cli.cached
+        || matches!(
+            cli.command,
+            FirmCliCommand::Build | FirmCliCommand::Init | FirmCliCommand::Source { .. }
+        );
+
+    if !skip_build {
         match build_and_save_graph(&workspace_path) {
             Ok(_) => (),
             Err(_) => return ExitCode::FAILURE,
@@ -88,6 +94,10 @@ fn main() -> ExitCode {
         FirmCliCommand::Query { query } => {
             commands::query_entities(&workspace_path, query, cli.format)
         }
+        FirmCliCommand::Source {
+            target_type,
+            target_id,
+        } => commands::find_entity_source(&workspace_path, target_type, target_id, cli.format),
     };
 
     result.map_or(ExitCode::FAILURE, |_| ExitCode::SUCCESS)
