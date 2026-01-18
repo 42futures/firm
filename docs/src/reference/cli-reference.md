@@ -107,11 +107,11 @@ firm get task design_homepage
 List all entities of a specific type, or list all schemas.
 
 ```bash
-firm list <entity_type>
+firm list <target_type>
 ```
 
 **Arguments:**
-- `entity_type` - The type to list, or `schema` to list all schemas
+- `target_type` - Entity type (e.g., `person`, `organization`) or `schema` to list all schemas
 
 **Examples:**
 
@@ -122,11 +122,9 @@ firm list task
 # List all people
 firm list person
 
-# List all available schemas (special case)
+# List all available schemas
 firm list schema
 ```
-
-**Note:** `firm list schema` is a special case that lists all schema definitions in your workspace, not entities of type "schema". This is useful for discovering what entity types are available and what fields they support.
 
 ### related
 
@@ -239,6 +237,37 @@ firm query 'from task | order due_date desc | limit 5'
 ```
 
 See the [Query reference](./query-reference.md) for complete query language documentation.
+
+### source
+
+Find the source file path where an entity or schema is defined.
+
+```bash
+firm source <target_type> <target_id>
+```
+
+**Arguments:**
+- `target_type` - Entity type (e.g., `person`, `organization`) or `schema`
+- `target_id` - Entity ID or schema name
+
+**Examples:**
+
+```bash
+# Find where a person entity is defined
+firm source person john_doe
+
+# Find where an organization is defined
+firm source organization acme_corp
+
+# Find where a schema is defined
+firm source schema project
+
+# Output as JSON
+firm --format json source person john_doe
+```
+
+**Output:**
+Returns the absolute path to the `.firm` file containing the definition. This is useful for locating and editing entity or schema definitions.
 
 ## Exit codes
 

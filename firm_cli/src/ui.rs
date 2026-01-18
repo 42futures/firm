@@ -140,6 +140,11 @@ pub fn json_output<T: serde::Serialize>(data: &T) {
     }
 }
 
+/// Outputs raw text (e.g., file paths, simple values).
+pub fn raw_output(text: &str) {
+    println!("{}", text);
+}
+
 /// Creates a spinner progress indicator.
 pub fn spinner(msg: &str) -> ProgressBar {
     let pb = ProgressBar::new_spinner();

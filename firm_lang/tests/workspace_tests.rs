@@ -460,4 +460,167 @@ account invalid {
             _ => panic!("Expected ValidationError for invalid enum value"),
         }
     }
+
+    #[test]
+    fn test_find_entity_source() {
+        use std::fs;
+
+        let temp_dir = TempDir::new().unwrap();
+        let file_path = temp_dir.path().join("entities.firm");
+
+        let content = r#"
+person john {
+    name = "John Doe"
+}
+
+organization acme {
+    name = "Acme Corp"
+}
+"#;
+        fs::write(&file_path, content).expect("Write test file");
+
+        let mut workspace = Workspace::new();
+        workspace
+            .load_file(&file_path, &temp_dir.path().to_path_buf())
+            .unwrap();
+
+        // Should find entities by type and ID and return absolute paths
+        let result = workspace.find_entity_source("person", "john");
+        assert!(result.is_some(), "Should find person entity");
+        assert_eq!(result.unwrap(), file_path);
+
+        let result = workspace.find_entity_source("organization", "acme");
+        assert!(result.is_some(), "Should find organization entity");
+        assert_eq!(result.unwrap(), file_path);
+
+        // Should return None for non-existent entities
+        let result = workspace.find_entity_source("person", "jane");
+        assert!(result.is_none(), "Should not find non-existent entity");
+
+        let result = workspace.find_entity_source("project", "test");
+        assert!(result.is_none(), "Should not find non-existent type");
+    }
+
+    #[test]
+    fn test_find_schema_source() {
+        use std::fs;
+
+        let temp_dir = TempDir::new().unwrap();
+        let schema_file = temp_dir.path().join("schemas.firm");
+
+        let content = r#"
+schema person {
+    field {
+        name = "name"
+        type = "string"
+        required = true
+    }
+}
+
+schema project {
+    field {
+        name = "title"
+        type = "string"
+        required = true
+    }
+}
+"#;
+        fs::write(&schema_file, content).expect("Write test file");
+
+        let mut workspace = Workspace::new();
+        workspace
+            .load_file(&schema_file, &temp_dir.path().to_path_buf())
+            .unwrap();
+
+        // Should find schemas by name and return absolute paths
+        let result = workspace.find_schema_source("person");
+        assert!(result.is_some(), "Should find person schema");
+        assert_eq!(result.unwrap(), schema_file);
+
+        let result = workspace.find_schema_source("project");
+        assert!(result.is_some(), "Should find project schema");
+        assert_eq!(result.unwrap(), schema_file);
+
+        // Should return None for non-existent schemas
+        let result = workspace.find_schema_source("organization");
+        assert!(result.is_none(), "Should not find non-existent schema");
+    }
+
+    #[test]
+    fn test_find_entity_source_across_multiple_files() {
+        use std::fs;
+
+        let temp_dir = TempDir::new().unwrap();
+        let file1 = temp_dir.path().join("people.firm");
+        let file2 = temp_dir.path().join("orgs.firm");
+
+        fs::write(&file1, r#"person john { name = "John" }"#).expect("Write file 1");
+        fs::write(&file2, r#"organization acme { name = "Acme" }"#).expect("Write file 2");
+
+        let mut workspace = Workspace::new();
+        workspace
+            .load_file(&file1, &temp_dir.path().to_path_buf())
+            .unwrap();
+        workspace
+            .load_file(&file2, &temp_dir.path().to_path_buf())
+            .unwrap();
+
+        // Should find entities in different files and return absolute paths
+        let result = workspace.find_entity_source("person", "john");
+        assert!(result.is_some());
+        assert_eq!(result.unwrap(), file1);
+
+        let result = workspace.find_entity_source("organization", "acme");
+        assert!(result.is_some());
+        assert_eq!(result.unwrap(), file2);
+    }
+
+    #[test]
+    fn test_find_schema_source_across_multiple_files() {
+        use std::fs;
+
+        let temp_dir = TempDir::new().unwrap();
+        let schema1 = temp_dir.path().join("person_schema.firm");
+        let schema2 = temp_dir.path().join("org_schema.firm");
+
+        let person_content = r#"
+schema person {
+    field {
+        name = "name"
+        type = "string"
+        required = true
+    }
+}
+"#;
+
+        let org_content = r#"
+schema organization {
+    field {
+        name = "name"
+        type = "string"
+        required = true
+    }
+}
+"#;
+
+        fs::write(&schema1, person_content).expect("Write schema 1");
+        fs::write(&schema2, org_content).expect("Write schema 2");
+
+        let mut workspace = Workspace::new();
+        workspace
+            .load_file(&schema1, &temp_dir.path().to_path_buf())
+            .unwrap();
+        workspace
+            .load_file(&schema2, &temp_dir.path().to_path_buf())
+            .unwrap();
+
+        // Should find schemas in different files and return absolute paths
+        let result = workspace.find_schema_source("person");
+        assert!(result.is_some());
+        assert_eq!(result.unwrap(), schema1);
+
+        let result = workspace.find_schema_source("organization");
+        assert!(result.is_some());
+        assert_eq!(result.unwrap(), schema2);
+    }
 }
