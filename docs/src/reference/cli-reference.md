@@ -107,11 +107,11 @@ firm get task design_homepage
 List all entities of a specific type, or list all schemas.
 
 ```bash
-firm list <entity_type>
+firm list <target_type>
 ```
 
 **Arguments:**
-- `entity_type` - The type to list, or `schema` to list all schemas
+- `target_type` - Entity type (e.g., `person`, `organization`) or `schema` to list all schemas
 
 **Examples:**
 
@@ -122,11 +122,9 @@ firm list task
 # List all people
 firm list person
 
-# List all available schemas (special case)
+# List all available schemas
 firm list schema
 ```
-
-**Note:** `firm list schema` is a special case that lists all schema definitions in your workspace, not entities of type "schema". This is useful for discovering what entity types are available and what fields they support.
 
 ### related
 

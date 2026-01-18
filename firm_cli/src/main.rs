@@ -56,11 +56,11 @@ fn main() -> ExitCode {
             entity_type,
             entity_id,
         } => commands::get_entity_by_id(&workspace_path, entity_type, entity_id, cli.format),
-        FirmCliCommand::List { entity_type } => {
-            if entity_type == "schema" {
+        FirmCliCommand::List { target_type } => {
+            if target_type == "schema" {
                 commands::list_schemas(&workspace_path, cli.format)
             } else {
-                commands::list_entities_by_type(&workspace_path, entity_type, cli.format)
+                commands::list_entities_by_type(&workspace_path, target_type, cli.format)
             }
         }
         FirmCliCommand::Related {

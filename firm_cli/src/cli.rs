@@ -43,10 +43,10 @@ pub enum FirmCliCommand {
         /// Entity ID (e.g. john_doe)
         entity_id: String,
     },
-    /// List entities of type.
+    /// List entities of a type, or list all schemas.
     List {
-        /// An entity type (e.g. "person") or "schema" to list schemas
-        entity_type: String,
+        /// Entity type (e.g. person, organization) or "schema" to list schemas
+        target_type: String,
     },
     /// Gets entities related to a given entity.
     Related {
