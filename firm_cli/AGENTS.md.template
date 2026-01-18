@@ -56,6 +56,20 @@ Show all entities related to the specified entity.
 
 Example: `firm related contact john_at_acme`
 
+#### `firm source <target_type> <target_id>`
+Find the source file path where an entity or schema is defined. Useful when you've found an entity via `get`, `list`, or `query` and want to edit the source file.
+
+Examples:
+```bash
+# Find where a person entity is defined
+firm source person john_doe
+
+# Find where a schema is defined
+firm source schema project
+```
+
+Returns the absolute path to the `.firm` file containing the definition.
+
 #### `firm add`
 Add a new entity. Can be used interactively (without flags) or non-interactively for automation.
 
