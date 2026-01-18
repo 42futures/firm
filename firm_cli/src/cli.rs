@@ -36,12 +36,12 @@ pub enum FirmCliCommand {
     Init,
     /// Build workspace and entity graph.
     Build,
-    /// Get an entity by ID.
+    /// Get an entity or schema.
     Get {
-        /// Entity type (e.g. person, organization or project)
-        entity_type: String,
-        /// Entity ID (e.g. john_doe)
-        entity_id: String,
+        /// Entity type (e.g. person, organization) or "schema"
+        target_type: String,
+        /// Entity ID (e.g. john_doe) or schema name (e.g. project)
+        target_id: String,
     },
     /// List entities of a type, or list all schemas.
     List {

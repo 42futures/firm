@@ -84,22 +84,27 @@ This:
 
 ### get
 
-Get details of a specific entity.
+Get details of a specific entity or schema.
 
 ```bash
-firm get <entity_type> <entity_id>
+firm get <target_type> <target_id>
 ```
 
 **Arguments:**
-- `entity_type` - The type of entity (e.g., `person`, `organization`, `task`)
-- `entity_id` - The ID of the entity (e.g., `john_doe`)
+- `target_type` - Entity type (e.g., `person`, `organization`, `task`) or `schema`
+- `target_id` - Entity ID (e.g., `john_doe`) or schema name (e.g., `project`)
 
 **Examples:**
 
 ```bash
+# Get an entity
 firm get person john_doe
 firm get organization acme_corp
 firm get task design_homepage
+
+# Get a schema
+firm get schema project
+firm get schema person
 ```
 
 ### list

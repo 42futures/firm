@@ -6,7 +6,7 @@ use crate::errors::CliError;
 use crate::ui::{self, OutputFormat};
 
 /// Finds the source file for an entity or schema by its type and ID/name.
-pub fn find_entity_source(
+pub fn find_item_source(
     workspace_path: &PathBuf,
     target_type: String,
     target_id: String,
