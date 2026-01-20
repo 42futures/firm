@@ -9,6 +9,8 @@ use crate::ui;
 
 /// Start the MCP server on stdio.
 pub fn serve(workspace_path: &Path) -> Result<(), CliError> {
+    ui::debug("Starting MCP server...");
+
     // Create a tokio runtime for the async MCP server
     let rt = tokio::runtime::Runtime::new().map_err(|e| {
         ui::error_with_details("Failed to create async runtime", &e.to_string());
