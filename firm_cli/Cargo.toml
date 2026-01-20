@@ -13,6 +13,9 @@ path = "src/main.rs"
 [dependencies]
 firm_core = { path = "../firm_core" }
 firm_lang = { path = "../firm_lang" }
+firm_mcp = { path = "../firm_mcp" }
+
+tokio = { version = "1", features = ["rt-multi-thread"] }
 
 clap = { version = "4.5.42", features = ["derive"] }
 console = "0.16.0"
