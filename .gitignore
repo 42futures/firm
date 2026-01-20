@@ -31,3 +31,4 @@ target
 
 # mdBook build output
 docs/book
+AGENTS.md
