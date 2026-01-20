@@ -41,7 +41,7 @@ impl<'a> ParsedEntity<'a> {
     }
 
     /// Extracts all field definitions from the entity block.
-    pub fn fields(&self) -> Vec<ParsedField> {
+    pub fn fields(&self) -> Vec<ParsedField<'_>> {
         let mut fields = Vec::new();
         let mut cursor = self.node.walk();
 

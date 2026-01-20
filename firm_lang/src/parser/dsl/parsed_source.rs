@@ -35,7 +35,7 @@ impl ParsedSource {
     }
 
     /// Extracts all entity definitions from the parsed source.
-    pub fn entities(&self) -> Vec<ParsedEntity> {
+    pub fn entities(&self) -> Vec<ParsedEntity<'_>> {
         let mut entities = Vec::new();
         let root = self.tree.root_node();
         let mut cursor = root.walk();
@@ -50,7 +50,7 @@ impl ParsedSource {
     }
 
     /// Extracts all schema definitions from the parsed source.
-    pub fn schemas(&self) -> Vec<ParsedSchema> {
+    pub fn schemas(&self) -> Vec<ParsedSchema<'_>> {
         let mut schemas = Vec::new();
         let root = self.tree.root_node();
         let mut cursor = root.walk();
