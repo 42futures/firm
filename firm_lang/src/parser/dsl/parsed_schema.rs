@@ -34,7 +34,7 @@ impl<'a> ParsedSchema<'a> {
     }
 
     /// Extracts all field definitions from the schema block.
-    pub fn fields(&self) -> Vec<ParsedSchemaField> {
+    pub fn fields(&self) -> Vec<ParsedSchemaField<'_>> {
         let mut fields = Vec::new();
         let mut cursor = self.node.walk();
 

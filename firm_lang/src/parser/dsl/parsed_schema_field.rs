@@ -90,7 +90,7 @@ impl<'a> ParsedSchemaField<'a> {
     }
 
     /// Helper method to find a field by name within this schema field block.
-    fn find_field_by_name(&self, field_name: &str) -> Option<super::ParsedField> {
+    fn find_field_by_name(&self, field_name: &str) -> Option<super::ParsedField<'_>> {
         // Find the block node within this field
         let block_node = find_child_of_kind(&self.node, BLOCK_KIND)?;
         let mut cursor = block_node.walk();
