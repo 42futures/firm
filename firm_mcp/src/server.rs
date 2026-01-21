@@ -1,6 +1,8 @@
 //! Core MCP server implementation for Firm.
+//!
+//! This module contains the MCP protocol handling and delegates to the
+//! tools module for actual business logic.
 
-use std::fs;
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -12,15 +14,12 @@ use rmcp::{
 };
 use tokio::sync::Mutex;
 
+use firm_core::graph::EntityGraph;
 use firm_lang::workspace::{Workspace, WorkspaceBuild, WorkspaceError};
-
-use firm_core::compose_entity_id;
-use firm_core::graph::{EntityGraph, Query};
-use firm_lang::parser::query::parse_query;
 
 use crate::resources;
 use crate::tools::{
-    BuildParams, FindSourceParams, GetParams, ListParams, QueryParams, ReadSourceParams,
+    self, BuildParams, FindSourceParams, GetParams, ListParams, QueryParams, ReadSourceParams,
     WriteSourceParams,
 };
 
@@ -51,10 +50,10 @@ impl std::fmt::Display for ServerError {
 impl std::error::Error for ServerError {}
 
 /// Internal state of the MCP server.
-struct ServerState {
-    workspace: Workspace,
-    build: WorkspaceBuild,
-    graph: EntityGraph,
+pub struct ServerState {
+    pub workspace: Workspace,
+    pub build: WorkspaceBuild,
+    pub graph: EntityGraph,
 }
 
 /// MCP server for a Firm workspace.
@@ -116,29 +115,7 @@ impl FirmMcpServer {
     ) -> Result<CallToolResult, McpError> {
         debug!("Tool: list, type={}", params.r#type);
         let state = self.state.lock().await;
-
-        let result = if params.r#type == "schema" {
-            // List all schema names
-            let names: Vec<&str> = state
-                .build
-                .schemas
-                .iter()
-                .map(|s| s.entity_type.as_str())
-                .collect();
-            names.join("\n")
-        } else {
-            // List all entity IDs of the given type
-            let ids: Vec<&str> = state
-                .build
-                .entities
-                .iter()
-                .filter(|e| e.entity_type.as_str() == params.r#type)
-                .map(|e| e.id.as_str())
-                .collect();
-            ids.join("\n")
-        };
-
-        Ok(CallToolResult::success(vec![Content::text(result)]))
+        Ok(tools::list::execute(&state.build, &params))
     }
 
     #[tool(description = "Get full details of a single entity or schema. \
@@ -151,37 +128,7 @@ impl FirmMcpServer {
     ) -> Result<CallToolResult, McpError> {
         debug!("Tool: get, type={}, id={}", params.r#type, params.id);
         let state = self.state.lock().await;
-
-        if params.r#type == "schema" {
-            // Get schema by name
-            let schema = state
-                .build
-                .schemas
-                .iter()
-                .find(|s| s.entity_type.as_str() == params.id);
-
-            match schema {
-                Some(schema) => Ok(CallToolResult::success(vec![Content::text(
-                    schema.to_string(),
-                )])),
-                None => Ok(CallToolResult::error(vec![Content::text(format!(
-                    "Schema '{}' not found. Use list with type='schema' to see available schemas.",
-                    params.id
-                ))])),
-            }
-        } else {
-            // Get entity by type and ID
-            let id = compose_entity_id(&params.r#type, &params.id);
-            match state.build.entities.iter().find(|e| e.id == id) {
-                Some(entity) => Ok(CallToolResult::success(vec![Content::text(
-                    entity.to_string(),
-                )])),
-                None => Ok(CallToolResult::error(vec![Content::text(format!(
-                    "Entity '{}' with type '{}' not found. Use list with type='{}' to see available IDs.",
-                    params.id, params.r#type, params.r#type
-                ))])),
-            }
-        }
+        Ok(tools::get::execute(&state.build, &params))
     }
 
     #[tool(
@@ -195,43 +142,7 @@ impl FirmMcpServer {
     ) -> Result<CallToolResult, McpError> {
         debug!("Tool: query, query={}", params.query);
         let state = self.state.lock().await;
-
-        // Parse the query
-        let parsed_query = match parse_query(&params.query) {
-            Ok(q) => q,
-            Err(e) => {
-                return Ok(CallToolResult::error(vec![Content::text(format!(
-                    "Failed to parse query: {}",
-                    e
-                ))]));
-            }
-        };
-
-        // Convert to executable query
-        let query: Query = match parsed_query.try_into() {
-            Ok(q) => q,
-            Err(e) => {
-                return Ok(CallToolResult::error(vec![Content::text(format!(
-                    "Failed to convert query: {}",
-                    e
-                ))]));
-            }
-        };
-
-        // Execute the query
-        let results = query.execute(&state.graph);
-
-        // Format results
-        if results.is_empty() {
-            return Ok(CallToolResult::success(vec![Content::text(
-                "No entities found matching the query.",
-            )]));
-        }
-
-        let output: Vec<String> = results.iter().map(|e| e.to_string()).collect();
-        Ok(CallToolResult::success(vec![Content::text(
-            output.join("\n---\n"),
-        )]))
+        Ok(tools::query::execute(&state.graph, &params))
     }
 
     #[tool(description = "Find the source file path for an entity or schema. \
@@ -246,36 +157,11 @@ impl FirmMcpServer {
             params.r#type, params.id
         );
         let state = self.state.lock().await;
-
-        let source_path = if params.r#type == "schema" {
-            state.workspace.find_schema_source(&params.id)
-        } else {
-            state
-                .workspace
-                .find_entity_source(&params.r#type, &params.id)
-        };
-
-        match source_path {
-            Some(path) => {
-                let relative = resources::to_relative_path(&self.workspace_path, &path)
-                    .unwrap_or_else(|| path.to_string_lossy().to_string());
-                Ok(CallToolResult::success(vec![Content::text(relative)]))
-            }
-            None => {
-                let msg = if params.r#type == "schema" {
-                    format!(
-                        "Schema '{}' not found. Use list with type='schema' to see available schemas.",
-                        params.id
-                    )
-                } else {
-                    format!(
-                        "Entity '{}' with type '{}' not found. Use list with type='{}' to see available IDs.",
-                        params.id, params.r#type, params.r#type
-                    )
-                };
-                Ok(CallToolResult::error(vec![Content::text(msg)]))
-            }
-        }
+        Ok(tools::find_source::execute(
+            &state.workspace,
+            &self.workspace_path,
+            &params,
+        ))
     }
 
     #[tool(description = "Read the raw DSL content of a .firm source file. \
@@ -286,11 +172,7 @@ impl FirmMcpServer {
         Parameters(params): Parameters<ReadSourceParams>,
     ) -> Result<CallToolResult, McpError> {
         debug!("Tool: read_source, path={}", params.path);
-
-        match resources::read_source_file(&self.workspace_path, &params.path) {
-            Ok(contents) => Ok(CallToolResult::success(vec![Content::text(contents)])),
-            Err(e) => Ok(CallToolResult::error(vec![Content::text(e)])),
-        }
+        Ok(tools::read_source::execute(&self.workspace_path, &params))
     }
 
     #[tool(description = "Write DSL content to a .firm source file. \
@@ -309,80 +191,43 @@ impl FirmMcpServer {
             params.force
         );
 
-        // First, validate the content by parsing it (syntax check - always required)
-        let parsed = match firm_lang::parser::dsl::parse_source(params.content.clone(), None) {
-            Ok(parsed) => parsed,
-            Err(e) => {
-                return Ok(CallToolResult::error(vec![Content::text(format!(
-                    "Failed to parse DSL: {}",
-                    e
-                ))]));
-            }
-        };
-
-        // Check for syntax errors in the parse tree (always required, even with force)
-        if parsed.has_error() {
-            return Ok(CallToolResult::error(vec![Content::text(
-                "Invalid DSL syntax: the content contains parse errors. \
-                 Please check for unclosed braces, missing values, or malformed references.",
-            )]));
-        }
-
-        // Get absolute path for the file
-        let absolute_path = self.workspace_path.join(&params.path);
-
-        // Read existing file content for potential rollback (None if file doesn't exist)
-        let original_content = fs::read_to_string(&absolute_path).ok();
-        let file_existed = original_content.is_some();
-
-        // Write the new content
-        if let Err(e) =
-            resources::write_source_file(&self.workspace_path, &params.path, &params.content)
-        {
-            return Ok(CallToolResult::error(vec![Content::text(e)]));
-        }
+        // Validate syntax and write the file
+        let write_result =
+            match tools::write_source::validate_and_write(&self.workspace_path, &params) {
+                Ok(result) => result,
+                Err(error_result) => return Ok(error_result),
+            };
 
         // Try to rebuild the workspace (semantic validation)
-        let action = if file_existed { "Updated" } else { "Created" };
-
         match self.rebuild().await {
             Ok(_) => {
                 // Success - workspace is valid
-                Ok(CallToolResult::success(vec![Content::text(format!(
-                    "{} {} ({} bytes). Workspace is valid.",
-                    action,
-                    params.path,
-                    params.content.len()
-                ))]))
+                Ok(tools::write_source::success_result(
+                    &params.path,
+                    params.content.len(),
+                    write_result.file_existed,
+                ))
             }
             Err(e) => {
                 if params.force {
                     // Force mode: keep the file, report the validation error
-                    Ok(CallToolResult::success(vec![Content::text(format!(
-                        "{} {} ({} bytes). Warning: workspace has validation errors: {}. \
-                         Use 'build' to check status after making more changes.",
-                        action,
-                        params.path,
+                    Ok(tools::write_source::force_success_result(
+                        &params.path,
                         params.content.len(),
-                        e
-                    ))]))
+                        write_result.file_existed,
+                        &e.to_string(),
+                    ))
                 } else {
                     // Normal mode: rollback the file change
-                    let rollback_result = if let Some(original) = original_content {
-                        fs::write(&absolute_path, original)
-                    } else {
-                        fs::remove_file(&absolute_path)
-                    };
-
-                    let rollback_msg = match rollback_result {
-                        Ok(_) => "Changes have been rolled back.",
-                        Err(_) => "Warning: Failed to rollback changes.",
-                    };
-
-                    Ok(CallToolResult::error(vec![Content::text(format!(
-                        "Validation failed: {}. {} Use 'force: true' to write anyway.",
-                        e, rollback_msg
-                    ))]))
+                    let rollback_success = tools::write_source::rollback(
+                        &self.workspace_path,
+                        &params.path,
+                        write_result.original_content,
+                    );
+                    Ok(tools::write_source::validation_error_result(
+                        &e.to_string(),
+                        rollback_success,
+                    ))
                 }
             }
         }
@@ -401,16 +246,12 @@ impl FirmMcpServer {
         match self.rebuild().await {
             Ok(_) => {
                 let state = self.state.lock().await;
-                Ok(CallToolResult::success(vec![Content::text(format!(
-                    "Workspace is valid. {} entities, {} schemas.",
+                Ok(tools::build::success_result(
                     state.build.entities.len(),
-                    state.build.schemas.len()
-                ))]))
+                    state.build.schemas.len(),
+                ))
             }
-            Err(e) => Ok(CallToolResult::error(vec![Content::text(format!(
-                "Workspace validation failed: {}",
-                e
-            ))])),
+            Err(e) => Ok(tools::build::error_result(&e.to_string())),
         }
     }
 
