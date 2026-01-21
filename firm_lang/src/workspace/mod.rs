@@ -30,6 +30,11 @@ impl Workspace {
         self.files.len()
     }
 
+    /// Gets all file paths in the workspace.
+    pub fn file_paths(&self) -> Vec<&PathBuf> {
+        self.files.keys().collect()
+    }
+
     /// Finds the source file path for an entity by its type and ID.
     ///
     /// This performs a linear search through all parsed files in the workspace,
