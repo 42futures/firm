@@ -19,8 +19,8 @@ use firm_lang::workspace::{Workspace, WorkspaceBuild, WorkspaceError};
 
 use crate::resources;
 use crate::tools::{
-    self, BuildParams, FindSourceParams, GetParams, ListParams, QueryParams, ReadSourceParams,
-    RelatedParams, WriteSourceParams,
+    self, BuildParams, DslReferenceParams, FindSourceParams, GetParams, ListParams, QueryParams,
+    ReadSourceParams, RelatedParams, WriteSourceParams,
 };
 
 /// Error type for MCP server operations.
@@ -269,6 +269,21 @@ impl FirmMcpServer {
             }
             Err(e) => Ok(tools::build::error_result(&e.to_string())),
         }
+    }
+
+    #[tool(
+        description = "Get reference documentation for the Firm DSL syntax and query language. \
+        Use 'topic' parameter: 'dsl' for DSL syntax (entities, schemas, field types), \
+        'query' for query language (from, where, related, order, limit), \
+        or 'all' for both (default). \
+        Call this before writing or modifying .firm files to understand the correct syntax."
+    )]
+    async fn dsl_reference(
+        &self,
+        Parameters(params): Parameters<DslReferenceParams>,
+    ) -> Result<CallToolResult, McpError> {
+        debug!("Tool: dsl_reference, topic={}", params.topic);
+        Ok(tools::dsl_reference::execute(&params))
     }
 
     /// Serve MCP over stdio (stdin/stdout).

@@ -9,6 +9,8 @@
 //! and delegate to these modules for the actual work.
 
 pub mod build;
+pub mod dsl_reference;
+mod dsl_reference_content;
 pub mod find_source;
 pub mod get;
 pub mod list;
@@ -19,6 +21,7 @@ pub mod write_source;
 
 // Re-export param structs for convenience
 pub use build::BuildParams;
+pub use dsl_reference::DslReferenceParams;
 pub use find_source::FindSourceParams;
 pub use get::GetParams;
 pub use list::ListParams;

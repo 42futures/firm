@@ -95,7 +95,7 @@ pub fn read_source_file(workspace_path: &Path, relative_path: &str) -> Result<St
         return Err(format!("File not found: {}", relative_path));
     }
 
-    if !absolute_path.extension().map_or(false, |ext| ext == "firm") {
+    if absolute_path.extension().is_none_or(|ext| ext != "firm") {
         return Err(format!("Not a .firm file: {}", relative_path));
     }
 
