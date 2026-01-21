@@ -27,6 +27,7 @@ pub struct WriteSourceParams {
 }
 
 /// Result of syntax validation and file write.
+#[derive(Debug)]
 pub struct WriteResult {
     /// Whether the file existed before (vs. newly created)
     pub file_existed: bool,
