@@ -20,7 +20,7 @@ use firm_lang::workspace::{Workspace, WorkspaceBuild, WorkspaceError};
 use crate::resources;
 use crate::tools::{
     self, BuildParams, FindSourceParams, GetParams, ListParams, QueryParams, ReadSourceParams,
-    WriteSourceParams,
+    RelatedParams, WriteSourceParams,
 };
 
 /// Error type for MCP server operations.
@@ -143,6 +143,22 @@ impl FirmMcpServer {
         debug!("Tool: query, query={}", params.query);
         let state = self.state.lock().await;
         Ok(tools::query::execute(&state.graph, &params))
+    }
+
+    #[tool(description = "Get IDs of entities related to a specific entity. \
+        Returns entity IDs that reference or are referenced by the given entity. \
+        Use 'direction' to filter: 'incoming' (entities that reference this one), \
+        'outgoing' (entities this one references), or omit for both.")]
+    async fn related(
+        &self,
+        Parameters(params): Parameters<RelatedParams>,
+    ) -> Result<CallToolResult, McpError> {
+        debug!(
+            "Tool: related, type={}, id={}, direction={:?}",
+            params.r#type, params.id, params.direction
+        );
+        let state = self.state.lock().await;
+        Ok(tools::related::execute(&state.graph, &params))
     }
 
     #[tool(description = "Find the source file path for an entity or schema. \

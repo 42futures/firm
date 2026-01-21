@@ -14,6 +14,7 @@ pub mod get;
 pub mod list;
 pub mod query;
 pub mod read_source;
+pub mod related;
 pub mod write_source;
 
 // Re-export param structs for convenience
@@ -23,4 +24,5 @@ pub use get::GetParams;
 pub use list::ListParams;
 pub use query::QueryParams;
 pub use read_source::ReadSourceParams;
+pub use related::RelatedParams;
 pub use write_source::WriteSourceParams;
