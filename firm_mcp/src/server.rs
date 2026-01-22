@@ -19,8 +19,8 @@ use firm_lang::workspace::{Workspace, WorkspaceBuild, WorkspaceError};
 
 use crate::resources;
 use crate::tools::{
-    self, BuildParams, DslReferenceParams, FindSourceParams, GetParams, ListParams, QueryParams,
-    ReadSourceParams, RelatedParams, WriteSourceParams,
+    self, AddEntityParams, BuildParams, DslReferenceParams, FindSourceParams, GetParams,
+    ListParams, QueryParams, ReadSourceParams, RelatedParams, WriteSourceParams,
 };
 
 /// Error type for MCP server operations.
@@ -159,6 +159,23 @@ impl FirmMcpServer {
         );
         let state = self.state.lock().await;
         Ok(tools::related::execute(&state.graph, &params))
+    }
+
+    #[tool(description = "Add a new entity to the workspace. \
+        Provide the entity type, ID, and a map of field values (JSON types). \
+        The tool validates the entity against the schema, generates the DSL, and writes it to a file. \
+        Use this to safely create new entities without writing raw DSL.")]
+    async fn add_entity(
+        &self,
+        Parameters(params): Parameters<AddEntityParams>,
+    ) -> Result<CallToolResult, McpError> {
+        debug!("Tool: add_entity, type={}, id={}", params.r#type, params.id);
+        let state = self.state.lock().await;
+        Ok(
+            tools::add_entity::execute(&self.workspace_path, &state.build, &state.graph, &params)
+                .map(tools::add_entity::success_result)
+                .unwrap_or_else(|e| tools::build::error_result(&e)),
+        )
     }
 
     #[tool(description = "Find the source file path for an entity or schema. \
@@ -345,8 +362,10 @@ impl ServerHandler for FirmMcpServer {
                 .build(),
             server_info: Implementation::from_build_env(),
             instructions: Some(
-                "Firm MCP server. Use tools to query, list, and modify entities in the workspace. \
-                 Use resources to read source files directly."
+                "Firm MCP server. Use 'list schema' to explore available entity types. \
+                 Use 'add_entity' to create new entities. \
+                 Use 'query', 'list', and 'get' to explore existing data. \
+                 Use 'read_source' and 'write_source' for low-level file operations."
                     .into(),
             ),
         }
