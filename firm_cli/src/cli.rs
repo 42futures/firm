@@ -90,4 +90,6 @@ pub enum FirmCliCommand {
         /// Entity ID (e.g. john_doe) or schema name (e.g. project)
         target_id: String,
     },
+    /// Start the MCP server (stdio transport).
+    Mcp,
 }

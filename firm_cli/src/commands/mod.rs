@@ -4,6 +4,7 @@ mod field_prompt;
 mod get;
 mod init;
 mod list;
+pub mod mcp;
 mod query;
 mod related;
 mod source;

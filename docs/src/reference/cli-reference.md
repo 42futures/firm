@@ -274,6 +274,41 @@ firm --format json source person john_doe
 **Output:**
 Returns the absolute path to the `.firm` file containing the definition. This is useful for locating and editing entity or schema definitions.
 
+### mcp
+
+Start an MCP (Model Context Protocol) server for the workspace.
+
+```bash
+firm mcp
+```
+
+This starts an MCP server over stdio that exposes your Firm workspace to AI assistants and other MCP-compatible clients. The server provides tools for querying, listing, and modifying entities programmatically.
+
+**Available tools:**
+- `list` - List entities by type or list all schemas
+- `get` - Get details of a specific entity or schema
+- `query` - Query entities using the Firm query language
+- `related` - Find entities related to a given entity
+- `find_source` - Find the source file for an entity or schema
+- `read_source` - Read the contents of a `.firm` file
+- `write_source` - Write content to a `.firm` file
+- `replace_source` - Replace a string in a `.firm` file
+- `add_entity` - Create a new entity from structured JSON
+- `build` - Rebuild and validate the workspace
+- `dsl_reference` - Get DSL syntax documentation
+
+**Examples:**
+
+```bash
+# Start the MCP server (runs until terminated)
+firm mcp
+
+# Start for a specific workspace
+firm --workspace ./my_workspace mcp
+```
+
+See [Automations and AI assistants](../guide/automations-and-ai.md) for details on configuring MCP clients.
+
 ## Exit codes
 
 - `0` - Success

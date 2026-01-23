@@ -34,11 +34,14 @@ fn main() -> ExitCode {
         Err(_) => return ExitCode::FAILURE,
     };
 
-    // Pre-build the graph unless we're using cache or doing a build/init/source command
+    // Pre-build the graph unless we're using cache or doing a build/init/source/mcp command
     let skip_build = cli.cached
         || matches!(
             cli.command,
-            FirmCliCommand::Build | FirmCliCommand::Init | FirmCliCommand::Source { .. }
+            FirmCliCommand::Build
+                | FirmCliCommand::Init
+                | FirmCliCommand::Source { .. }
+                | FirmCliCommand::Mcp
         );
 
     if !skip_build {
@@ -94,6 +97,7 @@ fn main() -> ExitCode {
             target_type,
             target_id,
         } => commands::find_item_source(&workspace_path, target_type, target_id, cli.format),
+        FirmCliCommand::Mcp => commands::mcp::serve(&workspace_path),
     };
 
     result.map_or(ExitCode::FAILURE, |_| ExitCode::SUCCESS)

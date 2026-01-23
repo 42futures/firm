@@ -49,6 +49,26 @@ AI assistants can help you:
 
 Because Firm files are plain text, LLMs can read your workspace and provide context-aware suggestions.
 
+## MCP server
+
+Firm includes a built-in [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that allows AI assistants to interact with your workspace through a standardized interface.
+
+### Running the MCP server
+
+Start the server with:
+
+```bash
+firm mcp
+```
+
+The server runs over stdio and exposes tools for querying, listing, and modifying entities. It's designed to run locally alongside your workspace.
+
+Most MCP-compatible clients (like Claude Desktop or other AI assistants) can be configured to connect to local MCP servers.
+
+### Remote deployment
+
+The MCP server is built for local use, but you can deploy it to your own backend if you need remote access. How you handle authentication, security, and hosting is up to you.
+
 ## Programmatic access
 
 For more complex automation, you can use Firm as a Rust library. See the [Rust library guide](../library/getting-started.md) for details.

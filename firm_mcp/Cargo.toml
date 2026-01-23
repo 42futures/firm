@@ -1,0 +1,26 @@
+[package]
+name = "firm_mcp"
+version = "0.4.0"
+edition = "2024"
+description = "MCP server for Firm workspaces."
+license = "AGPL-3.0"
+repository = "https://github.com/42futures/firm"
+
+[dependencies]
+firm_core = { path = "../firm_core" }
+firm_lang = { path = "../firm_lang" }
+
+rmcp = { version = "0.13", features = ["server", "transport-io"] }
+tokio = { version = "1", features = ["rt", "sync", "io-std"] }
+schemars = "0.8"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+log = "0.4"
+chrono = { version = "0.4.43", features = ["serde"] }
+rust_decimal = { version = "1.40.0", features = ["serde-with-str"] }
+iso_currency = { version = "0.5.3", features = ["with-serde"] }
+pathdiff = "0.2.3"
+
+[dev-dependencies]
+tempfile = "3.20"
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }

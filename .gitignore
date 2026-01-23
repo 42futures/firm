@@ -28,6 +28,8 @@ target
 **.DS_Store
 **.firm.graph
 .cargo
+.claude
+.zed
 
 # mdBook build output
 docs/book
