@@ -20,7 +20,8 @@ use firm_lang::workspace::{Workspace, WorkspaceBuild, WorkspaceError};
 use crate::resources;
 use crate::tools::{
     self, AddEntityParams, BuildParams, DslReferenceParams, FindSourceParams, GetParams,
-    ListParams, QueryParams, ReadSourceParams, RelatedParams, WriteSourceParams,
+    ListParams, QueryParams, ReadSourceParams, RelatedParams, ReplaceSourceParams,
+    WriteSourceParams,
 };
 
 /// Error type for MCP server operations.
@@ -258,6 +259,77 @@ impl FirmMcpServer {
                         write_result.original_content,
                     );
                     Ok(tools::write_source::validation_error_result(
+                        &e.to_string(),
+                        rollback_success,
+                    ))
+                }
+            }
+        }
+    }
+
+    #[tool(description = "Replace a specific string in a .firm source file. \
+        Validates that old_string exists exactly once (or use replace_all for multiple). \
+        The result is validated for correct syntax and semantics. \
+        If validation fails, changes are rolled back unless 'force' is true. \
+        Use 'find_source' to locate the file, then 'read_source' to see current content.")]
+    async fn replace_source(
+        &self,
+        Parameters(params): Parameters<ReplaceSourceParams>,
+    ) -> Result<CallToolResult, McpError> {
+        debug!(
+            "Tool: replace_source, path={}, old_len={}, new_len={}, replace_all={}, force={}",
+            params.path,
+            params.old_string.len(),
+            params.new_string.len(),
+            params.replace_all,
+            params.force
+        );
+
+        // Execute the replacement (validates and computes new content)
+        let replace_result = match tools::replace_source::execute(&self.workspace_path, &params) {
+            Ok(result) => result,
+            Err(error_result) => return Ok(error_result),
+        };
+
+        // Create WriteSourceParams to reuse write_source validation
+        let write_params = WriteSourceParams {
+            path: params.path.clone(),
+            content: replace_result.new_content.clone(),
+            force: params.force,
+        };
+
+        // Validate syntax and write the file
+        let write_result =
+            match tools::write_source::validate_and_write(&self.workspace_path, &write_params) {
+                Ok(result) => result,
+                Err(error_result) => return Ok(error_result),
+            };
+
+        // Try to rebuild the workspace (semantic validation)
+        match self.rebuild().await {
+            Ok(_) => {
+                // Success - workspace is valid
+                Ok(tools::replace_source::success_result(
+                    &params.path,
+                    replace_result.occurrences_replaced,
+                ))
+            }
+            Err(e) => {
+                if params.force {
+                    // Force mode: keep the file, report the validation error
+                    Ok(tools::replace_source::force_success_result(
+                        &params.path,
+                        replace_result.occurrences_replaced,
+                        &e.to_string(),
+                    ))
+                } else {
+                    // Normal mode: rollback the file change
+                    let rollback_success = tools::write_source::rollback(
+                        &self.workspace_path,
+                        &params.path,
+                        write_result.original_content,
+                    );
+                    Ok(tools::replace_source::validation_error_result(
                         &e.to_string(),
                         rollback_success,
                     ))
