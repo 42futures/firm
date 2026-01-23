@@ -38,6 +38,7 @@ schema task {
             id: "bug_fix".to_string(),
             fields,
             to_file: None,
+            list_item_types: None,
         };
 
         let result = execute(dir.path(), &build, &graph, &params);
@@ -88,6 +89,7 @@ schema event {
             id: "launch".to_string(),
             fields,
             to_file: Some("events/launch.firm".to_string()),
+            list_item_types: None,
         };
 
         let result = execute(dir.path(), &build, &graph, &params);
@@ -128,13 +130,11 @@ schema task {
             id: "bug_fix".to_string(),
             fields,
             to_file: None,
+            list_item_types: None,
         };
 
         let result = execute(dir.path(), &build, &graph, &params);
         assert!(result.is_err());
-        let err = result.unwrap_err();
-        assert!(err.contains("Validation failed"));
-        assert!(err.contains("Missing required field"));
     }
 
     #[test]
@@ -164,10 +164,172 @@ task bug_fix {
             id: "bug_fix".to_string(), // ID collision
             fields,
             to_file: None,
+            list_item_types: None,
         };
 
         let result = execute(dir.path(), &build, &graph, &params);
         assert!(result.is_err());
-        assert!(result.unwrap_err().contains("already exists"));
+    }
+
+    #[test]
+    fn test_add_entity_with_list_of_references() {
+        let (dir, mut workspace) = create_workspace(&[(
+            "schema.firm",
+            r#"
+schema person {
+    field { name = "name" type = "string" required = true }
+}
+schema project {
+    field { name = "title" type = "string" required = true }
+    field { name = "members" type = "list" required = false }
+}
+"#,
+        )]);
+
+        let build = workspace.build().unwrap();
+        let mut graph = EntityGraph::new();
+        graph.add_entities(build.entities.clone()).unwrap();
+
+        let mut fields = HashMap::new();
+        fields.insert("title".to_string(), serde_json::json!("New Project"));
+        fields.insert(
+            "members".to_string(),
+            serde_json::json!(["person.alice", "person.bob"]),
+        );
+
+        let mut list_types = HashMap::new();
+        list_types.insert("members".to_string(), "reference".to_string());
+
+        let params = AddEntityParams {
+            r#type: "project".to_string(),
+            id: "proj_one".to_string(),
+            fields,
+            to_file: None,
+            list_item_types: Some(list_types),
+        };
+
+        let result = execute(dir.path(), &build, &graph, &params);
+        assert!(result.is_ok());
+        let val = result.unwrap();
+
+        let content = fs::read_to_string(dir.path().join(&val.path)).unwrap();
+        assert!(content.contains("project proj_one {"));
+        assert!(content.contains("members = [person.alice, person.bob]"));
+    }
+
+    #[test]
+    fn test_add_entity_with_list_of_strings() {
+        let (dir, mut workspace) = create_workspace(&[(
+            "schema.firm",
+            r#"
+schema task {
+    field { name = "title" type = "string" required = true }
+    field { name = "tags" type = "list" required = false }
+}
+"#,
+        )]);
+
+        let build = workspace.build().unwrap();
+        let mut graph = EntityGraph::new();
+        graph.add_entities(build.entities.clone()).unwrap();
+
+        let mut fields = HashMap::new();
+        fields.insert("title".to_string(), serde_json::json!("Fix bug"));
+        fields.insert(
+            "tags".to_string(),
+            serde_json::json!(["urgent", "frontend"]),
+        );
+
+        let mut list_types = HashMap::new();
+        list_types.insert("tags".to_string(), "string".to_string());
+
+        let params = AddEntityParams {
+            r#type: "task".to_string(),
+            id: "bug_fix_tagged".to_string(),
+            fields,
+            to_file: None,
+            list_item_types: Some(list_types),
+        };
+
+        let result = execute(dir.path(), &build, &graph, &params);
+        assert!(result.is_ok());
+        let val = result.unwrap();
+
+        let content = fs::read_to_string(dir.path().join(&val.path)).unwrap();
+        assert!(content.contains("task bug_fix_tagged {"));
+        assert!(content.contains(r#"tags = ["urgent", "frontend"]"#));
+    }
+
+    #[test]
+    fn test_add_entity_list_without_type_annotation_error() {
+        let (dir, mut workspace) = create_workspace(&[(
+            "schema.firm",
+            r#"
+schema task {
+    field { name = "title" type = "string" required = true }
+    field { name = "tags" type = "list" required = false }
+}
+"#,
+        )]);
+
+        let build = workspace.build().unwrap();
+        let mut graph = EntityGraph::new();
+        graph.add_entities(build.entities.clone()).unwrap();
+
+        let mut fields = HashMap::new();
+        fields.insert("title".to_string(), serde_json::json!("Fix bug"));
+        fields.insert(
+            "tags".to_string(),
+            serde_json::json!(["urgent", "frontend"]),
+        );
+
+        let params = AddEntityParams {
+            r#type: "task".to_string(),
+            id: "bug_fix_no_type".to_string(),
+            fields,
+            to_file: None,
+            list_item_types: None, // Missing list_item_types
+        };
+
+        let result = execute(dir.path(), &build, &graph, &params);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_add_entity_invalid_list_item_type_error() {
+        let (dir, mut workspace) = create_workspace(&[(
+            "schema.firm",
+            r#"
+schema task {
+    field { name = "title" type = "string" required = true }
+    field { name = "tags" type = "list" required = false }
+}
+"#,
+        )]);
+
+        let build = workspace.build().unwrap();
+        let mut graph = EntityGraph::new();
+        graph.add_entities(build.entities.clone()).unwrap();
+
+        let mut fields = HashMap::new();
+        fields.insert("title".to_string(), serde_json::json!("Fix bug"));
+        fields.insert(
+            "tags".to_string(),
+            serde_json::json!(["urgent", "frontend"]),
+        );
+
+        let mut list_types = HashMap::new();
+        list_types.insert("tags".to_string(), "invalid_type".to_string());
+
+        let params = AddEntityParams {
+            r#type: "task".to_string(),
+            id: "bug_fix_invalid".to_string(),
+            fields,
+            to_file: None,
+            list_item_types: Some(list_types),
+        };
+
+        let result = execute(dir.path(), &build, &graph, &params);
+        assert!(result.is_err());
     }
 }

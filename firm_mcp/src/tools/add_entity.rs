@@ -34,6 +34,12 @@ pub struct AddEntityParams {
     /// If omitted, defaults to "generated/<type>.firm".
     /// The file will be created if it doesn't exist.
     pub to_file: Option<String>,
+
+    /// Optional type annotations for list fields.
+    /// Maps field names to their inner type (e.g., "secondary_contacts" -> "reference").
+    /// Required for any field with type List in the schema.
+    /// Valid types: string, integer, float, boolean, currency, reference, datetime, path, enum.
+    pub list_item_types: Option<HashMap<String, String>>,
 }
 
 /// Result of adding an entity.
@@ -106,6 +112,8 @@ pub fn execute(
             field_def.expected_type(),
             workspace_path,
             &target_abs_path,
+            &params.list_item_types,
+            name,
         )?;
 
         entity = entity.with_field(field_id, value);
@@ -163,6 +171,8 @@ fn json_to_field_value(
     expected_type: &FieldType,
     workspace_path: &Path,
     target_file_path: &Path,
+    list_item_types: &Option<HashMap<String, String>>,
+    field_name: &str,
 ) -> Result<FieldValue, String> {
     match expected_type {
         FieldType::String => match value {
@@ -240,31 +250,43 @@ fn json_to_field_value(
                 )),
             }
         }
-        FieldType::List => {
-            match value {
-                serde_json::Value::Array(arr) => {
-                    if arr.is_empty() {
-                        return Ok(FieldValue::List(Vec::new()));
-                    }
-
-                    let mut values = Vec::new();
-                    for item in arr {
-                        // We infer type from the JSON value since List doesn't specify inner type
-                        let val = json_value_to_field_value_inferred(
-                            item,
-                            workspace_path,
-                            target_file_path,
-                        )?;
-                        values.push(val);
-                    }
-                    Ok(FieldValue::List(values))
+        FieldType::List => match value {
+            serde_json::Value::Array(arr) => {
+                if arr.is_empty() {
+                    return Ok(FieldValue::List(Vec::new()));
                 }
-                _ => Err(format!(
-                    "Expected array for field type List, got {:?}",
-                    value
-                )),
+
+                let item_type_str = list_item_types
+                        .as_ref()
+                        .and_then(|types| types.get(field_name))
+                        .ok_or_else(|| {
+                            format!(
+                                "Field '{}' has type List. Specify the inner type in list_item_types (e.g., {{\"{}\": \"reference\"}})",
+                                field_name, field_name
+                            )
+                        })?;
+
+                let item_type = parse_list_item_type(item_type_str)?;
+
+                let mut values = Vec::new();
+                for item in arr {
+                    let val = json_to_field_value(
+                        item,
+                        &item_type,
+                        workspace_path,
+                        target_file_path,
+                        list_item_types,
+                        field_name,
+                    )?;
+                    values.push(val);
+                }
+                Ok(FieldValue::List(values))
             }
-        }
+            _ => Err(format!(
+                "Expected array for field type List, got {:?}",
+                value
+            )),
+        },
         FieldType::Enum => match value {
             serde_json::Value::String(s) => Ok(FieldValue::Enum(s.clone())),
             _ => Err(format!(
@@ -330,27 +352,22 @@ fn json_to_field_value(
     }
 }
 
-/// Helper to infer FieldValue from JSON when type is unknown (e.g. inside List)
-fn json_value_to_field_value_inferred(
-    value: &serde_json::Value,
-    _workspace_path: &Path,
-    _target_file_path: &Path,
-) -> Result<FieldValue, String> {
-    match value {
-        serde_json::Value::Bool(b) => Ok(FieldValue::Boolean(*b)),
-        serde_json::Value::String(s) => Ok(FieldValue::String(s.clone())),
-        serde_json::Value::Number(n) => {
-            if n.is_i64() {
-                Ok(FieldValue::Integer(n.as_i64().unwrap()))
-            } else {
-                Ok(FieldValue::Float(n.as_f64().unwrap()))
-            }
-        }
-        serde_json::Value::Array(_) => {
-            Err("Nested lists not fully supported in inference yet".into())
-        }
-        serde_json::Value::Object(_) => Err("Objects not supported as field values".into()),
-        serde_json::Value::Null => Err("Null values not supported".into()),
+/// Parses a list item type string into a FieldType enum.
+fn parse_list_item_type(type_str: &str) -> Result<FieldType, String> {
+    match type_str.to_lowercase().as_str() {
+        "string" => Ok(FieldType::String),
+        "integer" => Ok(FieldType::Integer),
+        "float" => Ok(FieldType::Float),
+        "boolean" => Ok(FieldType::Boolean),
+        "currency" => Ok(FieldType::Currency),
+        "reference" => Ok(FieldType::Reference),
+        "datetime" => Ok(FieldType::DateTime),
+        "path" => Ok(FieldType::Path),
+        "enum" => Ok(FieldType::Enum),
+        _ => Err(format!(
+            "Invalid list item type '{}'. Valid types: string, integer, float, boolean, currency, reference, datetime, path, enum",
+            type_str
+        )),
     }
 }
 

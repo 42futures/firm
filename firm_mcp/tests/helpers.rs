@@ -1,5 +1,7 @@
 //! Shared test helpers for firm_mcp tests.
 
+#![allow(dead_code)]
+
 use std::fs;
 
 use firm_lang::workspace::Workspace;
