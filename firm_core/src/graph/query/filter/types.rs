@@ -47,3 +47,21 @@ pub enum FilterValue {
     Enum(String),
     List(Vec<FilterValue>),
 }
+
+impl FilterValue {
+    /// Returns the type name of this filter value for error messages
+    pub fn type_name(&self) -> &'static str {
+        match self {
+            FilterValue::String(_) => "String",
+            FilterValue::Integer(_) => "Integer",
+            FilterValue::Float(_) => "Float",
+            FilterValue::Boolean(_) => "Boolean",
+            FilterValue::Currency { .. } => "Currency",
+            FilterValue::DateTime(_) => "DateTime",
+            FilterValue::Reference(_) => "Reference",
+            FilterValue::Path(_) => "Path",
+            FilterValue::Enum(_) => "Enum",
+            FilterValue::List(_) => "List",
+        }
+    }
+}

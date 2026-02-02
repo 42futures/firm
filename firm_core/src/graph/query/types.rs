@@ -2,6 +2,7 @@
 
 use super::filter::FilterCondition;
 use super::order::compare_entities_by_field;
+use super::QueryError;
 use crate::{Entity, EntityType};
 
 /// Sort direction
@@ -40,7 +41,10 @@ impl Query {
     }
 
     /// Execute the query against an entity graph
-    pub fn execute<'a>(&self, graph: &'a crate::graph::EntityGraph) -> Vec<&'a Entity> {
+    pub fn execute<'a>(
+        &self,
+        graph: &'a crate::graph::EntityGraph,
+    ) -> Result<Vec<&'a Entity>, QueryError> {
         // Start by selecting entities based on the "from" clause
         let mut entities = match &self.from {
             EntitySelector::Type(entity_type) => graph.list_by_type(entity_type),
@@ -57,10 +61,15 @@ impl Query {
         // Apply each operation in sequence
         for operation in &self.operations {
             entities = match operation {
-                QueryOperation::Where(condition) => entities
-                    .into_iter()
-                    .filter(|e| condition.matches(e))
-                    .collect(),
+                QueryOperation::Where(condition) => {
+                    let mut filtered = Vec::new();
+                    for e in entities {
+                        if condition.matches(e)? {
+                            filtered.push(e);
+                        }
+                    }
+                    filtered
+                }
                 QueryOperation::Order { field, direction } => {
                     let mut entities = entities;
                     entities.sort_by(|a, b| compare_entities_by_field(a, b, field, direction));
@@ -79,7 +88,7 @@ impl Query {
             };
         }
 
-        entities
+        Ok(entities)
     }
 }
 
@@ -148,7 +157,7 @@ mod tests {
     fn test_query_from_type() {
         let graph = create_test_graph();
         let query = Query::new(EntitySelector::Type(EntityType::new("person")));
-        let results = query.execute(&graph);
+        let results = query.execute(&graph).unwrap();
 
         assert_eq!(results.len(), 2);
         assert!(results.iter().any(|e| e.id == EntityId::new("person1")));
@@ -159,7 +168,7 @@ mod tests {
     fn test_query_from_all() {
         let graph = create_test_graph();
         let query = Query::new(EntitySelector::All);
-        let results = query.execute(&graph);
+        let results = query.execute(&graph).unwrap();
 
         assert_eq!(results.len(), 4);
     }
@@ -175,7 +184,7 @@ mod tests {
             )),
         );
 
-        let results = query.execute(&graph);
+        let results = query.execute(&graph).unwrap();
         assert_eq!(results.len(), 1);
         assert_eq!(results[0].id, EntityId::new("task2"));
     }
@@ -185,7 +194,7 @@ mod tests {
         let graph = create_test_graph();
         let query = Query::new(EntitySelector::All).with_operation(QueryOperation::Limit(2));
 
-        let results = query.execute(&graph);
+        let results = query.execute(&graph).unwrap();
         assert_eq!(results.len(), 2);
     }
 
@@ -200,7 +209,7 @@ mod tests {
             )))
             .with_operation(QueryOperation::Limit(1));
 
-        let results = query.execute(&graph);
+        let results = query.execute(&graph).unwrap();
         assert_eq!(results.len(), 1);
     }
 }

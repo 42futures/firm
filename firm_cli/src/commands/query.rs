@@ -30,7 +30,10 @@ pub fn query_entities(
 
     // Execute the query
     ui::debug("Executing query");
-    let results = query.execute(&graph);
+    let results = query.execute(&graph).map_err(|e| {
+        ui::error(&format!("Query execution failed: {}", e));
+        CliError::QueryError
+    })?;
 
     ui::success(&format!("Query returned {} entities", results.len()));
 
