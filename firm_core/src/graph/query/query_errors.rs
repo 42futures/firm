@@ -21,6 +21,10 @@ pub enum QueryError {
         requested: String,
         available: Vec<String>,
     },
+    /// Invalid date/datetime format in filter value
+    InvalidDateFormat {
+        value: String,
+    },
 }
 
 impl fmt::Display for QueryError {
@@ -63,6 +67,13 @@ impl fmt::Display for QueryError {
                         available.join(", ")
                     )
                 }
+            }
+            QueryError::InvalidDateFormat { value } => {
+                write!(
+                    f,
+                    "Invalid date '{}'. Expected format: YYYY-MM-DD or full ISO 8601 datetime.",
+                    value
+                )
             }
         }
     }

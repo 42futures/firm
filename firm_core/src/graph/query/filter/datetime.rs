@@ -29,13 +29,15 @@ pub fn compare_datetime(
             // Support both full datetime and date-only formats
             if let Ok(filter_dt) = filter_str.parse::<DateTime<FixedOffset>>() {
                 compare_with_datetime(field_value, value, &filter_dt, operator)
-            } else {
+            } else if let Ok(filter_date) =
+                chrono::NaiveDate::parse_from_str(filter_str, "%Y-%m-%d")
+            {
                 // Try parsing as just a date (YYYY-MM-DD) and compare dates only
-                if let Ok(filter_date) = chrono::NaiveDate::parse_from_str(filter_str, "%Y-%m-%d") {
-                    compare_with_date(field_value, value, &filter_date, operator)
-                } else {
-                    Ok(false) // Invalid date format in filter
-                }
+                compare_with_date(field_value, value, &filter_date, operator)
+            } else {
+                Err(QueryError::InvalidDateFormat {
+                    value: filter_str.clone(),
+                })
             }
         }
         _ => Err(QueryError::TypeMismatch {
@@ -187,7 +189,16 @@ mod tests {
     #[test]
     fn test_invalid_date_format() {
         let field = make_datetime_field(2025, 9, 30, 10, 0, 2);
-        assert!(!compare_datetime(&field, &FilterOperator::Equal, &FilterValue::DateTime("not a date".to_string())).unwrap());
+        let result = compare_datetime(&field, &FilterOperator::Equal, &FilterValue::DateTime("not a date".to_string()));
+        assert!(matches!(result, Err(QueryError::InvalidDateFormat { .. })));
+    }
+
+    #[test]
+    fn test_invalid_date_values() {
+        let field = make_datetime_field(2025, 9, 30, 10, 0, 2);
+        // Month 13 and day 45 are invalid
+        let result = compare_datetime(&field, &FilterOperator::Equal, &FilterValue::DateTime("2025-13-45".to_string()));
+        assert!(matches!(result, Err(QueryError::InvalidDateFormat { .. })));
     }
 
     #[test]
