@@ -163,6 +163,9 @@ impl Display for EntitySchema {
             writeln!(f, "\n{}", field_id)?;
             writeln!(f, "- Type: {}", field_schema.expected_type())?;
             writeln!(f, "- Required: {}", field_schema.is_required())?;
+            if let Some(allowed_values) = field_schema.allowed_values() {
+                writeln!(f, "- Allowed values: {}", allowed_values.join(", "))?;
+            }
         }
 
         Ok(())
