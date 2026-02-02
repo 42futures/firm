@@ -1,8 +1,8 @@
 //! Conversion from ParsedQuery to executable Query
 
 use firm_core::graph::{
-    EntitySelector, FieldRef, FilterCondition, FilterOperator, FilterValue, MetadataField, Query,
-    QueryOperation, SortDirection,
+    CompoundFilterCondition, EntitySelector, FieldRef, FilterCondition, FilterOperator,
+    FilterValue, MetadataField, Query, QueryOperation, SortDirection,
 };
 use firm_core::{EntityType, FieldId};
 
@@ -57,7 +57,9 @@ fn convert_operation(parsed: ParsedOperation) -> Result<QueryOperation, QueryCon
     match parsed {
         ParsedOperation::Where(condition) => {
             let filter_condition = convert_condition(condition)?;
-            Ok(QueryOperation::Where(filter_condition))
+            Ok(QueryOperation::Where(CompoundFilterCondition::single(
+                filter_condition,
+            )))
         }
         ParsedOperation::Limit(n) => Ok(QueryOperation::Limit(n)),
         ParsedOperation::Order { field, direction } => convert_order(field, direction),

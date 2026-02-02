@@ -1,7 +1,7 @@
 //! Core query types for executing queries against the entity graph
 
 use super::QueryError;
-use super::filter::FilterCondition;
+use super::filter::CompoundFilterCondition;
 use super::order::compare_entities_by_field;
 use crate::{Entity, EntityType};
 
@@ -114,8 +114,8 @@ pub enum EntitySelector {
 /// Operations that can be applied to entity collections
 #[derive(Debug, Clone)]
 pub enum QueryOperation {
-    /// Filter entities by a condition
-    Where(FilterCondition),
+    /// Filter entities by a compound condition
+    Where(CompoundFilterCondition),
     /// Traverse to related entities
     Related {
         degrees: usize,
@@ -187,10 +187,12 @@ mod tests {
     fn test_query_with_where() {
         let graph = create_test_graph();
         let query = Query::new(EntitySelector::Type(EntityType::new("task"))).with_operation(
-            QueryOperation::Where(super::super::FilterCondition::new(
-                super::super::FieldRef::Regular(FieldId::new("is_completed")),
-                super::super::FilterOperator::Equal,
-                super::super::FilterValue::Boolean(false),
+            QueryOperation::Where(super::super::CompoundFilterCondition::single(
+                super::super::FilterCondition::new(
+                    super::super::FieldRef::Regular(FieldId::new("is_completed")),
+                    super::super::FilterOperator::Equal,
+                    super::super::FilterValue::Boolean(false),
+                ),
             )),
         );
 
@@ -212,11 +214,15 @@ mod tests {
     fn test_query_with_where_and_limit() {
         let graph = create_test_graph();
         let query = Query::new(EntitySelector::Type(EntityType::new("person")))
-            .with_operation(QueryOperation::Where(super::super::FilterCondition::new(
-                super::super::FieldRef::Regular(FieldId::new("age")),
-                super::super::FilterOperator::GreaterThan,
-                super::super::FilterValue::Integer(20),
-            )))
+            .with_operation(QueryOperation::Where(
+                super::super::CompoundFilterCondition::single(
+                    super::super::FilterCondition::new(
+                        super::super::FieldRef::Regular(FieldId::new("age")),
+                        super::super::FilterOperator::GreaterThan,
+                        super::super::FilterValue::Integer(20),
+                    ),
+                ),
+            ))
             .with_operation(QueryOperation::Limit(1));
 
         let results = query.execute(&graph).unwrap();

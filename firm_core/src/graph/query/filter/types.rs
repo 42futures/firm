@@ -2,6 +2,14 @@
 
 use crate::FieldId;
 
+/// Logical operator for combining multiple filter conditions
+#[derive(Debug, Clone, PartialEq, Default)]
+pub enum Combinator {
+    #[default]
+    And,
+    Or,
+}
+
 /// Reference to a field (either metadata or regular field)
 #[derive(Debug, Clone, PartialEq)]
 pub enum FieldRef {

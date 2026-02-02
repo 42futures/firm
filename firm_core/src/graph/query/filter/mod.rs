@@ -40,6 +40,48 @@ impl FilterCondition {
             FieldRef::Regular(field_id) => self.matches_field(entity, field_id),
         }
     }
+}
+
+/// A compound filter condition combining multiple conditions with a logical operator
+#[derive(Debug, Clone, PartialEq)]
+pub struct CompoundFilterCondition {
+    pub conditions: Vec<FilterCondition>,
+    pub combinator: Combinator,
+}
+
+impl CompoundFilterCondition {
+    /// Create a new compound filter condition
+    pub fn new(conditions: Vec<FilterCondition>, combinator: Combinator) -> Self {
+        Self {
+            conditions,
+            combinator,
+        }
+    }
+
+    /// Create a compound condition with a single filter (AND by default)
+    pub fn single(condition: FilterCondition) -> Self {
+        Self {
+            conditions: vec![condition],
+            combinator: Combinator::default(),
+        }
+    }
+
+    /// Check if an entity matches this compound condition
+    pub fn matches(&self, entity: &Entity) -> Result<bool, QueryError> {
+        let results: Result<Vec<bool>, QueryError> = self
+            .conditions
+            .iter()
+            .map(|c| c.matches(entity))
+            .collect();
+
+        Ok(match self.combinator {
+            Combinator::And => results?.iter().all(|&r| r),
+            Combinator::Or => results?.iter().any(|&r| r),
+        })
+    }
+}
+
+impl FilterCondition {
 
     fn matches_metadata(
         &self,
@@ -86,5 +128,141 @@ impl FilterCondition {
             }
             FieldValue::List(_) => list::compare_list(field_value, &self.operator, &self.value),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{Entity, EntityId, EntityType, FieldId, FieldValue};
+
+    fn make_test_entity(name: &str, age: i64, active: bool) -> Entity {
+        Entity::new(EntityId::new("test"), EntityType::new("person"))
+            .with_field(FieldId::new("name"), name)
+            .with_field(FieldId::new("age"), FieldValue::Integer(age))
+            .with_field(FieldId::new("active"), active)
+    }
+
+    #[test]
+    fn test_compound_condition_single() {
+        let entity = make_test_entity("Alice", 30, true);
+        let condition = CompoundFilterCondition::single(FilterCondition::new(
+            FieldRef::Regular(FieldId::new("name")),
+            FilterOperator::Equal,
+            FilterValue::String("Alice".to_string()),
+        ));
+
+        assert!(condition.matches(&entity).unwrap());
+    }
+
+    #[test]
+    fn test_compound_condition_and_all_match() {
+        let entity = make_test_entity("Alice", 30, true);
+        let condition = CompoundFilterCondition::new(
+            vec![
+                FilterCondition::new(
+                    FieldRef::Regular(FieldId::new("name")),
+                    FilterOperator::Equal,
+                    FilterValue::String("Alice".to_string()),
+                ),
+                FilterCondition::new(
+                    FieldRef::Regular(FieldId::new("age")),
+                    FilterOperator::GreaterThan,
+                    FilterValue::Integer(25),
+                ),
+            ],
+            Combinator::And,
+        );
+
+        assert!(condition.matches(&entity).unwrap());
+    }
+
+    #[test]
+    fn test_compound_condition_and_one_fails() {
+        let entity = make_test_entity("Alice", 30, true);
+        let condition = CompoundFilterCondition::new(
+            vec![
+                FilterCondition::new(
+                    FieldRef::Regular(FieldId::new("name")),
+                    FilterOperator::Equal,
+                    FilterValue::String("Alice".to_string()),
+                ),
+                FilterCondition::new(
+                    FieldRef::Regular(FieldId::new("age")),
+                    FilterOperator::GreaterThan,
+                    FilterValue::Integer(35), // Alice is 30, so this fails
+                ),
+            ],
+            Combinator::And,
+        );
+
+        assert!(!condition.matches(&entity).unwrap());
+    }
+
+    #[test]
+    fn test_compound_condition_or_one_matches() {
+        let entity = make_test_entity("Alice", 30, true);
+        let condition = CompoundFilterCondition::new(
+            vec![
+                FilterCondition::new(
+                    FieldRef::Regular(FieldId::new("name")),
+                    FilterOperator::Equal,
+                    FilterValue::String("Bob".to_string()), // Doesn't match
+                ),
+                FilterCondition::new(
+                    FieldRef::Regular(FieldId::new("age")),
+                    FilterOperator::Equal,
+                    FilterValue::Integer(30), // Matches
+                ),
+            ],
+            Combinator::Or,
+        );
+
+        assert!(condition.matches(&entity).unwrap());
+    }
+
+    #[test]
+    fn test_compound_condition_or_none_match() {
+        let entity = make_test_entity("Alice", 30, true);
+        let condition = CompoundFilterCondition::new(
+            vec![
+                FilterCondition::new(
+                    FieldRef::Regular(FieldId::new("name")),
+                    FilterOperator::Equal,
+                    FilterValue::String("Bob".to_string()),
+                ),
+                FilterCondition::new(
+                    FieldRef::Regular(FieldId::new("age")),
+                    FilterOperator::Equal,
+                    FilterValue::Integer(25),
+                ),
+            ],
+            Combinator::Or,
+        );
+
+        assert!(!condition.matches(&entity).unwrap());
+    }
+
+    #[test]
+    fn test_compound_condition_or_multiple_values_same_field() {
+        // This is the primary use case: where status = "draft" or status = "sent"
+        let entity = make_test_entity("Alice", 30, true);
+        let condition = CompoundFilterCondition::new(
+            vec![
+                FilterCondition::new(
+                    FieldRef::Regular(FieldId::new("name")),
+                    FilterOperator::Equal,
+                    FilterValue::String("Alice".to_string()),
+                ),
+                FilterCondition::new(
+                    FieldRef::Regular(FieldId::new("name")),
+                    FilterOperator::Equal,
+                    FilterValue::String("Bob".to_string()),
+                ),
+            ],
+            Combinator::Or,
+        );
+
+        assert!(condition.matches(&entity).unwrap());
     }
 }
