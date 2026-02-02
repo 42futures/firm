@@ -25,7 +25,7 @@ pub enum ParsedEntitySelector {
 /// Operations that can be chained in a query
 #[derive(Debug, Clone, PartialEq)]
 pub enum ParsedOperation {
-    Where(ParsedCondition),
+    Where(ParsedCompoundCondition),
     Related {
         degree: Option<usize>,
         selector: Option<ParsedEntitySelector>,
@@ -37,7 +37,22 @@ pub enum ParsedOperation {
     Limit(usize),
 }
 
-/// A condition in a WHERE clause
+/// A compound condition combining multiple conditions with AND/OR
+#[derive(Debug, Clone, PartialEq)]
+pub struct ParsedCompoundCondition {
+    pub conditions: Vec<ParsedCondition>,
+    pub combinator: ParsedCombinator,
+}
+
+/// Logical combinator for compound conditions
+#[derive(Debug, Clone, PartialEq, Default)]
+pub enum ParsedCombinator {
+    #[default]
+    And,
+    Or,
+}
+
+/// A single condition in a WHERE clause
 #[derive(Debug, Clone, PartialEq)]
 pub struct ParsedCondition {
     pub field: ParsedField,

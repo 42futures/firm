@@ -16,8 +16,14 @@ operation = {
   | limit_clause
 }
 
-// WHERE clause: "where field_name == value" or "where @type == 'task'"
-where_clause = { "where" ~ condition }
+// WHERE clause: "where field == value" or "where a == 1 and b == 2"
+where_clause = { "where" ~ compound_condition }
+
+compound_condition = { condition ~ (combinator ~ condition)* }
+
+combinator = { and_kw | or_kw }
+and_kw = @{ ^"and" }
+or_kw = @{ ^"or" }
 
 condition = {
     metadata_field ~ operator ~ value
@@ -74,8 +80,9 @@ number = @{ "-"? ~ ASCII_DIGIT+ ~ ("." ~ ASCII_DIGIT+)? }
 boolean = { "true" | "false" }
 
 // Currency: number followed by currency code (e.g., "100.50 USD")
+// Negative lookahead prevents matching combinator keywords (and/or)
 currency = { number ~ currency_code }
-currency_code = @{ ASCII_ALPHA{3} }
+currency_code = @{ !(and_kw | or_kw) ~ ASCII_ALPHA{3} }
 
 // DateTime: ISO format (e.g., "2025-01-15" or "2025-01-15 at 14:30 UTC")
 datetime = @{

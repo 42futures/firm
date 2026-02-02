@@ -109,14 +109,63 @@ fn parse_where_clause(
     pair: pest::iterators::Pair<Rule>,
 ) -> Result<ParsedOperation, QueryParseError> {
     for inner_pair in pair.into_inner() {
-        if inner_pair.as_rule() == Rule::condition {
-            let condition = parse_condition(inner_pair)?;
-            return Ok(ParsedOperation::Where(condition));
+        if inner_pair.as_rule() == Rule::compound_condition {
+            let compound = parse_compound_condition(inner_pair)?;
+            return Ok(ParsedOperation::Where(compound));
         }
     }
     Err(QueryParseError::SyntaxError(
         "Invalid where clause".to_string(),
     ))
+}
+
+fn parse_compound_condition(
+    pair: pest::iterators::Pair<Rule>,
+) -> Result<ParsedCompoundCondition, QueryParseError> {
+    let mut conditions = Vec::new();
+    let mut combinators = Vec::new();
+
+    for inner_pair in pair.into_inner() {
+        match inner_pair.as_rule() {
+            Rule::condition => {
+                conditions.push(parse_condition(inner_pair)?);
+            }
+            Rule::combinator => {
+                let combinator = match inner_pair.as_str().to_lowercase().as_str() {
+                    "and" => ParsedCombinator::And,
+                    "or" => ParsedCombinator::Or,
+                    _ => {
+                        return Err(QueryParseError::SyntaxError(format!(
+                            "Unknown combinator: {}",
+                            inner_pair.as_str()
+                        )))
+                    }
+                };
+                combinators.push(combinator);
+            }
+            _ => {}
+        }
+    }
+
+    // Validate that all combinators are the same type
+    let combinator = if combinators.is_empty() {
+        ParsedCombinator::default()
+    } else {
+        let first = &combinators[0];
+        for c in &combinators[1..] {
+            if c != first {
+                return Err(QueryParseError::SyntaxError(
+                    "Cannot mix AND and OR in the same WHERE clause. Use separate WHERE clauses instead.".to_string(),
+                ));
+            }
+        }
+        first.clone()
+    };
+
+    Ok(ParsedCompoundCondition {
+        conditions,
+        combinator,
+    })
 }
 
 fn parse_condition(pair: pest::iterators::Pair<Rule>) -> Result<ParsedCondition, QueryParseError> {
