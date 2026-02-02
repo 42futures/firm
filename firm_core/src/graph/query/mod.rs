@@ -7,10 +7,12 @@
 
 mod filter;
 mod order;
+mod query_errors;
 mod related;
 mod types;
 
 // Re-export all public types
 pub use filter::*;
+pub use query_errors::*;
 pub use related::*;
 pub use types::*;

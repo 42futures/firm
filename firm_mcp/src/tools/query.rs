@@ -42,7 +42,15 @@ pub fn execute(graph: &EntityGraph, params: &QueryParams) -> CallToolResult {
     };
 
     // Execute the query
-    let results = query.execute(graph);
+    let results = match query.execute(graph) {
+        Ok(r) => r,
+        Err(e) => {
+            return CallToolResult::error(vec![Content::text(format!(
+                "Query execution failed: {}",
+                e
+            ))]);
+        }
+    };
 
     // Format results
     if results.is_empty() {

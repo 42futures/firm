@@ -48,7 +48,7 @@ person charlie { name = "Charlie" }
     }
 
     #[test]
-    fn test_query_no_results() {
+    fn test_query_unknown_entity_type() {
         let graph = create_graph(&[(
             "data.firm",
             r#"
@@ -66,8 +66,11 @@ person alice { name = "Alice" }
 
         let result = execute(&graph, &params);
 
-        assert!(is_success(&result));
-        assert!(!get_text(&result).contains("person"));
+        // Unknown entity type should return an error with helpful info
+        assert!(is_error(&result));
+        let text = get_text(&result);
+        assert!(text.contains("organization"));
+        assert!(text.contains("person")); // Should suggest available types
     }
 
     #[test]

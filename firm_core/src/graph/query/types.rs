@@ -1,5 +1,6 @@
 //! Core query types for executing queries against the entity graph
 
+use super::QueryError;
 use super::filter::FilterCondition;
 use super::order::compare_entities_by_field;
 use crate::{Entity, EntityType};
@@ -40,10 +41,23 @@ impl Query {
     }
 
     /// Execute the query against an entity graph
-    pub fn execute<'a>(&self, graph: &'a crate::graph::EntityGraph) -> Vec<&'a Entity> {
+    pub fn execute<'a>(
+        &self,
+        graph: &'a crate::graph::EntityGraph,
+    ) -> Result<Vec<&'a Entity>, QueryError> {
         // Start by selecting entities based on the "from" clause
         let mut entities = match &self.from {
-            EntitySelector::Type(entity_type) => graph.list_by_type(entity_type),
+            EntitySelector::Type(entity_type) => {
+                // Check if the entity type exists in the graph
+                let all_types = graph.get_all_entity_types();
+                if !all_types.contains(entity_type) {
+                    return Err(QueryError::UnknownEntityType {
+                        requested: entity_type.to_string(),
+                        available: all_types.iter().map(|t| t.to_string()).collect(),
+                    });
+                }
+                graph.list_by_type(entity_type)
+            }
             EntitySelector::All => {
                 // Get all entity types and collect all entities
                 let all_types = graph.get_all_entity_types();
@@ -57,10 +71,15 @@ impl Query {
         // Apply each operation in sequence
         for operation in &self.operations {
             entities = match operation {
-                QueryOperation::Where(condition) => entities
-                    .into_iter()
-                    .filter(|e| condition.matches(e))
-                    .collect(),
+                QueryOperation::Where(condition) => {
+                    let mut filtered = Vec::new();
+                    for e in entities {
+                        if condition.matches(e)? {
+                            filtered.push(e);
+                        }
+                    }
+                    filtered
+                }
                 QueryOperation::Order { field, direction } => {
                     let mut entities = entities;
                     entities.sort_by(|a, b| compare_entities_by_field(a, b, field, direction));
@@ -79,7 +98,7 @@ impl Query {
             };
         }
 
-        entities
+        Ok(entities)
     }
 }
 
@@ -148,7 +167,7 @@ mod tests {
     fn test_query_from_type() {
         let graph = create_test_graph();
         let query = Query::new(EntitySelector::Type(EntityType::new("person")));
-        let results = query.execute(&graph);
+        let results = query.execute(&graph).unwrap();
 
         assert_eq!(results.len(), 2);
         assert!(results.iter().any(|e| e.id == EntityId::new("person1")));
@@ -159,7 +178,7 @@ mod tests {
     fn test_query_from_all() {
         let graph = create_test_graph();
         let query = Query::new(EntitySelector::All);
-        let results = query.execute(&graph);
+        let results = query.execute(&graph).unwrap();
 
         assert_eq!(results.len(), 4);
     }
@@ -175,7 +194,7 @@ mod tests {
             )),
         );
 
-        let results = query.execute(&graph);
+        let results = query.execute(&graph).unwrap();
         assert_eq!(results.len(), 1);
         assert_eq!(results[0].id, EntityId::new("task2"));
     }
@@ -185,7 +204,7 @@ mod tests {
         let graph = create_test_graph();
         let query = Query::new(EntitySelector::All).with_operation(QueryOperation::Limit(2));
 
-        let results = query.execute(&graph);
+        let results = query.execute(&graph).unwrap();
         assert_eq!(results.len(), 2);
     }
 
@@ -200,7 +219,28 @@ mod tests {
             )))
             .with_operation(QueryOperation::Limit(1));
 
-        let results = query.execute(&graph);
+        let results = query.execute(&graph).unwrap();
         assert_eq!(results.len(), 1);
+    }
+
+    #[test]
+    fn test_query_unknown_entity_type() {
+        let graph = create_test_graph();
+        // "tasks" doesn't exist, only "task" does
+        let query = Query::new(EntitySelector::Type(EntityType::new("tasks")));
+        let result = query.execute(&graph);
+
+        assert!(matches!(result, Err(QueryError::UnknownEntityType { .. })));
+
+        // Verify the error contains helpful info
+        if let Err(QueryError::UnknownEntityType {
+            requested,
+            available,
+        }) = result
+        {
+            assert_eq!(requested, "tasks");
+            assert!(available.contains(&"task".to_string()));
+            assert!(available.contains(&"person".to_string()));
+        }
     }
 }
