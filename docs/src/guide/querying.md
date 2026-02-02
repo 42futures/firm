@@ -65,6 +65,11 @@ $ firm query 'from task | where is_completed == false'
 $ firm query 'from task | where assignee_ref == person.john_doe'
 ```
 
+**Find invoices that are draft or sent:**
+```bash
+$ firm query 'from invoice | where status == "draft" or status == "sent"'
+```
+
 **Find recent incomplete tasks related to active projects, sorted by due date:**
 ```bash
 $ firm query 'from project | where status == "in progress" | related(2) task | where is_completed == false | where due_date > 2025-01-01 | order due_date | limit 10'

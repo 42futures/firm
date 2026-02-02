@@ -52,9 +52,38 @@ from task | where is_completed == false
 
 # Filter by metadata
 from * | where @type == "task"
+```
 
-# Multiple conditions
+**Compound conditions:**
+
+Combine multiple conditions in a single `where` clause using `and` or `or`:
+
+```bash
+# Match any of multiple values (OR)
+from invoice | where status == "draft" or status == "sent"
+
+# Require all conditions (AND)
+from task | where is_completed == false and priority > 5
+
+# Multiple OR conditions
+from opportunity | where status == enum"open" or status == enum"negotiation" or status == enum"proposal"
+```
+
+You cannot mix `and` and `or` in the same `where` clause. Use separate `where` clauses to combine them:
+
+```bash
+# (status is draft OR sent) AND (amount > 1000)
+from invoice | where status == "draft" or status == "sent" | where amount > 1000
+```
+
+**Chaining where clauses:**
+
+Multiple `where` clauses joined by pipes act as implicit AND:
+
+```bash
+# These are equivalent:
 from task | where is_completed == false | where priority > 5
+from task | where is_completed == false and priority > 5
 ```
 
 **Supported operators:**

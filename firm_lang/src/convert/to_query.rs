@@ -1,8 +1,8 @@
 //! Conversion from ParsedQuery to executable Query
 
 use firm_core::graph::{
-    EntitySelector, FieldRef, FilterCondition, FilterOperator, FilterValue, MetadataField, Query,
-    QueryOperation, SortDirection,
+    Combinator, CompoundFilterCondition, EntitySelector, FieldRef, FilterCondition, FilterOperator,
+    FilterValue, MetadataField, Query, QueryOperation, SortDirection,
 };
 use firm_core::{EntityType, FieldId};
 
@@ -55,13 +55,28 @@ impl TryFrom<ParsedQuery> for Query {
 
 fn convert_operation(parsed: ParsedOperation) -> Result<QueryOperation, QueryConversionError> {
     match parsed {
-        ParsedOperation::Where(condition) => {
-            let filter_condition = convert_condition(condition)?;
-            Ok(QueryOperation::Where(filter_condition))
+        ParsedOperation::Where(compound) => {
+            let conditions: Result<Vec<FilterCondition>, _> = compound
+                .conditions
+                .into_iter()
+                .map(convert_condition)
+                .collect();
+            let combinator = convert_combinator(compound.combinator);
+            Ok(QueryOperation::Where(CompoundFilterCondition::new(
+                conditions?,
+                combinator,
+            )))
         }
         ParsedOperation::Limit(n) => Ok(QueryOperation::Limit(n)),
         ParsedOperation::Order { field, direction } => convert_order(field, direction),
         ParsedOperation::Related { degree, selector } => convert_related(degree, selector),
+    }
+}
+
+fn convert_combinator(parsed: ParsedCombinator) -> Combinator {
+    match parsed {
+        ParsedCombinator::And => Combinator::And,
+        ParsedCombinator::Or => Combinator::Or,
     }
 }
 

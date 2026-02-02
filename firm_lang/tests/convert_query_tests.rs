@@ -34,7 +34,9 @@ fn test_convert_where_with_regular_field() {
     let query: Query = parsed.try_into().unwrap();
 
     assert_eq!(query.operations.len(), 1);
-    if let QueryOperation::Where(condition) = &query.operations[0] {
+    if let QueryOperation::Where(compound) = &query.operations[0] {
+        assert_eq!(compound.conditions.len(), 1);
+        let condition = &compound.conditions[0];
         assert!(matches!(condition.field, FieldRef::Regular(_)));
         assert!(matches!(condition.operator, FilterOperator::Equal));
         assert!(matches!(condition.value, FilterValue::Boolean(true)));
@@ -50,7 +52,9 @@ fn test_convert_where_with_metadata_field() {
     let query: Query = parsed.try_into().unwrap();
 
     assert_eq!(query.operations.len(), 1);
-    if let QueryOperation::Where(condition) = &query.operations[0] {
+    if let QueryOperation::Where(compound) = &query.operations[0] {
+        assert_eq!(compound.conditions.len(), 1);
+        let condition = &compound.conditions[0];
         assert!(matches!(
             condition.field,
             FieldRef::Metadata(MetadataField::Type)
@@ -168,9 +172,10 @@ fn test_convert_currency_value() {
     let parsed = parse_query(query_str).unwrap();
     let query: Query = parsed.try_into().unwrap();
 
-    if let QueryOperation::Where(condition) = &query.operations[0] {
+    if let QueryOperation::Where(compound) = &query.operations[0] {
+        let condition = &compound.conditions[0];
         if let FilterValue::Currency { amount, code } = &condition.value {
-            assert_eq!(*amount, 5000.50);
+            assert!((amount - 5000.50).abs() < f64::EPSILON);
             assert_eq!(code, "USD");
         } else {
             panic!("Expected Currency value");
@@ -186,7 +191,8 @@ fn test_convert_reference_value() {
     let parsed = parse_query(query_str).unwrap();
     let query: Query = parsed.try_into().unwrap();
 
-    if let QueryOperation::Where(condition) = &query.operations[0] {
+    if let QueryOperation::Where(compound) = &query.operations[0] {
+        let condition = &compound.conditions[0];
         if let FilterValue::Reference(ref_str) = &condition.value {
             assert_eq!(ref_str, "person.john_doe");
         } else {

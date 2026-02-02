@@ -175,7 +175,20 @@ from *       # Select all entities (wildcard)
 ```bash
 from task | where is_completed == false
 from * | where @type == "task"
-from task | where is_completed == false | where priority > 5
+```
+
+**Compound conditions** - combine with `and` or `or`:
+
+```bash
+from invoice | where status == "draft" or status == "sent"
+from task | where is_completed == false and priority > 5
+```
+
+You cannot mix `and` and `or` in the same clause. Use separate `where` clauses:
+
+```bash
+# (draft OR sent) AND (amount > 1000)
+from invoice | where status == "draft" or status == "sent" | where amount > 1000
 ```
 
 **Operators:** `==`, `!=`, `>`, `<`, `>=`, `<=`, `contains`, `startswith`, `endswith`, `in`
