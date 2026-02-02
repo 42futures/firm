@@ -16,6 +16,11 @@ pub enum QueryError {
         field_type: String,
         filter_type: String,
     },
+    /// Entity type does not exist in the graph
+    UnknownEntityType {
+        requested: String,
+        available: Vec<String>,
+    },
 }
 
 impl fmt::Display for QueryError {
@@ -43,6 +48,21 @@ impl fmt::Display for QueryError {
                     "Type mismatch: {} field cannot be compared with {} value",
                     field_type, filter_type
                 )
+            }
+            QueryError::UnknownEntityType {
+                requested,
+                available,
+            } => {
+                if available.is_empty() {
+                    write!(f, "Entity type '{}' not found. No entity types exist.", requested)
+                } else {
+                    write!(
+                        f,
+                        "Entity type '{}' not found. Available types: {}",
+                        requested,
+                        available.join(", ")
+                    )
+                }
             }
         }
     }

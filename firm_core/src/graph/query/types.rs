@@ -1,8 +1,8 @@
 //! Core query types for executing queries against the entity graph
 
+use super::QueryError;
 use super::filter::FilterCondition;
 use super::order::compare_entities_by_field;
-use super::QueryError;
 use crate::{Entity, EntityType};
 
 /// Sort direction
@@ -47,7 +47,17 @@ impl Query {
     ) -> Result<Vec<&'a Entity>, QueryError> {
         // Start by selecting entities based on the "from" clause
         let mut entities = match &self.from {
-            EntitySelector::Type(entity_type) => graph.list_by_type(entity_type),
+            EntitySelector::Type(entity_type) => {
+                // Check if the entity type exists in the graph
+                let all_types = graph.get_all_entity_types();
+                if !all_types.contains(entity_type) {
+                    return Err(QueryError::UnknownEntityType {
+                        requested: entity_type.to_string(),
+                        available: all_types.iter().map(|t| t.to_string()).collect(),
+                    });
+                }
+                graph.list_by_type(entity_type)
+            }
             EntitySelector::All => {
                 // Get all entity types and collect all entities
                 let all_types = graph.get_all_entity_types();
@@ -211,5 +221,26 @@ mod tests {
 
         let results = query.execute(&graph).unwrap();
         assert_eq!(results.len(), 1);
+    }
+
+    #[test]
+    fn test_query_unknown_entity_type() {
+        let graph = create_test_graph();
+        // "tasks" doesn't exist, only "task" does
+        let query = Query::new(EntitySelector::Type(EntityType::new("tasks")));
+        let result = query.execute(&graph);
+
+        assert!(matches!(result, Err(QueryError::UnknownEntityType { .. })));
+
+        // Verify the error contains helpful info
+        if let Err(QueryError::UnknownEntityType {
+            requested,
+            available,
+        }) = result
+        {
+            assert_eq!(requested, "tasks");
+            assert!(available.contains(&"task".to_string()));
+            assert!(available.contains(&"person".to_string()));
+        }
     }
 }
