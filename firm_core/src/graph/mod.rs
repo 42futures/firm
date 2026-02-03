@@ -40,6 +40,12 @@ pub struct EntityGraph {
     entity_type_map: HashMap<EntityType, Vec<NodeIndex>>,
 }
 
+impl Default for EntityGraph {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl EntityGraph {
     /// Creates a new entity graph, ready to be populated and built.
     pub fn new() -> Self {
