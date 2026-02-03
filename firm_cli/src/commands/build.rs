@@ -12,12 +12,12 @@ pub fn build_and_save_graph(workspace_path: &PathBuf) -> Result<(), CliError> {
 
     // First load and build the workspace from DSL
     let mut workspace = Workspace::new();
-    load_workspace_files(&workspace_path, &mut workspace).map_err(|_| CliError::BuildError)?;
+    load_workspace_files(workspace_path, &mut workspace).map_err(|_| CliError::BuildError)?;
     let build = build_workspace(workspace).map_err(|_| CliError::BuildError)?;
 
     // Then build and save the entity graph
     let graph = build_graph(&build).map_err(|_| CliError::BuildError)?;
-    save_graph_with_backup(&workspace_path, &graph).map_err(|_| CliError::BuildError)?;
+    save_graph_with_backup(workspace_path, &graph).map_err(|_| CliError::BuildError)?;
 
     ui::success("Graph was built and saved");
 
@@ -31,8 +31,11 @@ pub fn load_workspace_files(
 ) -> Result<(), WorkspaceError> {
     let spinner = ui::spinner("Loading workspace files");
 
-    match workspace.load_directory(&path) {
-        Ok(_) => Ok(spinner.finish_with_message("Workspace files loaded successfully")),
+    match workspace.load_directory(path) {
+        Ok(_) => {
+            spinner.finish_with_message("Workspace files loaded successfully");
+            Ok(())
+        },
         Err(e) => {
             spinner.finish_and_clear();
             ui::error_with_details(
@@ -40,7 +43,7 @@ pub fn load_workspace_files(
                 &e.to_string(),
             );
 
-            return Err(e);
+            Err(e)
         }
     }
 }
@@ -75,14 +78,11 @@ pub fn build_graph(build: &WorkspaceBuild) -> Result<EntityGraph, CliError> {
     if let Err(e) = entity_result {
         spinner.finish_and_clear();
 
-        match e {
-            GraphError::EntityAlreadyExists(entity_id) => {
-                ui::error(&format!(
-                    "Entities with duplicate IDs '{}' cannot be added to the graph",
-                    entity_id
-                ));
-            }
-            _ => (),
+        if let GraphError::EntityAlreadyExists(entity_id) = e {
+            ui::error(&format!(
+                "Entities with duplicate IDs '{}' cannot be added to the graph",
+                entity_id
+            ));
         }
 
         return Err(CliError::BuildError);

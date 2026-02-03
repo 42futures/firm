@@ -15,7 +15,7 @@ pub fn get_related_entities(
     output_format: OutputFormat,
 ) -> Result<(), CliError> {
     ui::header("Getting related entities");
-    let graph = load_current_graph(&workspace_path)?;
+    let graph = load_current_graph(workspace_path)?;
 
     let id = compose_entity_id(&entity_type, &entity_id);
     match graph.get_related(&id, direction.clone().map(|d| d.into())) {

@@ -16,8 +16,8 @@ impl Entity {
     /// Creates a new entity with the desired ID and type.
     pub fn new(id: EntityId, entity_type: EntityType) -> Self {
         Self {
-            id: id,
-            entity_type: entity_type,
+            id,
+            entity_type,
             fields: Vec::new(),
         }
     }

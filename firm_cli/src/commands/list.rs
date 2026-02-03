@@ -27,7 +27,7 @@ fn list_entities(
     output_format: OutputFormat,
 ) -> Result<(), CliError> {
     ui::header("Listing entities by type");
-    let graph = load_current_graph(&workspace_path)?;
+    let graph = load_current_graph(workspace_path)?;
 
     let entities = graph.list_by_type(&entity_type.as_str().into());
     ui::success(&format!(
@@ -48,7 +48,7 @@ fn list_entities(
 fn list_schemas(workspace_path: &PathBuf, output_format: OutputFormat) -> Result<(), CliError> {
     ui::header("Listing schemas");
     let mut workspace = Workspace::new();
-    load_workspace_files(&workspace_path, &mut workspace).map_err(|_| CliError::BuildError)?;
+    load_workspace_files(workspace_path, &mut workspace).map_err(|_| CliError::BuildError)?;
     let build = build_workspace(workspace).map_err(|_| CliError::BuildError)?;
 
     ui::success(&format!(

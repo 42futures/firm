@@ -80,9 +80,9 @@ fn add_entity_non_interactive(
     output_format: OutputFormat,
 ) -> Result<(), CliError> {
     // Load the pre-built graph and build workspace for schemas
-    let graph = load_current_graph(&workspace_path)?;
+    let graph = load_current_graph(workspace_path)?;
     let mut workspace = Workspace::new();
-    load_workspace_files(&workspace_path, &mut workspace).map_err(|_| CliError::BuildError)?;
+    load_workspace_files(workspace_path, &mut workspace).map_err(|_| CliError::BuildError)?;
     let build = build_workspace(workspace).map_err(|_| CliError::BuildError)?;
 
     // Find the schema for the given type
@@ -128,7 +128,7 @@ fn add_entity_non_interactive(
         if chunk.len() == 2 {
             list_value_groups
                 .entry(chunk[0].to_string())
-                .or_insert_with(Vec::new)
+                .or_default()
                 .push(chunk[1].to_string());
         }
     }
@@ -293,9 +293,9 @@ fn add_entity_interactive(
     output_format: OutputFormat,
 ) -> Result<(), CliError> {
     ui::header("Adding new entity");
-    let graph = load_current_graph(&workspace_path)?;
+    let graph = load_current_graph(workspace_path)?;
     let mut workspace = Workspace::new();
-    load_workspace_files(&workspace_path, &mut workspace).map_err(|_| CliError::BuildError)?;
+    load_workspace_files(workspace_path, &mut workspace).map_err(|_| CliError::BuildError)?;
     let build = build_workspace(workspace).map_err(|_| CliError::BuildError)?;
 
     // Let user choose entity type from built-in and custom schemas
@@ -370,7 +370,7 @@ fn prompt_required_fields(
 
     required_fields.sort_by_key(|(field_id, _)| field_id.as_str());
     for (field_id, field) in required_fields {
-        match prompt_for_field_value(
+        if let Some(value) = prompt_for_field_value(
             field_id,
             field.expected_type(),
             field.is_required(),
@@ -379,10 +379,7 @@ fn prompt_required_fields(
             source_path,
             workspace_path,
         )? {
-            Some(value) => {
-                entity = entity.with_field(field_id.clone(), value);
-            }
-            None => {}
+            entity = entity.with_field(field_id.clone(), value);
         }
     }
 
@@ -405,7 +402,7 @@ fn prompt_optional_fields(
 
     optional_fields.sort_by_key(|(field_id, _)| field_id.as_str());
     for (field_id, field) in optional_fields {
-        match prompt_for_field_value(
+        if let Some(value) = prompt_for_field_value(
             field_id,
             field.expected_type(),
             field.is_required(),
@@ -414,10 +411,7 @@ fn prompt_optional_fields(
             source_path,
             workspace_path,
         )? {
-            Some(value) => {
-                entity = entity.with_field(field_id.clone(), value);
-            }
-            None => {}
+            entity = entity.with_field(field_id.clone(), value);
         }
     }
 
@@ -470,7 +464,9 @@ fn compute_dsl_path(
     to_file: Option<PathBuf>,
     chosen_type_str: String,
 ) -> PathBuf {
-    let dsl_path = match to_file {
+    
+
+    match to_file {
         Some(file_path) => workspace_path
             .join(file_path)
             .with_extension(FIRM_EXTENSION),
@@ -478,9 +474,7 @@ fn compute_dsl_path(
             .join(GENERATED_DIR_NAME)
             .join(&chosen_type_str)
             .with_extension(FIRM_EXTENSION),
-    };
-
-    dsl_path
+    }
 }
 
 /// Writes the DSL to a file and outputs the generated entity.

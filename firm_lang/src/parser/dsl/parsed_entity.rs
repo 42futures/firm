@@ -56,7 +56,7 @@ impl<'a> ParsedEntity<'a> {
             // Then find field nodes within the block
             for child in block_node.children(&mut block_cursor) {
                 if child.kind() == FIELD_KIND {
-                    fields.push(ParsedField::new(child, &self.source, &self.path));
+                    fields.push(ParsedField::new(child, self.source, self.path));
                 }
             }
         }

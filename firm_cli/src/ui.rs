@@ -79,7 +79,9 @@ pub fn error_with_details(main_msg: &str, details: &str) {
 
 /// Selects the output format used by the CLI.
 #[derive(Clone, Debug, ValueEnum, PartialEq)]
+#[derive(Default)]
 pub enum OutputFormat {
+    #[default]
     Pretty,
     Json,
 }
@@ -93,11 +95,6 @@ impl fmt::Display for OutputFormat {
     }
 }
 
-impl Default for OutputFormat {
-    fn default() -> Self {
-        OutputFormat::Pretty
-    }
-}
 
 /// Outputs a single entity in pretty format.
 pub fn pretty_output_entity_single(entity: &Entity) {

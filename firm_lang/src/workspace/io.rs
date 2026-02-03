@@ -14,7 +14,7 @@ impl Workspace {
         workspace_path: &PathBuf,
     ) -> Result<(), WorkspaceError> {
         // Read the source text
-        let text = fs::read_to_string(path).map_err(|err| WorkspaceError::IoError(err))?;
+        let text = fs::read_to_string(path).map_err(WorkspaceError::IoError)?;
 
         // Make the source path relative to the workspace
         let relative_path = path
@@ -40,16 +40,16 @@ impl Workspace {
         directory_path: &PathBuf,
         root_directory_path: &PathBuf,
     ) -> Result<(), WorkspaceError> {
-        let entries = fs::read_dir(directory_path).map_err(|e| WorkspaceError::IoError(e))?;
+        let entries = fs::read_dir(directory_path).map_err(WorkspaceError::IoError)?;
 
         for entry in entries {
-            let entry = entry.map_err(|e| WorkspaceError::IoError(e))?;
+            let entry = entry.map_err(WorkspaceError::IoError)?;
             let path = entry.path();
 
             if path.is_dir() {
-                self.load_directory_recursive(&path, &root_directory_path)?;
+                self.load_directory_recursive(&path, root_directory_path)?;
             } else if path.is_file() && self.is_firm_file(&path) {
-                self.load_file(&path, &root_directory_path)?;
+                self.load_file(&path, root_directory_path)?;
             }
         }
 

@@ -10,7 +10,7 @@ static MULTI_PROGRESS: OnceLock<MultiProgress> = OnceLock::new();
 
 /// Gets or creates a global indicatif progress bar tracker.
 pub fn get_multi_progress() -> &'static MultiProgress {
-    MULTI_PROGRESS.get_or_init(|| MultiProgress::new())
+    MULTI_PROGRESS.get_or_init(MultiProgress::new)
 }
 
 /// A logger implementation that outputs library logs to console UI messages.

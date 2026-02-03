@@ -58,11 +58,10 @@ impl<'a> ParsedSchemaField<'a> {
     /// Checks whether the field is required or not.
     /// Defaults to false if not specified.
     pub fn required(&self) -> bool {
-        if let Some(required_field) = self.find_field_by_name("required") {
-            if let Ok(ParsedValue::Boolean(b)) = required_field.value() {
+        if let Some(required_field) = self.find_field_by_name("required")
+            && let Ok(ParsedValue::Boolean(b)) = required_field.value() {
                 return b;
             }
-        }
 
         false // Default to false if not specified or invalid
     }
@@ -99,11 +98,10 @@ impl<'a> ParsedSchemaField<'a> {
         for child in block_node.children(&mut cursor) {
             if child.kind() == FIELD_KIND {
                 let field = super::ParsedField::new(child, self.source, self.path);
-                if let Some(id) = field.id() {
-                    if id == field_name {
+                if let Some(id) = field.id()
+                    && id == field_name {
                         return Some(field);
                     }
-                }
             }
         }
 

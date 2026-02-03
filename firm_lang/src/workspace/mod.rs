@@ -18,6 +18,12 @@ pub struct Workspace {
     files: HashMap<PathBuf, WorkspaceFile>,
 }
 
+impl Default for Workspace {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Workspace {
     pub fn new() -> Self {
         Self {

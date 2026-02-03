@@ -108,16 +108,16 @@ impl ParsedValue {
         let raw = get_node_text(&node, source);
 
         match kind {
-            ValueKind::Boolean => Self::parse_boolean(&raw),
-            ValueKind::String => Self::parse_string(&raw),
-            ValueKind::Number => Self::parse_number(&raw),
-            ValueKind::Currency => Self::parse_currency(&raw),
-            ValueKind::Reference => Self::parse_reference(&raw),
+            ValueKind::Boolean => Self::parse_boolean(raw),
+            ValueKind::String => Self::parse_string(raw),
+            ValueKind::Number => Self::parse_number(raw),
+            ValueKind::Currency => Self::parse_currency(raw),
+            ValueKind::Reference => Self::parse_reference(raw),
             ValueKind::List => Self::parse_list_from_node(node, source, path),
-            ValueKind::Date => Self::parse_date(&raw),
-            ValueKind::DateTime => Self::parse_datetime(&raw),
-            ValueKind::Path => Self::parse_path(&raw, path),
-            ValueKind::Enum => Self::parse_enum(&raw),
+            ValueKind::Date => Self::parse_date(raw),
+            ValueKind::DateTime => Self::parse_datetime(raw),
+            ValueKind::Path => Self::parse_path(raw, path),
+            ValueKind::Enum => Self::parse_enum(raw),
             _ => Err(ValueParseError::MissingParseMethod),
         }
     }
@@ -177,7 +177,7 @@ impl ParsedValue {
         // Currencies have 2 parts: number and currency (42 USD or 42.24 EUR)
         match parts.as_slice() {
             [raw_amount, raw_currency] => {
-                let amount = rust_decimal::Decimal::from_str_exact(&raw_amount)
+                let amount = rust_decimal::Decimal::from_str_exact(raw_amount)
                     .map_err(|_| ValueParseError::InvalidCurrencyAmount(raw_amount.to_string()))?;
 
                 let currency = raw_currency

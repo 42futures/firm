@@ -14,7 +14,7 @@ pub fn query_entities(
     output_format: OutputFormat,
 ) -> Result<(), CliError> {
     ui::header("Executing query");
-    let graph = load_current_graph(&workspace_path)?;
+    let graph = load_current_graph(workspace_path)?;
 
     // Parse the query
     let parsed_query = parse_query(&query_string).map_err(|e| {

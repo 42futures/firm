@@ -14,7 +14,7 @@ pub fn find_item_source(
 ) -> Result<(), CliError> {
     // Load workspace files (parse DSL but don't build/validate)
     let mut workspace = Workspace::new();
-    load_workspace_files(&workspace_path, &mut workspace).map_err(|_| CliError::BuildError)?;
+    load_workspace_files(workspace_path, &mut workspace).map_err(|_| CliError::BuildError)?;
 
     // Special case: if entity_type is "schema", search for schemas instead of entities
     let source_path = if target_type == "schema" {

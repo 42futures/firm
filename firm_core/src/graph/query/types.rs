@@ -7,16 +7,13 @@ use crate::{Entity, EntityType};
 
 /// Sort direction
 #[derive(Debug, Clone, PartialEq)]
+#[derive(Default)]
 pub enum SortDirection {
+    #[default]
     Ascending,
     Descending,
 }
 
-impl Default for SortDirection {
-    fn default() -> Self {
-        SortDirection::Ascending
-    }
-}
 
 /// A query that can be executed against an entity graph
 #[derive(Debug, Clone)]

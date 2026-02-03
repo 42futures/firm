@@ -36,22 +36,19 @@ pub fn parse_query(input: &str) -> Result<ParsedQuery, QueryParseError> {
     let mut operations = Vec::new();
 
     for pair in pairs {
-        match pair.as_rule() {
-            Rule::query => {
-                for inner_pair in pair.into_inner() {
-                    match inner_pair.as_rule() {
-                        Rule::from_clause => {
-                            from_clause = Some(parse_from_clause(inner_pair)?);
-                        }
-                        Rule::operation => {
-                            operations.push(parse_operation(inner_pair)?);
-                        }
-                        Rule::EOI => {}
-                        _ => {}
+        if pair.as_rule() == Rule::query {
+            for inner_pair in pair.into_inner() {
+                match inner_pair.as_rule() {
+                    Rule::from_clause => {
+                        from_clause = Some(parse_from_clause(inner_pair)?);
                     }
+                    Rule::operation => {
+                        operations.push(parse_operation(inner_pair)?);
+                    }
+                    Rule::EOI => {}
+                    _ => {}
                 }
             }
-            _ => {}
         }
     }
 

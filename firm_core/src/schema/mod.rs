@@ -78,7 +78,7 @@ impl EntitySchema {
     /// Creates a new entity schema with a given name.
     pub fn new(entity_type: EntityType) -> Self {
         Self {
-            entity_type: entity_type,
+            entity_type,
             fields: HashMap::new(),
             insertion_order: 0,
         }

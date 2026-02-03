@@ -73,7 +73,7 @@ impl EntityGraph {
 
         self.entity_type_map
             .entry(entity.entity_type)
-            .or_insert_with(Vec::new)
+            .or_default()
             .push(node_index);
 
         Ok(())

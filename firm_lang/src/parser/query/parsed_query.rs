@@ -98,16 +98,13 @@ pub enum ParsedQueryValue {
 
 /// Sort direction
 #[derive(Debug, Clone, PartialEq)]
+#[derive(Default)]
 pub enum ParsedDirection {
+    #[default]
     Ascending,
     Descending,
 }
 
-impl Default for ParsedDirection {
-    fn default() -> Self {
-        ParsedDirection::Ascending
-    }
-}
 
 impl fmt::Display for ParsedEntitySelector {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

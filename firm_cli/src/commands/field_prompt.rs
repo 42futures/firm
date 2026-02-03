@@ -253,10 +253,10 @@ fn reference_prompt(
     let parts: Vec<&str> = result_str.split('.').collect();
     match parts.len() {
         2 => Ok(Some(FieldValue::Reference(ReferenceValue::Entity(
-            compose_entity_id(&parts[0], &parts[1]),
+            compose_entity_id(parts[0], parts[1]),
         )))),
         3 => Ok(Some(FieldValue::Reference(ReferenceValue::Field(
-            compose_entity_id(&parts[0], &parts[1]),
+            compose_entity_id(parts[0], parts[1]),
             FieldId(parts[2].into()),
         )))),
         _ => unreachable!("Parser should have prevented this format."),
@@ -406,7 +406,7 @@ fn list_prompt(
     let mut item_index = 1;
     loop {
         // Prompt for each item (always treat as skippable so user can skip to finish)
-        let item_field_id = FieldId::new(&format!("item_{}", item_index));
+        let item_field_id = FieldId::new(format!("item_{}", item_index));
         match prompt_for_field_value(
             &item_field_id,
             &item_type,
@@ -511,7 +511,7 @@ fn date_prompt(skippable: bool, field_id_prompt: &String) -> Result<Option<Field
     };
 
     // Validate offset range
-    if timezone_offset < -12 || timezone_offset > 14 {
+    if !(-12..=14).contains(&timezone_offset) {
         return Err(CliError::InputError);
     }
 
@@ -587,11 +587,10 @@ fn get_path_suggestions(
                 let mut suggestion = relative_path.to_string_lossy().to_string();
 
                 // Add a trailing slash to directories for clairty
-                if let Ok(file_type) = entry.file_type() {
-                    if file_type.is_dir() {
+                if let Ok(file_type) = entry.file_type()
+                    && file_type.is_dir() {
                         suggestion.push('/');
                     }
-                }
 
                 // Add the suggestion if it starts with the user's input
                 if suggestion.starts_with(input) {
@@ -621,7 +620,7 @@ fn enum_prompt(
 
             Ok(Some(FieldValue::Enum(selected_option)))
         }
-        None => return Err(CliError::InputError),
+        None => Err(CliError::InputError),
     }
 }
 

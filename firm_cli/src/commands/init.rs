@@ -182,7 +182,7 @@ fn create_default_schemas(workspace_path: &Path) -> Result<(), CliError> {
     for schema in &schemas {
         let schema_name = schema.entity_type.to_string();
         let file_path = schemas_dir.join(format!("{}.firm", schema_name));
-        let dsl_content = generate_schema_dsl(&schema);
+        let dsl_content = generate_schema_dsl(schema);
 
         let mut file = fs::File::create(&file_path).map_err(|_| CliError::FileError)?;
         file.write_all(dsl_content.as_bytes())

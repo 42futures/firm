@@ -72,12 +72,12 @@ impl EntityGraph {
                 let mut entities: Vec<&Entity> = match direction {
                     Some(Direction::Outgoing) => self
                         .graph
-                        .edges_directed(node_index.clone(), Direction::Outgoing)
+                        .edges_directed(*node_index, Direction::Outgoing)
                         .map(|edge| &self.graph[edge.target()])
                         .collect(),
                     Some(Direction::Incoming) => self
                         .graph
-                        .edges_directed(node_index.clone(), Direction::Incoming)
+                        .edges_directed(*node_index, Direction::Incoming)
                         .map(|edge| &self.graph[edge.source()])
                         .collect(),
                     None => {
@@ -86,14 +86,14 @@ impl EntityGraph {
                         // Collect targets of outgoing edges
                         all_entities.extend(
                             self.graph
-                                .edges_directed(node_index.clone(), Direction::Outgoing)
+                                .edges_directed(*node_index, Direction::Outgoing)
                                 .map(|edge| &self.graph[edge.target()]),
                         );
 
                         // Collect sources of incoming edges
                         all_entities.extend(
                             self.graph
-                                .edges_directed(node_index.clone(), Direction::Incoming)
+                                .edges_directed(*node_index, Direction::Incoming)
                                 .map(|edge| &self.graph[edge.source()]),
                         );
 
@@ -165,12 +165,10 @@ impl EntityGraph {
                         from_field,
                         to_field,
                     } = edge.weight()
-                    {
-                        if from_field == field_id && to_field == target_field_id {
+                        && from_field == field_id && to_field == target_field_id {
                             edge_found = true;
                             break;
                         }
-                    }
                 }
 
                 if edge_found {

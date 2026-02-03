@@ -30,7 +30,7 @@ fn get_entity(
     output_format: OutputFormat,
 ) -> Result<(), CliError> {
     ui::header("Getting entity by ID");
-    let graph = load_current_graph(&workspace_path)?;
+    let graph = load_current_graph(workspace_path)?;
 
     let id = compose_entity_id(&entity_type, &entity_id);
     match graph.get_entity(&id) {
@@ -64,7 +64,7 @@ fn get_schema(
 ) -> Result<(), CliError> {
     ui::header("Getting schema");
     let mut workspace = Workspace::new();
-    load_workspace_files(&workspace_path, &mut workspace).map_err(|_| CliError::BuildError)?;
+    load_workspace_files(workspace_path, &mut workspace).map_err(|_| CliError::BuildError)?;
     let build = build_workspace(workspace).map_err(|_| CliError::BuildError)?;
 
     // Find the schema by name
