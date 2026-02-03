@@ -2,7 +2,7 @@ use chrono::{DateTime, FixedOffset, Local, NaiveDate, NaiveTime, Offset, TimeZon
 use iso_currency::Currency;
 use path_clean::PathClean;
 use rust_decimal::Decimal;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use tree_sitter::Node;
 
 use super::{parser_errors::ValueParseError, parser_utils::get_node_text};
@@ -334,7 +334,7 @@ impl ParsedValue {
     /// Relative paths are assumed to be relative to the source file they're defined in.
     /// On parse, we transform the source-relative path to a workspace-relative path and normalize it.
     /// Absolute paths are left as-is.
-    pub fn parse_path(raw: &str, source_path: &PathBuf) -> Result<ParsedValue, ValueParseError> {
+    pub fn parse_path(raw: &str, source_path: &Path) -> Result<ParsedValue, ValueParseError> {
         let raw_path = raw.replace("path\"", "").trim_matches('"').to_string();
         let target_path = PathBuf::from(raw_path);
 

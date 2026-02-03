@@ -1,5 +1,5 @@
 use chrono::{DateTime, FixedOffset};
-use std::path::PathBuf;
+use std::path::Path;
 
 use firm_core::{FieldValue, ReferenceValue};
 
@@ -97,7 +97,7 @@ fn generate_datetime(dt: &DateTime<FixedOffset>) -> String {
 }
 
 /// Generate path value.
-fn generate_path(path: &PathBuf) -> String {
+fn generate_path(path: &Path) -> String {
     format!("path\"{}\"", path.display())
 }
 
@@ -371,7 +371,7 @@ mod tests {
 
     #[test]
     fn test_generate_path() {
-        let result = generate_path(&PathBuf::from("./relative/path.txt"));
+        let result = generate_path(Path::new("./relative/path.txt"));
         assert_eq!(result, "path\"./relative/path.txt\"");
     }
 }

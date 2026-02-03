@@ -1,4 +1,4 @@
-use std::{fs, path::PathBuf};
+use std::{fs, path::{Path, PathBuf}};
 
 use crate::{parser::dsl::parse_source, workspace::WorkspaceFile};
 
@@ -57,7 +57,7 @@ impl Workspace {
     }
 
     /// Returns true if a path has the .firm extension
-    fn is_firm_file(&self, path: &PathBuf) -> bool {
+    fn is_firm_file(&self, path: &Path) -> bool {
         path.extension()
             .and_then(|ext| ext.to_str())
             .map(|ext| ext == FIRM_FILE_EXTENSION)
