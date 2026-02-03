@@ -67,7 +67,7 @@ pub fn compare_string(
 /// Helper for Path field values that need to_str() conversion
 fn compare_path(
     field_value: &FieldValue,
-    path: &std::path::PathBuf,
+    path: &std::path::Path,
     operator: &FilterOperator,
     filter_value: &FilterValue,
 ) -> Result<bool, QueryError> {
