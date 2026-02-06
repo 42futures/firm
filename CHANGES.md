@@ -3,6 +3,35 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-02-06
+
+### Added
+
+- **MCP Server**: New `firm mcp` command exposes workspace operations as a local Model Context Protocol server for AI assistant integration
+  - Tools for querying, listing, getting, adding entities, and reading/writing source files
+  - DSL reference tool for in-context syntax documentation
+  - Validated workspace updates with automatic rollback on error
+- **Query Aggregations**: Optional final clause for computing summary values from query results
+  - `select` extracts specific field values: `from task | select @id, name, due_date`
+  - `count` counts entities, optionally by field presence: `from task | count`
+  - `sum`, `average`, `median` for numeric fields: `from invoice | sum amount`
+  - Currency-aware sum with mixed-currency error reporting
+- **Compound Query Conditions**: Combine multiple conditions with `and` or `or` in `where` clauses
+  - Example: `from invoice | where status == "draft" or status == "sent"`
+- **Source Command**: New `firm source` command to locate the source file for an entity or schema
+- **Documentation Site**: mdbook-based documentation deployed to GitHub Pages, replacing long-form README
+
+### Fixed
+
+- Schema display now shows allowed enum values
+- Invalid queries (unsupported operators, unknown entity types, invalid dates) now return descriptive errors instead of failing silently
+
+### Changed
+
+- `firm list` now outputs only entity IDs or schema names, rather than full details. Use `get` for details or `query` for filtered search.
+- `Query::execute` returns `QueryResult` enum (entities or aggregation result) instead of `Vec<&Entity>`
+- CLI access commands reorganized into individual files per command
+
 ## [0.4.0] - 2026-01-10
 
 ### Added
