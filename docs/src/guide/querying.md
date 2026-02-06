@@ -42,7 +42,7 @@ For deeper insights, use `firm query` which supports a SQL-like query language. 
 ### Query syntax
 
 ```
-from <type> | <operation> | <operation> | ...
+from <type> | <operation> | <operation> | ... | <aggregation>
 ```
 
 ### Available operations
@@ -52,6 +52,16 @@ from <type> | <operation> | <operation> | ...
 - `related([degrees]) [<type>]` - Traverse relationships
 - `order <field> [asc|desc]` - Sort results
 - `limit <n>` - Limit the number of results
+
+### Aggregations
+
+An optional final clause that summarizes the result set:
+
+- `select <field>, ...` - Extract specific field values
+- `count [<field>]` - Count entities (optionally only those with the field)
+- `sum <field>` - Sum a numeric field
+- `average <field>` - Compute the mean of a numeric field
+- `median <field>` - Compute the median of a numeric field
 
 ### Examples
 
@@ -73,6 +83,21 @@ $ firm query 'from invoice | where status == "draft" or status == "sent"'
 **Find recent incomplete tasks related to active projects, sorted by due date:**
 ```bash
 $ firm query 'from project | where status == "in progress" | related(2) task | where is_completed == false | where due_date > 2025-01-01 | order due_date | limit 10'
+```
+
+**Count incomplete tasks:**
+```bash
+$ firm query 'from task | where is_completed == false | count'
+```
+
+**Sum invoice amounts:**
+```bash
+$ firm query 'from invoice | where status == "sent" | sum amount'
+```
+
+**Extract specific fields:**
+```bash
+$ firm query 'from task | where is_completed == false | select @id, name, due_date'
 ```
 
 ### Query operators
