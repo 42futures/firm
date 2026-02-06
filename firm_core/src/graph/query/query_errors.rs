@@ -25,6 +25,10 @@ pub enum QueryError {
     InvalidDateFormat {
         value: String,
     },
+    /// Invalid aggregation operation
+    InvalidAggregation {
+        message: String,
+    },
 }
 
 impl fmt::Display for QueryError {
@@ -74,6 +78,9 @@ impl fmt::Display for QueryError {
                     "Invalid date '{}'. Expected format: YYYY-MM-DD or full ISO 8601 datetime.",
                     value
                 )
+            }
+            QueryError::InvalidAggregation { message } => {
+                write!(f, "Invalid aggregation: {}", message)
             }
         }
     }

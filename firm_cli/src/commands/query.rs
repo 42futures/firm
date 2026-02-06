@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use firm_core::graph::Query;
+use firm_core::graph::{Query, QueryResult};
 use firm_lang::parser::query::parse_query;
 
 use crate::errors::CliError;
@@ -30,21 +30,24 @@ pub fn query_entities(
 
     // Execute the query
     ui::debug("Executing query");
-    let results = query.execute(&graph).map_err(|e| {
+    let result = query.execute(&graph).map_err(|e| {
         ui::error(&format!("Query execution failed: {}", e));
         CliError::QueryError
     })?;
 
-    ui::success(&format!("Query returned {} entities", results.len()));
-
     // Output results
-    match output_format {
-        OutputFormat::Pretty => {
-            ui::pretty_output_entity_list(&results);
+    match result {
+        QueryResult::Entities(entities) => {
+            ui::success(&format!("Query returned {} entities", entities.len()));
+            match output_format {
+                OutputFormat::Pretty => ui::pretty_output_entity_list(&entities),
+                OutputFormat::Json => ui::json_output(&entities),
+            }
         }
-        OutputFormat::Json => {
-            ui::json_output(&results);
-        }
+        QueryResult::Aggregation(agg_result) => match output_format {
+            OutputFormat::Pretty => ui::raw_output(&agg_result.to_string()),
+            OutputFormat::Json => ui::json_output(&agg_result),
+        },
     }
 
     Ok(())

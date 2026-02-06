@@ -7,6 +7,7 @@ use std::fmt;
 pub struct ParsedQuery {
     pub from: ParsedFromClause,
     pub operations: Vec<ParsedOperation>,
+    pub aggregation: Option<ParsedAggregation>,
 }
 
 /// The FROM clause specifies the starting entity type(s)
@@ -35,6 +36,21 @@ pub enum ParsedOperation {
         direction: ParsedDirection,
     },
     Limit(usize),
+}
+
+/// Terminal aggregation clause
+#[derive(Debug, Clone, PartialEq)]
+pub enum ParsedAggregation {
+    /// Select specific fields: select @id, name, status
+    Select(Vec<ParsedField>),
+    /// Count entities: count (all) or count field_name (entities with field)
+    Count(Option<ParsedField>),
+    /// Sum a numeric field: sum amount
+    Sum(ParsedField),
+    /// Average a numeric field: average age
+    Average(ParsedField),
+    /// Median of a numeric field: median salary
+    Median(ParsedField),
 }
 
 /// A compound condition combining multiple conditions with AND/OR

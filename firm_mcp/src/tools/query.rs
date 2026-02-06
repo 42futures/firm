@@ -1,6 +1,6 @@
 //! Query tool implementation.
 
-use firm_core::graph::{EntityGraph, Query};
+use firm_core::graph::{EntityGraph, Query, QueryResult};
 use firm_lang::parser::query::parse_query;
 use rmcp::model::{CallToolResult, Content};
 use rmcp::schemars;
@@ -42,7 +42,7 @@ pub fn execute(graph: &EntityGraph, params: &QueryParams) -> CallToolResult {
     };
 
     // Execute the query
-    let results = match query.execute(graph) {
+    let result = match query.execute(graph) {
         Ok(r) => r,
         Err(e) => {
             return CallToolResult::error(vec![Content::text(format!(
@@ -53,12 +53,18 @@ pub fn execute(graph: &EntityGraph, params: &QueryParams) -> CallToolResult {
     };
 
     // Format results
-    if results.is_empty() {
-        return CallToolResult::success(vec![Content::text(
-            "No entities found matching the query.",
-        )]);
+    match result {
+        QueryResult::Entities(entities) => {
+            if entities.is_empty() {
+                return CallToolResult::success(vec![Content::text(
+                    "No entities found matching the query.",
+                )]);
+            }
+            let output: Vec<String> = entities.iter().map(|e| e.to_string()).collect();
+            CallToolResult::success(vec![Content::text(output.join("\n---\n"))])
+        }
+        QueryResult::Aggregation(agg_result) => {
+            CallToolResult::success(vec![Content::text(agg_result.to_string())])
+        }
     }
-
-    let output: Vec<String> = results.iter().map(|e| e.to_string()).collect();
-    CallToolResult::success(vec![Content::text(output.join("\n---\n"))])
 }

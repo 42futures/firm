@@ -5,6 +5,7 @@
 //! - Query operations (where, related, order, limit)
 //! - Query execution against the entity graph
 
+mod aggregation;
 mod filter;
 mod order;
 mod query_errors;

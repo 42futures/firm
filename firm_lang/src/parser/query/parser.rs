@@ -34,6 +34,7 @@ pub fn parse_query(input: &str) -> Result<ParsedQuery, QueryParseError> {
 
     let mut from_clause = None;
     let mut operations = Vec::new();
+    let mut aggregation = None;
 
     for pair in pairs {
         if pair.as_rule() == Rule::query {
@@ -44,6 +45,9 @@ pub fn parse_query(input: &str) -> Result<ParsedQuery, QueryParseError> {
                     }
                     Rule::operation => {
                         operations.push(parse_operation(inner_pair)?);
+                    }
+                    Rule::aggregation => {
+                        aggregation = Some(parse_aggregation(inner_pair)?);
                     }
                     Rule::EOI => {}
                     _ => {}
@@ -56,7 +60,11 @@ pub fn parse_query(input: &str) -> Result<ParsedQuery, QueryParseError> {
         QueryParseError::SyntaxError("Query must start with 'from' clause".to_string())
     })?;
 
-    Ok(ParsedQuery { from, operations })
+    Ok(ParsedQuery {
+        from,
+        operations,
+        aggregation,
+    })
 }
 
 fn parse_from_clause(
@@ -416,4 +424,125 @@ fn parse_limit_clause(
     Err(QueryParseError::SyntaxError(
         "Invalid limit clause".to_string(),
     ))
+}
+
+// --- Aggregation parsing ---
+
+fn parse_aggregation(
+    pair: pest::iterators::Pair<Rule>,
+) -> Result<ParsedAggregation, QueryParseError> {
+    let inner_pair = pair
+        .into_inner()
+        .next()
+        .ok_or_else(|| QueryParseError::SyntaxError("Empty aggregation".to_string()))?;
+
+    match inner_pair.as_rule() {
+        Rule::select_clause => parse_select_clause(inner_pair),
+        Rule::count_clause => parse_count_clause(inner_pair),
+        Rule::sum_clause => parse_sum_clause(inner_pair),
+        Rule::average_clause => parse_average_clause(inner_pair),
+        Rule::median_clause => parse_median_clause(inner_pair),
+        _ => Err(QueryParseError::SyntaxError(format!(
+            "Unknown aggregation: {:?}",
+            inner_pair.as_rule()
+        ))),
+    }
+}
+
+fn parse_select_clause(
+    pair: pest::iterators::Pair<Rule>,
+) -> Result<ParsedAggregation, QueryParseError> {
+    let mut fields = Vec::new();
+    for inner_pair in pair.into_inner() {
+        if inner_pair.as_rule() == Rule::select_field {
+            fields.push(parse_field_ref(inner_pair)?);
+        }
+    }
+    if fields.is_empty() {
+        return Err(QueryParseError::SyntaxError(
+            "Select requires at least one field".to_string(),
+        ));
+    }
+    Ok(ParsedAggregation::Select(fields))
+}
+
+fn parse_count_clause(
+    pair: pest::iterators::Pair<Rule>,
+) -> Result<ParsedAggregation, QueryParseError> {
+    let field = pair
+        .into_inner()
+        .next()
+        .map(|p| parse_field_from_rule(p))
+        .transpose()?;
+    Ok(ParsedAggregation::Count(field))
+}
+
+fn parse_sum_clause(
+    pair: pest::iterators::Pair<Rule>,
+) -> Result<ParsedAggregation, QueryParseError> {
+    let field = parse_aggregation_field(pair)?;
+    Ok(ParsedAggregation::Sum(field))
+}
+
+fn parse_average_clause(
+    pair: pest::iterators::Pair<Rule>,
+) -> Result<ParsedAggregation, QueryParseError> {
+    let field = parse_aggregation_field(pair)?;
+    Ok(ParsedAggregation::Average(field))
+}
+
+fn parse_median_clause(
+    pair: pest::iterators::Pair<Rule>,
+) -> Result<ParsedAggregation, QueryParseError> {
+    let field = parse_aggregation_field(pair)?;
+    Ok(ParsedAggregation::Median(field))
+}
+
+fn parse_aggregation_field(
+    pair: pest::iterators::Pair<Rule>,
+) -> Result<ParsedField, QueryParseError> {
+    let field_pair = pair
+        .into_inner()
+        .find(|p| p.as_rule() == Rule::aggregation_field)
+        .ok_or_else(|| {
+            QueryParseError::SyntaxError("Missing field in aggregation".to_string())
+        })?;
+
+    let inner = field_pair.into_inner().next().ok_or_else(|| {
+        QueryParseError::SyntaxError("Invalid aggregation field".to_string())
+    })?;
+
+    parse_field_from_rule(inner)
+}
+
+/// Parse a field reference from a select_field or aggregation_field wrapper rule.
+fn parse_field_ref(pair: pest::iterators::Pair<Rule>) -> Result<ParsedField, QueryParseError> {
+    let inner = pair.into_inner().next().ok_or_else(|| {
+        QueryParseError::SyntaxError("Invalid field reference".to_string())
+    })?;
+    parse_field_from_rule(inner)
+}
+
+/// Parse a metadata_field or field_name rule into a ParsedField.
+fn parse_field_from_rule(
+    pair: pest::iterators::Pair<Rule>,
+) -> Result<ParsedField, QueryParseError> {
+    match pair.as_rule() {
+        Rule::metadata_field => {
+            let name = pair
+                .into_inner()
+                .next()
+                .ok_or_else(|| {
+                    QueryParseError::SyntaxError("Invalid metadata field".to_string())
+                })?
+                .as_str()
+                .to_string();
+            Ok(ParsedField::Metadata(name))
+        }
+        Rule::field_name => Ok(ParsedField::Regular(pair.as_str().to_string())),
+        _ => Err(QueryParseError::SyntaxError(format!(
+            "Expected field, got {:?}",
+            pair.as_rule()
+        ))),
+    }
 }
