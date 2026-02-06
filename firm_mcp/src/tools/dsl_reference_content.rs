@@ -231,6 +231,49 @@ from task | limit 10
 from task | where priority > 8 | order priority desc | limit 5
 ```
 
+## Aggregations
+
+An optional final clause that summarizes the result set instead of returning entities.
+
+### select - Extract field values
+
+```bash
+from person | select name
+from task | where is_completed == false | select @id, name, due_date
+```
+
+### count - Count entities
+
+```bash
+from task | where is_completed == false | count
+from person | count email
+```
+
+Without a field, counts all entities. With a field, counts entities that have that field.
+
+### sum - Sum numeric field
+
+```bash
+from line_item | sum quantity
+from invoice | where status == "sent" | sum amount
+```
+
+Works with integer, float, and currency fields. Mixed currencies produce an error.
+
+### average - Mean of numeric field
+
+```bash
+from task | average estimated_hours
+```
+
+### median - Median of numeric field
+
+```bash
+from task | median estimated_hours
+```
+
+For all numeric aggregations, entities missing the field are skipped.
+
 ## Example Queries
 
 ```bash
@@ -248,6 +291,15 @@ from project | where status == "active" | related task
 
 # Complex multi-hop query
 from organization | where industry == "tech" | related(2) task | where is_completed == false | order due_date | limit 10
+
+# Count incomplete tasks
+from task | where is_completed == false | count
+
+# Total invoice amount
+from invoice | where status == "sent" | sum amount
+
+# Extract specific fields
+from task | where is_completed == false | select @id, name, due_date
 ```
 
 ## Query Execution
@@ -255,10 +307,10 @@ from organization | where industry == "tech" | related(2) task | where is_comple
 Queries execute left to right, each operation transforming the result set:
 
 ```
-from task          → [all tasks]
-| where status     → [filtered tasks]
-| related project  → [related projects]
-| order name       → [sorted projects]
-| limit 5          → [top 5 projects]
+from task                            → [all tasks]
+| where is_completed == false        → [filtered tasks]
+| related project                    → [related projects]
+| order name                         → [sorted projects]
+| limit 5                            → [top 5 projects]
 ```
 "#;

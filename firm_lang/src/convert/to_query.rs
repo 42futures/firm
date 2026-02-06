@@ -1,8 +1,8 @@
 //! Conversion from ParsedQuery to executable Query
 
 use firm_core::graph::{
-    Combinator, CompoundFilterCondition, EntitySelector, FieldRef, FilterCondition, FilterOperator,
-    FilterValue, MetadataField, Query, QueryOperation, SortDirection,
+    Aggregation, Combinator, CompoundFilterCondition, EntitySelector, FieldRef, FilterCondition,
+    FilterOperator, FilterValue, MetadataField, Query, QueryOperation, SortDirection,
 };
 use firm_core::{EntityType, FieldId};
 
@@ -47,6 +47,12 @@ impl TryFrom<ParsedQuery> for Query {
         for parsed_op in parsed.operations {
             let operation = convert_operation(parsed_op)?;
             query = query.with_operation(operation);
+        }
+
+        // Convert optional aggregation
+        if let Some(parsed_agg) = parsed.aggregation {
+            let aggregation = convert_aggregation(parsed_agg)?;
+            query = query.with_aggregation(aggregation);
         }
 
         Ok(query)
@@ -116,6 +122,23 @@ fn convert_related(
         degrees,
         entity_type,
     })
+}
+
+fn convert_aggregation(
+    parsed: ParsedAggregation,
+) -> Result<Aggregation, QueryConversionError> {
+    match parsed {
+        ParsedAggregation::Select(fields) => {
+            let field_refs: Vec<FieldRef> = fields.into_iter().map(convert_field).collect();
+            Ok(Aggregation::Select(field_refs))
+        }
+        ParsedAggregation::Count(field) => {
+            Ok(Aggregation::Count(field.map(convert_field)))
+        }
+        ParsedAggregation::Sum(field) => Ok(Aggregation::Sum(convert_field(field))),
+        ParsedAggregation::Average(field) => Ok(Aggregation::Average(convert_field(field))),
+        ParsedAggregation::Median(field) => Ok(Aggregation::Median(convert_field(field))),
+    }
 }
 
 fn convert_field(parsed: ParsedField) -> FieldRef {

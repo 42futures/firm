@@ -1,9 +1,15 @@
 //! Core query types for executing queries against the entity graph
 
+use std::fmt;
+
+use iso_currency::Currency;
+use rust_decimal::Decimal;
+use serde::Serialize;
+
 use super::QueryError;
-use super::filter::CompoundFilterCondition;
+use super::filter::{CompoundFilterCondition, FieldRef};
 use super::order::compare_entities_by_field;
-use crate::{Entity, EntityType};
+use crate::{Entity, EntityType, FieldValue};
 
 /// Sort direction
 #[derive(Debug, Clone, PartialEq)]
@@ -15,11 +21,102 @@ pub enum SortDirection {
 }
 
 
+/// Terminal aggregation that transforms the query result set
+#[derive(Debug, Clone)]
+pub enum Aggregation {
+    /// Select specific field values from entities
+    Select(Vec<FieldRef>),
+    /// Count entities (None = count all, Some = count entities with field)
+    Count(Option<FieldRef>),
+    /// Sum a numeric field
+    Sum(FieldRef),
+    /// Average a numeric field
+    Average(FieldRef),
+    /// Median of a numeric field
+    Median(FieldRef),
+}
+
+/// The result of executing a query
+#[derive(Debug)]
+pub enum QueryResult<'a> {
+    /// Standard entity results (no aggregation)
+    Entities(Vec<&'a Entity>),
+    /// Aggregation result
+    Aggregation(AggregationResult),
+}
+
+/// Result of an aggregation operation
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub enum AggregationResult {
+    /// Rows of field values from a select query
+    Select {
+        columns: Vec<String>,
+        rows: Vec<Vec<Option<FieldValue>>>,
+    },
+    /// A count result
+    Count(usize),
+    /// A sum result
+    Sum(AggregateValue),
+    /// An average result
+    Average(f64),
+    /// A median result
+    Median(f64),
+}
+
+impl fmt::Display for AggregationResult {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            AggregationResult::Count(n) => write!(f, "{}", n),
+            AggregationResult::Sum(val) => write!(f, "{}", val),
+            AggregationResult::Average(val) => write!(f, "{}", val),
+            AggregationResult::Median(val) => write!(f, "{}", val),
+            AggregationResult::Select { columns, rows } => {
+                writeln!(f, "{}", columns.join("\t"))?;
+                for row in rows {
+                    let cells: Vec<String> = row
+                        .iter()
+                        .map(|v| match v {
+                            Some(val) => val.to_string(),
+                            None => "-".to_string(),
+                        })
+                        .collect();
+                    writeln!(f, "{}", cells.join("\t"))?;
+                }
+                Ok(())
+            }
+        }
+    }
+}
+
+/// A value produced by a numeric aggregation
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub enum AggregateValue {
+    Integer(i64),
+    Float(f64),
+    Currency {
+        amount: Decimal,
+        currency: Currency,
+    },
+}
+
+impl fmt::Display for AggregateValue {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            AggregateValue::Integer(n) => write!(f, "{}", n),
+            AggregateValue::Float(n) => write!(f, "{}", n),
+            AggregateValue::Currency { amount, currency } => {
+                write!(f, "{} {}", amount, currency.code())
+            }
+        }
+    }
+}
+
 /// A query that can be executed against an entity graph
 #[derive(Debug, Clone)]
 pub struct Query {
     pub from: EntitySelector,
     pub operations: Vec<QueryOperation>,
+    pub aggregation: Option<Aggregation>,
 }
 
 impl Query {
@@ -28,6 +125,7 @@ impl Query {
         Self {
             from,
             operations: Vec::new(),
+            aggregation: None,
         }
     }
 
@@ -37,11 +135,17 @@ impl Query {
         self
     }
 
+    /// Set the terminal aggregation for the query
+    pub fn with_aggregation(mut self, aggregation: Aggregation) -> Self {
+        self.aggregation = Some(aggregation);
+        self
+    }
+
     /// Execute the query against an entity graph
     pub fn execute<'a>(
         &self,
         graph: &'a crate::graph::EntityGraph,
-    ) -> Result<Vec<&'a Entity>, QueryError> {
+    ) -> Result<QueryResult<'a>, QueryError> {
         // Start by selecting entities based on the "from" clause
         let mut entities = match &self.from {
             EntitySelector::Type(entity_type) => {
@@ -95,7 +199,14 @@ impl Query {
             };
         }
 
-        Ok(entities)
+        // Apply terminal aggregation if present
+        match &self.aggregation {
+            None => Ok(QueryResult::Entities(entities)),
+            Some(aggregation) => {
+                let result = aggregation.execute(&entities)?;
+                Ok(QueryResult::Aggregation(result))
+            }
+        }
     }
 }
 
@@ -133,6 +244,14 @@ mod tests {
     use super::*;
     use crate::{Entity, EntityId, EntityType, FieldId, FieldValue};
 
+    /// Helper to extract entities from a QueryResult, panicking if it's an aggregation.
+    fn unwrap_entities<'a>(result: QueryResult<'a>) -> Vec<&'a Entity> {
+        match result {
+            QueryResult::Entities(entities) => entities,
+            QueryResult::Aggregation(_) => panic!("Expected entities, got aggregation"),
+        }
+    }
+
     fn create_test_graph() -> crate::graph::EntityGraph {
         let mut graph = crate::graph::EntityGraph::new();
 
@@ -164,7 +283,7 @@ mod tests {
     fn test_query_from_type() {
         let graph = create_test_graph();
         let query = Query::new(EntitySelector::Type(EntityType::new("person")));
-        let results = query.execute(&graph).unwrap();
+        let results = unwrap_entities(query.execute(&graph).unwrap());
 
         assert_eq!(results.len(), 2);
         assert!(results.iter().any(|e| e.id == EntityId::new("person1")));
@@ -175,7 +294,7 @@ mod tests {
     fn test_query_from_all() {
         let graph = create_test_graph();
         let query = Query::new(EntitySelector::All);
-        let results = query.execute(&graph).unwrap();
+        let results = unwrap_entities(query.execute(&graph).unwrap());
 
         assert_eq!(results.len(), 4);
     }
@@ -193,7 +312,7 @@ mod tests {
             )),
         );
 
-        let results = query.execute(&graph).unwrap();
+        let results = unwrap_entities(query.execute(&graph).unwrap());
         assert_eq!(results.len(), 1);
         assert_eq!(results[0].id, EntityId::new("task2"));
     }
@@ -203,7 +322,7 @@ mod tests {
         let graph = create_test_graph();
         let query = Query::new(EntitySelector::All).with_operation(QueryOperation::Limit(2));
 
-        let results = query.execute(&graph).unwrap();
+        let results = unwrap_entities(query.execute(&graph).unwrap());
         assert_eq!(results.len(), 2);
     }
 
@@ -222,7 +341,7 @@ mod tests {
             ))
             .with_operation(QueryOperation::Limit(1));
 
-        let results = query.execute(&graph).unwrap();
+        let results = unwrap_entities(query.execute(&graph).unwrap());
         assert_eq!(results.len(), 1);
     }
 
@@ -245,5 +364,49 @@ mod tests {
             assert!(available.contains(&"task".to_string()));
             assert!(available.contains(&"person".to_string()));
         }
+    }
+
+    // --- Aggregation integration tests ---
+
+    fn unwrap_aggregation(result: QueryResult) -> AggregationResult {
+        match result {
+            QueryResult::Aggregation(agg) => agg,
+            QueryResult::Entities(_) => panic!("Expected aggregation, got entities"),
+        }
+    }
+
+    #[test]
+    fn test_query_with_count_aggregation() {
+        let graph = create_test_graph();
+        let query = Query::new(EntitySelector::Type(EntityType::new("person")))
+            .with_aggregation(Aggregation::Count(None));
+        let result = unwrap_aggregation(query.execute(&graph).unwrap());
+        assert_eq!(result, AggregationResult::Count(2));
+    }
+
+    #[test]
+    fn test_query_with_aggregation_after_where() {
+        let graph = create_test_graph();
+        let query = Query::new(EntitySelector::Type(EntityType::new("task")))
+            .with_operation(QueryOperation::Where(
+                super::super::CompoundFilterCondition::single(
+                    super::super::FilterCondition::new(
+                        super::super::FieldRef::Regular(FieldId::new("is_completed")),
+                        super::super::FilterOperator::Equal,
+                        super::super::FilterValue::Boolean(false),
+                    ),
+                ),
+            ))
+            .with_aggregation(Aggregation::Count(None));
+        let result = unwrap_aggregation(query.execute(&graph).unwrap());
+        assert_eq!(result, AggregationResult::Count(1));
+    }
+
+    #[test]
+    fn test_query_without_aggregation_returns_entities() {
+        let graph = create_test_graph();
+        let query = Query::new(EntitySelector::Type(EntityType::new("person")));
+        let result = query.execute(&graph).unwrap();
+        assert!(matches!(result, QueryResult::Entities(_)));
     }
 }

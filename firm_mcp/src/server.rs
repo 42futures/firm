@@ -133,8 +133,14 @@ impl FirmMcpServer {
     }
 
     #[tool(
-        description = "Query entities using the Firm query language. Returns full details for all matching entities. \
-        Examples: 'from person', 'from task | where is_completed == false', 'from person | where name contains \"John\" | limit 5'. \
+        description = "Query entities using the Firm query language. Returns full details for all matching entities, \
+        or an aggregated result when an aggregation clause is used. \
+        Examples: 'from person', 'from task | where is_completed == false', \
+        'from task | where is_completed == false and priority > 5', \
+        'from invoice | where status == \"draft\" or status == \"sent\"', \
+        'from person | where name contains \"John\" | limit 5', \
+        'from task | count', 'from invoice | where status == \"sent\" | sum amount', \
+        'from task | where is_completed == false | select @id, name, due_date'. \
         Use 'list' for a simple ID overview, or 'get' for a single entity's details."
     )]
     async fn query(
@@ -363,7 +369,7 @@ impl FirmMcpServer {
     #[tool(
         description = "Get reference documentation for the Firm DSL syntax and query language. \
         Use 'topic' parameter: 'dsl' for DSL syntax (entities, schemas, field types), \
-        'query' for query language (from, where, related, order, limit), \
+        'query' for query language (from, where, related, order, limit, aggregations), \
         or 'all' for both (default). \
         Call this before writing or modifying .firm files to understand the correct syntax."
     )]

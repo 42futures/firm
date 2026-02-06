@@ -1,8 +1,8 @@
 //! Tests for query language parsing
 
 use firm_lang::parser::query::{
-    ParsedCombinator, ParsedDirection, ParsedEntitySelector, ParsedField, ParsedOperation,
-    ParsedQueryValue, parse_query,
+    ParsedAggregation, ParsedCombinator, ParsedDirection, ParsedEntitySelector, ParsedField,
+    ParsedOperation, ParsedQueryValue, parse_query,
 };
 
 #[test]
@@ -212,4 +212,98 @@ fn test_parse_compound_condition_mixed_error() {
     let query_str = "from task | where a == 1 or b == 2 and c == 3";
     let result = parse_query(query_str);
     assert!(result.is_err());
+}
+
+// --- Aggregation parsing tests ---
+
+#[test]
+fn test_parse_count_no_field() {
+    let query = parse_query("from task | count").unwrap();
+    assert_eq!(query.aggregation, Some(ParsedAggregation::Count(None)));
+}
+
+#[test]
+fn test_parse_count_with_field() {
+    let query = parse_query("from task | count assignee").unwrap();
+    assert_eq!(
+        query.aggregation,
+        Some(ParsedAggregation::Count(Some(ParsedField::Regular(
+            "assignee".to_string()
+        ))))
+    );
+}
+
+#[test]
+fn test_parse_sum() {
+    let query = parse_query("from invoice | sum amount").unwrap();
+    assert_eq!(
+        query.aggregation,
+        Some(ParsedAggregation::Sum(ParsedField::Regular(
+            "amount".to_string()
+        )))
+    );
+}
+
+#[test]
+fn test_parse_average() {
+    let query = parse_query("from employee | average age").unwrap();
+    assert_eq!(
+        query.aggregation,
+        Some(ParsedAggregation::Average(ParsedField::Regular(
+            "age".to_string()
+        )))
+    );
+}
+
+#[test]
+fn test_parse_median() {
+    let query = parse_query("from employee | median salary").unwrap();
+    assert_eq!(
+        query.aggregation,
+        Some(ParsedAggregation::Median(ParsedField::Regular(
+            "salary".to_string()
+        )))
+    );
+}
+
+#[test]
+fn test_parse_select_single_field() {
+    let query = parse_query("from project | select name").unwrap();
+    assert_eq!(
+        query.aggregation,
+        Some(ParsedAggregation::Select(vec![ParsedField::Regular(
+            "name".to_string()
+        )]))
+    );
+}
+
+#[test]
+fn test_parse_select_multiple_fields() {
+    let query = parse_query("from task | select @id, name, priority").unwrap();
+    assert_eq!(
+        query.aggregation,
+        Some(ParsedAggregation::Select(vec![
+            ParsedField::Metadata("id".to_string()),
+            ParsedField::Regular("name".to_string()),
+            ParsedField::Regular("priority".to_string()),
+        ]))
+    );
+}
+
+#[test]
+fn test_parse_aggregation_after_operations() {
+    let query = parse_query("from task | where is_completed == false | count").unwrap();
+    assert_eq!(query.operations.len(), 1);
+    assert!(matches!(
+        query.operations[0],
+        ParsedOperation::Where(_)
+    ));
+    assert_eq!(query.aggregation, Some(ParsedAggregation::Count(None)));
+}
+
+#[test]
+fn test_parse_query_without_aggregation_unchanged() {
+    let query = parse_query("from task | limit 5").unwrap();
+    assert_eq!(query.aggregation, None);
+    assert_eq!(query.operations.len(), 1);
 }

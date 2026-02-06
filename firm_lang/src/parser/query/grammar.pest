@@ -1,7 +1,7 @@
 WHITESPACE = _{ " " | "\t" | "\n" }
 
-// Top-level query: "from <type> | where ... | order ... | limit ..."
-query = { SOI ~ from_clause ~ ("|" ~ operation)* ~ EOI }
+// Top-level query: "from <type> | where ... | order ... | limit ... | count"
+query = { SOI ~ from_clause ~ ("|" ~ operation)* ~ ("|" ~ aggregation)? ~ EOI }
 
 // FROM clause: "from task" or "from *"
 from_clause = { "from" ~ entity_selector }
@@ -105,3 +105,22 @@ enum_value = { "enum" ~ string }
 list = { "[" ~ value ~ ("," ~ value)* ~ "]" }
 
 identifier = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
+
+// Aggregation clauses (terminal — must be the last clause in a query)
+aggregation = {
+    select_clause
+  | count_clause
+  | sum_clause
+  | average_clause
+  | median_clause
+}
+
+select_clause = { "select" ~ select_field ~ ("," ~ select_field)* }
+select_field  = { metadata_field | field_name }
+
+count_clause   = { "count" ~ (metadata_field | field_name)? }
+sum_clause     = { "sum" ~ aggregation_field }
+average_clause = { "average" ~ aggregation_field }
+median_clause  = { "median" ~ aggregation_field }
+
+aggregation_field = { metadata_field | field_name }
