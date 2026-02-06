@@ -104,6 +104,20 @@ mod tests {
     }
 
     #[test]
+    fn test_sum_mixed_integer_and_float() {
+        let entities = vec![
+            Entity::new(EntityId::new("a"), EntityType::new("item"))
+                .with_field(FieldId::new("val"), FieldValue::Integer(10)),
+            Entity::new(EntityId::new("b"), EntityType::new("item"))
+                .with_field(FieldId::new("val"), FieldValue::Float(2.5)),
+        ];
+        let refs: Vec<&Entity> = entities.iter().collect();
+        let field = FieldRef::Regular(FieldId::new("val"));
+        let result = execute(&field, &refs).unwrap();
+        assert_eq!(result, AggregationResult::Sum(AggregateValue::Float(12.5)));
+    }
+
+    #[test]
     fn test_sum_currency_same_code() {
         let entities = vec![
             Entity::new(EntityId::new("a"), EntityType::new("invoice"))

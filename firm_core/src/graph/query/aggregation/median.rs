@@ -54,6 +54,22 @@ mod tests {
     }
 
     #[test]
+    fn test_median_mixed_integer_and_float() {
+        let entities = vec![
+            Entity::new(EntityId::new("a"), EntityType::new("item"))
+                .with_field(FieldId::new("val"), FieldValue::Integer(10)),
+            Entity::new(EntityId::new("b"), EntityType::new("item"))
+                .with_field(FieldId::new("val"), FieldValue::Float(20.0)),
+            Entity::new(EntityId::new("c"), EntityType::new("item"))
+                .with_field(FieldId::new("val"), FieldValue::Integer(30)),
+        ];
+        let refs: Vec<&Entity> = entities.iter().collect();
+        let field = FieldRef::Regular(FieldId::new("val"));
+        let result = execute(&field, &refs).unwrap();
+        assert_eq!(result, AggregationResult::Median(20.0));
+    }
+
+    #[test]
     fn test_median_even_count() {
         let entities = vec![
             Entity::new(EntityId::new("a"), EntityType::new("item"))
