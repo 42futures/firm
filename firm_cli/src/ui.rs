@@ -78,8 +78,7 @@ pub fn error_with_details(main_msg: &str, details: &str) {
 }
 
 /// Selects the output format used by the CLI.
-#[derive(Clone, Debug, ValueEnum, PartialEq)]
-#[derive(Default)]
+#[derive(Clone, Debug, ValueEnum, PartialEq, Default)]
 pub enum OutputFormat {
     #[default]
     Pretty,
@@ -94,7 +93,6 @@ impl fmt::Display for OutputFormat {
         }
     }
 }
-
 
 /// Outputs a single entity in pretty format.
 pub fn pretty_output_entity_single(entity: &Entity) {
@@ -118,22 +116,22 @@ pub fn pretty_output_schema_single(schema: &EntitySchema) {
     println!("\n{}", schema);
 }
 
-/// Outputs a list of entity schemas in pretty format.
-pub fn pretty_output_schema_list(schemas: &Vec<&EntitySchema>) {
-    for (i, schema) in schemas.iter().enumerate() {
-        pretty_output_schema_single(schema);
-
-        // Add a separator after each entity, except for the last one.
-        if i < schemas.len() - 1 {
-            println!("---------------------------------------");
-        }
-    }
-}
-
 /// Outputs a serde-serializable object in json format.
 pub fn json_output<T: serde::Serialize>(data: &T) {
     if let Ok(json) = serde_json::to_string_pretty(data) {
         println!("{}", json);
+    }
+}
+
+/// Outputs a list of strings (one per line for pretty, array for JSON).
+pub fn list_output(items: &[&str], format: OutputFormat) {
+    match format {
+        OutputFormat::Pretty => {
+            for item in items {
+                println!("{}", item);
+            }
+        }
+        OutputFormat::Json => json_output(&items),
     }
 }
 
