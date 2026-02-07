@@ -409,7 +409,7 @@ impl FirmMcpServer {
     /// Rebuild the workspace from disk.
     ///
     /// Called after write operations to ensure the in-memory state is fresh.
-    async fn rebuild(&self) -> Result<(), WorkspaceError> {
+    pub async fn rebuild(&self) -> Result<(), WorkspaceError> {
         debug!("Rebuilding workspace");
         let mut state = self.state.lock().await;
 
