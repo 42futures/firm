@@ -380,3 +380,20 @@ pub fn success_result(result: AddEntityResult) -> CallToolResult {
 
     CallToolResult::success(vec![Content::text(msg), Content::text(result.dsl)])
 }
+
+pub fn warning_result(result: AddEntityResult, error: &impl std::fmt::Display) -> CallToolResult {
+    let msg = if result.created_new_file {
+        format!("Created new file '{}' and added entity.", result.path)
+    } else {
+        format!("Added entity to existing file '{}'.", result.path)
+    };
+
+    CallToolResult::success(vec![
+        Content::text(msg),
+        Content::text(result.dsl),
+        Content::text(format!(
+            "Warning: workspace rebuild failed after adding entity: {}",
+            error
+        )),
+    ])
+}

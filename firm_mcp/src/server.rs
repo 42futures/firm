@@ -177,12 +177,21 @@ impl FirmMcpServer {
         Parameters(params): Parameters<AddEntityParams>,
     ) -> Result<CallToolResult, McpError> {
         debug!("Tool: add_entity, type={}, id={}", params.r#type, params.id);
-        let state = self.state.lock().await;
-        Ok(
+        let result = {
+            let state = self.state.lock().await;
             tools::add_entity::execute(&self.workspace_path, &state.build, &state.graph, &params)
-                .map(tools::add_entity::success_result)
-                .unwrap_or_else(|e| tools::build::error_result(&e)),
-        )
+        };
+
+        match result {
+            Ok(add_result) => {
+                // Rebuild workspace so in-memory state reflects the new entity
+                match self.rebuild().await {
+                    Ok(_) => Ok(tools::add_entity::success_result(add_result)),
+                    Err(e) => Ok(tools::add_entity::warning_result(add_result, &e)),
+                }
+            }
+            Err(e) => Ok(tools::build::error_result(&e)),
+        }
     }
 
     #[tool(description = "Find the source file path for an entity or schema. \
