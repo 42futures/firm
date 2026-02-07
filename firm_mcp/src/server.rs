@@ -105,6 +105,16 @@ impl FirmMcpServer {
         })
     }
 
+    /// Returns the workspace path this server operates on.
+    pub fn workspace_path(&self) -> &PathBuf {
+        &self.workspace_path
+    }
+
+    /// Returns a reference to the server state (workspace, build, graph).
+    pub fn state(&self) -> &Arc<Mutex<ServerState>> {
+        &self.state
+    }
+
     #[tool(
         description = "List all entity IDs of a given type, or all schema names if type is 'schema'. \
         Returns only IDs/names for discovery purposes. Use 'get' to retrieve full details for a specific entity or schema, \
