@@ -179,9 +179,12 @@ impl FirmMcpServer {
     }
 
     #[tool(description = "Add a new entity to the workspace. \
-        Provide the entity type, ID, and a map of field values (JSON types). \
-        The tool validates the entity against the schema, generates the DSL, and writes it to a file. \
-        Use this to safely create new entities without writing raw DSL.")]
+        Provide the entity type, ID, and a map of field values. \
+        Field value formats: strings as JSON strings, numbers as JSON numbers, booleans as JSON booleans, \
+        references as \"type.id\" strings, currency as \"100 USD\" strings, \
+        datetime as ISO 8601 strings (e.g. \"2025-01-15T17:00:00+03:00\" — not DSL format), \
+        lists as JSON arrays (requires list_item_types). \
+        The tool validates against the schema, generates DSL, and writes to a file.")]
     async fn add_entity(
         &self,
         Parameters(params): Parameters<AddEntityParams>,

@@ -340,12 +340,17 @@ fn json_to_field_value(
         }
         FieldType::DateTime => match value {
             serde_json::Value::String(s) => {
-                let dt = chrono::DateTime::parse_from_rfc3339(s)
-                    .map_err(|e| format!("Invalid datetime format: {}", e))?;
-                Ok(FieldValue::DateTime(dt))
+                chrono::DateTime::parse_from_rfc3339(s)
+                    .map(FieldValue::DateTime)
+                    .map_err(|_| format!(
+                        "Invalid datetime '{}'. Use ISO 8601 / RFC 3339 format: \
+                         \"2025-01-15T17:00:00+03:00\" or \"2025-01-15T00:00:00Z\". \
+                         Note: this is different from the DSL format (2025-01-15 at 17:00 UTC+3).",
+                        s
+                    ))
             }
             _ => Err(format!(
-                "Expected string (ISO 8601) for field type DateTime, got {:?}",
+                "Expected ISO 8601 string for DateTime, got {:?}",
                 value
             )),
         },
