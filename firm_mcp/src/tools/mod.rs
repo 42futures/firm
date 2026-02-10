@@ -19,6 +19,7 @@ pub mod query;
 pub mod read_source;
 pub mod related;
 pub mod replace_source;
+pub mod source_tree;
 pub mod write_source;
 
 // Re-export param structs for convenience
@@ -32,4 +33,5 @@ pub use query::QueryParams;
 pub use read_source::ReadSourceParams;
 pub use related::RelatedParams;
 pub use replace_source::ReplaceSourceParams;
+pub use source_tree::SourceTreeParams;
 pub use write_source::WriteSourceParams;

@@ -21,7 +21,7 @@ use crate::resources;
 use crate::tools::{
     self, AddEntityParams, BuildParams, DslReferenceParams, FindSourceParams, GetParams,
     ListParams, QueryParams, ReadSourceParams, RelatedParams, ReplaceSourceParams,
-    WriteSourceParams,
+    SourceTreeParams, WriteSourceParams,
 };
 
 /// Error type for MCP server operations.
@@ -398,6 +398,22 @@ impl FirmMcpServer {
     ) -> Result<CallToolResult, McpError> {
         debug!("Tool: dsl_reference, topic={}", params.topic);
         Ok(tools::dsl_reference::execute(&params))
+    }
+
+    #[tool(
+        description = "Show the file tree of all .firm source files in the workspace. \
+        Use this to understand the file layout before reading, writing, or organizing source files."
+    )]
+    async fn source_tree(
+        &self,
+        #[allow(unused_variables)] Parameters(params): Parameters<SourceTreeParams>,
+    ) -> Result<CallToolResult, McpError> {
+        debug!("Tool: source_tree");
+        let state = self.state.lock().await;
+        Ok(tools::source_tree::execute(
+            &state.workspace,
+            &self.workspace_path,
+        ))
     }
 
     /// Serve MCP over stdio (stdin/stdout).
