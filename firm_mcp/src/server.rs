@@ -19,9 +19,9 @@ use firm_lang::workspace::{Workspace, WorkspaceBuild, WorkspaceError};
 
 use crate::resources;
 use crate::tools::{
-    self, AddEntityParams, BuildParams, DslReferenceParams, FindSourceParams, GetParams,
-    ListParams, QueryParams, ReadSourceParams, RelatedParams, ReplaceSourceParams,
-    SourceTreeParams, WriteSourceParams,
+    self, AddEntityParams, BuildParams, DeleteSourceParams, DslReferenceParams,
+    FindSourceParams, GetParams, ListParams, QueryParams, ReadSourceParams, RelatedParams,
+    ReplaceSourceParams, SourceTreeParams, WriteSourceParams,
 };
 
 /// Error type for MCP server operations.
@@ -284,6 +284,47 @@ impl FirmMcpServer {
                         write_result.original_content,
                     );
                     Ok(tools::write_source::validation_error_result(
+                        &e.to_string(),
+                        rollback_success,
+                    ))
+                }
+            }
+        }
+    }
+
+    #[tool(description = "Delete a .firm source file from the workspace. \
+        If deletion breaks the workspace (e.g. other files reference entities in the deleted file), \
+        the file is restored unless 'force' is true. \
+        Use 'find_source' to locate the file path first.")]
+    async fn delete_source(
+        &self,
+        Parameters(params): Parameters<DeleteSourceParams>,
+    ) -> Result<CallToolResult, McpError> {
+        debug!(
+            "Tool: delete_source, path={}, force={}",
+            params.path, params.force
+        );
+
+        let delete_result = match tools::delete_source::execute(&self.workspace_path, &params) {
+            Ok(result) => result,
+            Err(e) => return Ok(tools::build::error_result(&e)),
+        };
+
+        match self.rebuild().await {
+            Ok(_) => Ok(tools::delete_source::success_result(&params.path)),
+            Err(e) => {
+                if params.force {
+                    Ok(tools::delete_source::force_success_result(
+                        &params.path,
+                        &e.to_string(),
+                    ))
+                } else {
+                    let rollback_success = tools::delete_source::rollback(
+                        &self.workspace_path,
+                        &params.path,
+                        &delete_result.original_content,
+                    );
+                    Ok(tools::delete_source::validation_error_result(
                         &e.to_string(),
                         rollback_success,
                     ))

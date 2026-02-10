@@ -10,6 +10,7 @@
 
 pub mod add_entity;
 pub mod build;
+pub mod delete_source;
 pub mod dsl_reference;
 mod dsl_reference_content;
 pub mod find_source;
@@ -25,6 +26,7 @@ pub mod write_source;
 // Re-export param structs for convenience
 pub use add_entity::AddEntityParams;
 pub use build::BuildParams;
+pub use delete_source::DeleteSourceParams;
 pub use dsl_reference::DslReferenceParams;
 pub use find_source::FindSourceParams;
 pub use get::GetParams;
