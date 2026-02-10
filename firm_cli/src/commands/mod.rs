@@ -1,5 +1,6 @@
 mod add;
 mod build;
+mod export;
 mod field_prompt;
 mod get;
 mod init;
@@ -11,6 +12,7 @@ mod source;
 
 pub use add::add_entity;
 pub use build::{build_and_save_graph, build_workspace, load_workspace_files};
+pub use export::{ExportFormat, export_graph};
 pub use get::get_item;
 pub use init::init_workspace;
 pub use list::list_items;

@@ -41,6 +41,7 @@ fn main() -> ExitCode {
             FirmCliCommand::Build
                 | FirmCliCommand::Init
                 | FirmCliCommand::Source { .. }
+                | FirmCliCommand::Export { .. }
                 | FirmCliCommand::Mcp
         );
 
@@ -97,6 +98,9 @@ fn main() -> ExitCode {
             target_type,
             target_id,
         } => commands::find_item_source(&workspace_path, target_type, target_id, cli.format),
+        FirmCliCommand::Export { export_format } => {
+            commands::export_graph(&workspace_path, export_format)
+        }
         FirmCliCommand::Mcp => commands::mcp::serve(&workspace_path),
     };
 

@@ -90,6 +90,12 @@ pub enum FirmCliCommand {
         /// Entity ID (e.g. john_doe) or schema name (e.g. project)
         target_id: String,
     },
+    /// Export the entity graph (GEXF for Gephi, DOT for Graphviz).
+    Export {
+        /// Export format
+        #[arg(short = 'F', long, default_value_t, value_enum)]
+        export_format: super::commands::ExportFormat,
+    },
     /// Start the MCP server (stdio transport).
     Mcp,
 }

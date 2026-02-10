@@ -7,6 +7,7 @@ use serde::ser::SerializeMap;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 mod access;
+mod export;
 mod graph_errors;
 mod query;
 
