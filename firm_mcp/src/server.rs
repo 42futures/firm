@@ -21,7 +21,7 @@ use crate::resources;
 use crate::tools::{
     self, AddEntityParams, BuildParams, DeleteSourceParams, DslReferenceParams,
     FindSourceParams, GetParams, ListParams, QueryParams, ReadSourceParams, RelatedParams,
-    ReplaceSourceParams, SourceTreeParams, WriteSourceParams,
+    ReplaceSourceParams, SearchSourceParams, SourceTreeParams, WriteSourceParams,
 };
 
 /// Error type for MCP server operations.
@@ -454,6 +454,28 @@ impl FirmMcpServer {
         Ok(tools::source_tree::execute(
             &state.workspace,
             &self.workspace_path,
+        ))
+    }
+
+    #[tool(
+        description = "Search for a text string across all .firm source files. \
+        Returns matching lines with file paths and line numbers. \
+        Case-insensitive by default. \
+        Use this to find where entities, fields, or values are defined or referenced."
+    )]
+    async fn search_source(
+        &self,
+        Parameters(params): Parameters<SearchSourceParams>,
+    ) -> Result<CallToolResult, McpError> {
+        debug!(
+            "Tool: search_source, query={}, case_sensitive={}",
+            params.query, params.case_sensitive
+        );
+        let state = self.state.lock().await;
+        Ok(tools::search_source::execute(
+            &state.workspace,
+            &self.workspace_path,
+            &params,
         ))
     }
 

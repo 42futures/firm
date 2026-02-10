@@ -20,6 +20,7 @@ pub mod query;
 pub mod read_source;
 pub mod related;
 pub mod replace_source;
+pub mod search_source;
 pub mod source_tree;
 pub mod write_source;
 
@@ -35,5 +36,6 @@ pub use query::QueryParams;
 pub use read_source::ReadSourceParams;
 pub use related::RelatedParams;
 pub use replace_source::ReplaceSourceParams;
+pub use search_source::SearchSourceParams;
 pub use source_tree::SourceTreeParams;
 pub use write_source::WriteSourceParams;
