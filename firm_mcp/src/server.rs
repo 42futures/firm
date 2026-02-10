@@ -19,9 +19,9 @@ use firm_lang::workspace::{Workspace, WorkspaceBuild, WorkspaceError};
 
 use crate::resources;
 use crate::tools::{
-    self, AddEntityParams, BuildParams, DslReferenceParams, FindSourceParams, GetParams,
-    ListParams, QueryParams, ReadSourceParams, RelatedParams, ReplaceSourceParams,
-    WriteSourceParams,
+    self, AddEntityParams, BuildParams, DeleteSourceParams, DslReferenceParams,
+    FindSourceParams, GetParams, ListParams, QueryParams, ReadSourceParams, RelatedParams,
+    ReplaceSourceParams, SearchSourceParams, SourceTreeParams, WriteSourceParams,
 };
 
 /// Error type for MCP server operations.
@@ -179,9 +179,12 @@ impl FirmMcpServer {
     }
 
     #[tool(description = "Add a new entity to the workspace. \
-        Provide the entity type, ID, and a map of field values (JSON types). \
-        The tool validates the entity against the schema, generates the DSL, and writes it to a file. \
-        Use this to safely create new entities without writing raw DSL.")]
+        Provide the entity type, ID, and a map of field values. \
+        Field value formats: strings as JSON strings, numbers as JSON numbers, booleans as JSON booleans, \
+        references as \"type.id\" strings, currency as \"100 USD\" strings, \
+        datetime as ISO 8601 strings (e.g. \"2025-01-15T17:00:00+03:00\" — not DSL format), \
+        lists as JSON arrays (requires list_item_types). \
+        The tool validates against the schema, generates DSL, and writes to a file.")]
     async fn add_entity(
         &self,
         Parameters(params): Parameters<AddEntityParams>,
@@ -284,6 +287,47 @@ impl FirmMcpServer {
                         write_result.original_content,
                     );
                     Ok(tools::write_source::validation_error_result(
+                        &e.to_string(),
+                        rollback_success,
+                    ))
+                }
+            }
+        }
+    }
+
+    #[tool(description = "Delete a .firm source file from the workspace. \
+        If deletion breaks the workspace (e.g. other files reference entities in the deleted file), \
+        the file is restored unless 'force' is true. \
+        Use 'find_source' to locate the file path first.")]
+    async fn delete_source(
+        &self,
+        Parameters(params): Parameters<DeleteSourceParams>,
+    ) -> Result<CallToolResult, McpError> {
+        debug!(
+            "Tool: delete_source, path={}, force={}",
+            params.path, params.force
+        );
+
+        let delete_result = match tools::delete_source::execute(&self.workspace_path, &params) {
+            Ok(result) => result,
+            Err(e) => return Ok(tools::build::error_result(&e)),
+        };
+
+        match self.rebuild().await {
+            Ok(_) => Ok(tools::delete_source::success_result(&params.path)),
+            Err(e) => {
+                if params.force {
+                    Ok(tools::delete_source::force_success_result(
+                        &params.path,
+                        &e.to_string(),
+                    ))
+                } else {
+                    let rollback_success = tools::delete_source::rollback(
+                        &self.workspace_path,
+                        &params.path,
+                        &delete_result.original_content,
+                    );
+                    Ok(tools::delete_source::validation_error_result(
                         &e.to_string(),
                         rollback_success,
                     ))
@@ -398,6 +442,44 @@ impl FirmMcpServer {
     ) -> Result<CallToolResult, McpError> {
         debug!("Tool: dsl_reference, topic={}", params.topic);
         Ok(tools::dsl_reference::execute(&params))
+    }
+
+    #[tool(
+        description = "Show the file tree of all .firm source files in the workspace. \
+        Use this to understand the file layout before reading, writing, or organizing source files."
+    )]
+    async fn source_tree(
+        &self,
+        #[allow(unused_variables)] Parameters(params): Parameters<SourceTreeParams>,
+    ) -> Result<CallToolResult, McpError> {
+        debug!("Tool: source_tree");
+        let state = self.state.lock().await;
+        Ok(tools::source_tree::execute(
+            &state.workspace,
+            &self.workspace_path,
+        ))
+    }
+
+    #[tool(
+        description = "Search for a text string across all .firm source files. \
+        Returns matching lines with file paths and line numbers. \
+        Case-insensitive by default. \
+        Use this to find where entities, fields, or values are defined or referenced."
+    )]
+    async fn search_source(
+        &self,
+        Parameters(params): Parameters<SearchSourceParams>,
+    ) -> Result<CallToolResult, McpError> {
+        debug!(
+            "Tool: search_source, query={}, case_sensitive={}",
+            params.query, params.case_sensitive
+        );
+        let state = self.state.lock().await;
+        Ok(tools::search_source::execute(
+            &state.workspace,
+            &self.workspace_path,
+            &params,
+        ))
     }
 
     /// Serve MCP over stdio (stdin/stdout).
