@@ -69,6 +69,8 @@ Most MCP-compatible clients (like Claude Desktop or other AI assistants) can be 
 
 The MCP server is built for local use, but you can deploy it to your own backend if you need remote access. How you handle authentication, security, and hosting is up to you.
 
+For an example of how you could go about it, see the [Firm Remote MCP repository](https://github.com/42futures/firm-remote-mcp).
+
 ## Programmatic access
 
 For more complex automation, you can use Firm as a Rust library. See the [Rust library guide](../library/getting-started.md) for details.
