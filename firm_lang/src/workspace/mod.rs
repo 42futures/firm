@@ -58,6 +58,11 @@ impl Workspace {
         None
     }
 
+    /// Returns all parsed source files in the workspace.
+    pub fn parsed_sources(&self) -> Vec<&ParsedSource> {
+        self.files.values().map(|f| &f.parsed).collect()
+    }
+
     /// Finds the source file path for a schema by its name.
     ///
     /// This performs a linear search through all parsed files in the workspace,

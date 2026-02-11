@@ -1,9 +1,11 @@
 mod add;
 mod build;
+pub mod check;
 mod field_prompt;
 mod get;
 mod init;
 mod list;
+pub mod lsp;
 pub mod mcp;
 mod query;
 mod related;

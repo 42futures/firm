@@ -90,6 +90,13 @@ pub enum FirmCliCommand {
         /// Entity ID (e.g. john_doe) or schema name (e.g. project)
         target_id: String,
     },
+    /// Check workspace files for errors. Optionally check a single file.
+    Check {
+        /// Path to a specific .firm file to check (checks entire workspace if omitted)
+        file: Option<PathBuf>,
+    },
+    /// Start the language server (stdio transport).
+    Lsp,
     /// Start the MCP server (stdio transport).
     Mcp,
 }

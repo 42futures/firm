@@ -41,6 +41,8 @@ fn main() -> ExitCode {
             FirmCliCommand::Build
                 | FirmCliCommand::Init
                 | FirmCliCommand::Source { .. }
+                | FirmCliCommand::Check { .. }
+                | FirmCliCommand::Lsp
                 | FirmCliCommand::Mcp
         );
 
@@ -97,6 +99,8 @@ fn main() -> ExitCode {
             target_type,
             target_id,
         } => commands::find_item_source(&workspace_path, target_type, target_id, cli.format),
+        FirmCliCommand::Check { file } => commands::check::check(&workspace_path, file),
+        FirmCliCommand::Lsp => commands::lsp::serve(&workspace_path),
         FirmCliCommand::Mcp => commands::mcp::serve(&workspace_path),
     };
 
