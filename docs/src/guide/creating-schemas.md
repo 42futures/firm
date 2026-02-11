@@ -72,7 +72,7 @@ See the [Fields reference](../concepts/fields.md) for more details on how each f
 
 For enum fields in schemas, you must provide a set of allowed values. The enum type is intended to be a static set of options that constrains the field to only those specific values.
 
-Here's an example of a schema withwith an enum field:
+Here's an example of a schema with an enum field:
 
 ```firm
 schema project {

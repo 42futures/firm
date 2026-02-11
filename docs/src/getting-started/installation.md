@@ -35,5 +35,3 @@ firm --version
 ```
 
 You should see the version number printed to your terminal.
-
-

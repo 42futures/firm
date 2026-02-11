@@ -37,7 +37,7 @@ Adding new entity
 Writing generated DSL to file my_workspace/generated/organization.firm
 ```
 
-You can also use `firm add` noninteractively by providing its type, ID and fields:
+You can also use `firm add` non-interactively by providing its type, ID and fields:
 
 ```bash
 $ firm add --type organization --id megacorp --field name "Megacorp Ltd."
@@ -66,5 +66,3 @@ Once you have a few entities, you can search and filter them using Firm's query 
 ```bash
 $ firm query 'from organization | where name contains "Mega"'
 ```
-
-
