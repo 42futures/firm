@@ -4,7 +4,13 @@ Complete reference for the Firm command-line interface.
 
 ## Global options
 
-These options apply to all commands:
+These options apply to all commands.
+
+Each global option can be set via a command-line flag, an environment variable, or left to its default. They are evaluated in the following order (highest priority first):
+
+1. **Command-line flag** — always takes precedence
+2. **Environment variable** — used when no flag is provided
+3. **Default value** — used when neither flag nor environment variable is set
 
 ### --workspace (-w)
 
@@ -17,6 +23,8 @@ firm -w /absolute/path/to/workspace get person john_doe
 
 Default: Current working directory
 
+Environment variable: `FIRM_WORKSPACE`
+
 ### --cached (-c)
 
 Use the cached entity graph instead of rebuilding:
@@ -28,6 +36,8 @@ firm -c query 'from task | where is_completed == false'
 
 Default: false (graph is rebuilt before each command)
 
+Environment variable: `FIRM_CACHED`
+
 ### --verbose (-v)
 
 Enable verbose logging output:
@@ -36,6 +46,8 @@ Enable verbose logging output:
 firm --verbose build
 firm -v list task
 ```
+
+Environment variable: `FIRM_VERBOSE`
 
 ### --format (-f)
 
@@ -49,6 +61,8 @@ firm -f pretty get person john_doe
 Options:
 - `pretty` (default) - Human-readable formatted output
 - `json` - JSON output for programmatic use
+
+Environment variable: `FIRM_FORMAT`
 
 ## Commands
 
