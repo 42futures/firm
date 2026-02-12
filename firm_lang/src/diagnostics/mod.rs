@@ -4,8 +4,10 @@
 //! diagnostics (references, schemas) will be added later.
 
 mod syntax;
+mod workspace;
 
 pub use syntax::collect_syntax_errors;
+pub use workspace::collect_workspace_diagnostics;
 
 use std::path::{Path, PathBuf};
 

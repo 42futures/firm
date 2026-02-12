@@ -48,6 +48,12 @@ fn check_workspace(workspace_path: &Path) -> Result<(), CliError> {
         all_diagnostics.extend(diagnostics::collect_syntax_errors(parsed));
     }
 
+    // Only run workspace-level diagnostics if there are no syntax errors,
+    // since syntax errors may cause incomplete parse trees.
+    if all_diagnostics.is_empty() {
+        all_diagnostics.extend(diagnostics::collect_workspace_diagnostics(&workspace));
+    }
+
     report_diagnostics(&all_diagnostics)
 }
 

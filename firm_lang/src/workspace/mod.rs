@@ -58,6 +58,13 @@ impl Workspace {
         None
     }
 
+    /// Adds a pre-parsed source file to the workspace.
+    /// Useful for testing or when source is parsed externally.
+    pub fn add_parsed_source(&mut self, parsed: ParsedSource) {
+        let path = parsed.path.clone();
+        self.files.insert(path, WorkspaceFile::new(parsed));
+    }
+
     /// Returns all parsed source files in the workspace.
     pub fn parsed_sources(&self) -> Vec<&ParsedSource> {
         self.files.values().map(|f| &f.parsed).collect()

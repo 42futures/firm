@@ -9,6 +9,7 @@ use tower_lsp_server::{Client, LanguageServer, LspService, Server};
 
 use firm_lang::diagnostics::{self, Diagnostic, DiagnosticSeverity, SourceSpan};
 use firm_lang::parser::dsl::parse_source;
+use firm_lang::workspace::Workspace;
 
 /// The Firm language server.
 pub struct FirmLspServer {
@@ -56,6 +57,56 @@ impl FirmLspServer {
         self.client
             .publish_diagnostics(uri, lsp_diagnostics, None)
             .await;
+    }
+
+    /// Load the full workspace and publish workspace-level diagnostics.
+    ///
+    /// Groups diagnostics by file and publishes per-document so the LSP client
+    /// shows them on the correct files.
+    async fn publish_workspace_diagnostics(&self) {
+        let mut workspace = Workspace::new();
+        if let Err(e) = workspace.load_directory(&self.workspace_path) {
+            log::error!("Failed to load workspace for diagnostics: {e}");
+            return;
+        }
+
+        // Collect syntax errors first
+        let mut has_syntax_errors = false;
+        let mut all_diagnostics: Vec<Diagnostic> = Vec::new();
+        for parsed in workspace.parsed_sources() {
+            let syntax_errors = diagnostics::collect_syntax_errors(parsed);
+            if !syntax_errors.is_empty() {
+                has_syntax_errors = true;
+            }
+            all_diagnostics.extend(syntax_errors);
+        }
+
+        // Only run workspace diagnostics if there are no syntax errors
+        if !has_syntax_errors {
+            all_diagnostics.extend(diagnostics::collect_workspace_diagnostics(&workspace));
+        }
+
+        // Group diagnostics by file path and publish per document
+        let mut by_file: std::collections::HashMap<PathBuf, Vec<Diagnostic>> =
+            std::collections::HashMap::new();
+        for diag in all_diagnostics {
+            by_file
+                .entry(diag.span.file.clone())
+                .or_default()
+                .push(diag);
+        }
+
+        for (file_path, file_diagnostics) in by_file {
+            let full_path = self.workspace_path.join(&file_path);
+            let uri_string = format!("file://{}", full_path.display());
+            if let Ok(uri) = uri_string.parse::<Uri>() {
+                let lsp_diagnostics: Vec<tower_lsp_server::lsp_types::Diagnostic> =
+                    file_diagnostics.iter().map(to_lsp_diagnostic).collect();
+                self.client
+                    .publish_diagnostics(uri, lsp_diagnostics, None)
+                    .await;
+            }
+        }
     }
 }
 
@@ -106,11 +157,10 @@ impl LanguageServer for FirmLspServer {
         }
     }
 
-    async fn did_save(&self, params: DidSaveTextDocumentParams) {
-        if let Some(text) = &params.text {
-            self.publish_diagnostics(params.text_document.uri, text)
-                .await;
-        }
+    async fn did_save(&self, _params: DidSaveTextDocumentParams) {
+        // On save, run full workspace diagnostics (includes syntax + workspace-level).
+        // This reloads all files from disk for a consistent view.
+        self.publish_workspace_diagnostics().await;
     }
 }
 

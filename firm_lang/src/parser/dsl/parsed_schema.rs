@@ -27,6 +27,11 @@ impl<'a> ParsedSchema<'a> {
         Self { node, source, path }
     }
 
+    /// Returns the underlying tree-sitter node.
+    pub fn node(&self) -> Node<'a> {
+        self.node
+    }
+
     /// Gets the schema name (e.g., "project", "invoice").
     pub fn name(&self) -> Option<&str> {
         let name_node = find_child_of_kind(&self.node, SCHEMA_NAME_KIND)?;

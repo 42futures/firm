@@ -40,6 +40,16 @@ impl<'a> ParsedEntity<'a> {
         Some(get_node_text(&id_node, self.source))
     }
 
+    /// Returns the underlying tree-sitter node.
+    pub fn node(&self) -> Node<'a> {
+        self.node
+    }
+
+    /// Returns the file path this entity was parsed from.
+    pub fn path(&self) -> &PathBuf {
+        self.path
+    }
+
     /// Extracts all field definitions from the entity block.
     pub fn fields(&self) -> Vec<ParsedField<'_>> {
         let mut fields = Vec::new();

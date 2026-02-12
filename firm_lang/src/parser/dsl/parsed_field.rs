@@ -27,6 +27,21 @@ impl<'a> ParsedField<'a> {
         Self { node, source, path }
     }
 
+    /// Returns the underlying tree-sitter node for the whole field.
+    pub fn node(&self) -> Node<'a> {
+        self.node
+    }
+
+    /// Returns the tree-sitter node for just the value part of the field.
+    pub fn value_node(&self) -> Option<Node<'a>> {
+        find_child_of_kind(&self.node, VALUE_KIND)
+    }
+
+    /// Returns the file path this field was parsed from.
+    pub fn path(&self) -> &PathBuf {
+        self.path
+    }
+
     /// Gets the field name (e.g., "name", "age").
     pub fn id(&self) -> Option<&str> {
         let id_node = find_child_of_kind(&self.node, FIELD_ID_KIND)?;
