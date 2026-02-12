@@ -17,7 +17,7 @@ firm_mcp = { path = "../firm_mcp" }
 
 tokio = { version = "1", features = ["rt-multi-thread"] }
 
-clap = { version = "4.5.42", features = ["derive"] }
+clap = { version = "4.5.42", features = ["derive", "env"] }
 console = "0.16.0"
 indicatif = "0.18.0"
 serde = { version = "1.0", features = ["derive"] }
