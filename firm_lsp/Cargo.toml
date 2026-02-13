@@ -12,4 +12,5 @@ firm_lang = { path = "../firm_lang" }
 
 tower-lsp-server = "0.22"
 tokio = { version = "1", features = ["rt", "io-std", "rt-multi-thread", "macros"] }
+tree-sitter = "0.25.8"
 log = "0.4"
