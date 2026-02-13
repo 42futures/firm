@@ -10,19 +10,19 @@ use super::ui::OutputFormat;
 #[command(version, about = "Firm CLI: Work management in the terminal.")]
 pub struct FirmCli {
     /// Path to firm workspace directory.
-    #[arg(short, long, global = true)]
+    #[arg(short, long, global = true, env = "FIRM_WORKSPACE")]
     pub workspace: Option<PathBuf>,
 
     /// Use cached firm graph?
-    #[arg(short, long, global = true)]
+    #[arg(short, long, global = true, env = "FIRM_CACHED")]
     pub cached: bool,
 
     /// Enable verbose output?
-    #[arg(short, long, global = true)]
+    #[arg(short, long, global = true, env = "FIRM_VERBOSE")]
     pub verbose: bool,
 
     /// Output format
-    #[arg(short, long, global = true, default_value_t = OutputFormat::default())]
+    #[arg(short, long, global = true, default_value_t = OutputFormat::default(), env = "FIRM_FORMAT")]
     pub format: OutputFormat,
 
     #[command(subcommand)]
