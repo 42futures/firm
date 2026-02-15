@@ -5,6 +5,7 @@
 
 pub mod convert;
 pub mod defaults;
+pub mod diagnostics;
 pub mod generate;
 pub mod parser;
 pub mod workspace;

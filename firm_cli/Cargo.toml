@@ -14,6 +14,7 @@ path = "src/main.rs"
 firm_core = { path = "../firm_core" }
 firm_lang = { path = "../firm_lang" }
 firm_mcp = { path = "../firm_mcp" }
+firm_lsp = { path = "../firm_lsp" }
 
 tokio = { version = "1", features = ["rt-multi-thread"] }
 

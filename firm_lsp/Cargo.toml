@@ -1,0 +1,16 @@
+[package]
+name = "firm_lsp"
+version = "0.5.0"
+edition = "2024"
+description = "Language server for the Firm DSL."
+license = "AGPL-3.0"
+repository = "https://github.com/42futures/firm"
+
+[dependencies]
+firm_core = { path = "../firm_core" }
+firm_lang = { path = "../firm_lang" }
+
+tower-lsp-server = "0.22"
+tokio = { version = "1", features = ["rt", "io-std", "rt-multi-thread", "macros"] }
+tree-sitter = "0.25.8"
+log = "0.4"
