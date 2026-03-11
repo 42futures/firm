@@ -58,6 +58,11 @@ impl Workspace {
         None
     }
 
+    /// Gets the source text for a loaded file path.
+    pub fn get_source(&self, path: &PathBuf) -> Option<&str> {
+        self.files.get(path).map(|f| f.parsed.source.as_str())
+    }
+
     /// Finds the source file path for a schema by its name.
     ///
     /// This performs a linear search through all parsed files in the workspace,

@@ -56,6 +56,21 @@ impl Workspace {
         Ok(())
     }
 
+    /// Load firm source from a string with a virtual path.
+    ///
+    /// The path is used for error reporting and entity/schema lookup,
+    /// but does not need to correspond to an actual file on disk.
+    pub fn load_string(
+        &mut self,
+        content: String,
+        path: PathBuf,
+    ) -> Result<(), WorkspaceError> {
+        let parsed = parse_source(content, Some(path.clone()))
+            .map_err(|err| WorkspaceError::ParseError(path.clone(), err.to_string()))?;
+        self.files.insert(path, WorkspaceFile::new(parsed));
+        Ok(())
+    }
+
     /// Returns true if a path has the .firm extension
     fn is_firm_file(&self, path: &Path) -> bool {
         path.extension()

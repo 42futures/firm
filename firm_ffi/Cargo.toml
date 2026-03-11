@@ -1,0 +1,26 @@
+[package]
+name = "firm_ffi"
+version = "0.5.0"
+edition = "2024"
+license = "AGPL-3.0"
+
+[lib]
+crate-type = ["staticlib", "cdylib", "lib"]
+
+[dependencies]
+firm_core = { path = "../firm_core" }
+firm_lang = { path = "../firm_lang" }
+uniffi = { version = "0.31", features = ["cli"] }
+thiserror = "2"
+chrono = "0.4.43"
+rust_decimal = "1.40.0"
+iso_currency = "0.5.3"
+
+[build-dependencies]
+uniffi = { version = "0.31", features = ["build"] }
+
+[dev-dependencies]
+
+[[bin]]
+name = "uniffi-bindgen"
+path = "uniffi-bindgen.rs"

@@ -1,6 +1,6 @@
 # Architecture
 
-Firm is organized as a Rust workspace with three crates, each with a specific responsibility.
+Firm is organized as a Rust workspace with five crates, each with a specific responsibility.
 
 ## Crate overview
 
@@ -8,7 +8,9 @@ Firm is organized as a Rust workspace with three crates, each with a specific re
 firm/
 ├── firm_core/     - Core data structures and graph operations
 ├── firm_lang/     - DSL parsing and generation
-└── firm_cli/      - Command-line interface
+├── firm_cli/      - Command-line interface
+├── firm_mcp/      - MCP server for AI assistants
+└── firm_ffi/      - UniFFI bindings for embedding in other apps
 ```
 
 ## firm_core
@@ -92,3 +94,27 @@ firm init
 firm add --type person --id john
 firm query 'from person | where name == "John"'
 ```
+
+## firm_mcp
+
+MCP (Model Context Protocol) server exposing workspace operations as tools for AI assistants.
+
+**Responsibilities:**
+- Expose query, entity access, and source operations as MCP tools
+- Schema-aware entity creation from JSON
+- Source file read/write/search operations
+
+## firm_ffi
+
+UniFFI-based foreign function interface for embedding Firm in other apps.
+
+**Responsibilities:**
+- Exposes `FirmSession` as an opaque handle for loading sources, building, and querying
+- Typed FFI representations of entities, fields, and query results
+- Bidirectional conversion between FFI types and core types
+
+**Key types:**
+- `FirmSession` - Opaque session managing a workspace and entity graph
+- `FirmEntity` - Entity with typed fields
+- `FirmFieldValue` - Enum mirroring `FieldValue` with FFI-safe types
+- `FirmQueryResult` - Query result (entities or aggregation)
