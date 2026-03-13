@@ -72,6 +72,28 @@ pub enum FirmQueryResult {
     Aggregation { value: String },
 }
 
+/// A schema definition for an entity type.
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct FirmSchema {
+    /// Entity type name (e.g. "actor").
+    pub entity_type: String,
+    /// Fields in schema order.
+    pub fields: Vec<FirmSchemaField>,
+}
+
+/// A field definition within an entity schema.
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct FirmSchemaField {
+    /// Field name (e.g. "name").
+    pub name: String,
+    /// Field type (e.g. "String", "Enum", "List").
+    pub field_type: String,
+    /// Whether the field is required.
+    pub required: bool,
+    /// Allowed values for enum fields, if constrained.
+    pub allowed_values: Option<Vec<String>>,
+}
+
 // --- Conversions from firm_core types ---
 
 impl From<&Entity> for FirmEntity {

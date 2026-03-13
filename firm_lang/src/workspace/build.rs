@@ -78,10 +78,11 @@ impl Workspace {
 
                 // Validate the entity against its schema
                 if let Err(validation_errors) = schema.validate(&entity) {
-                    let error_msg = format!(
-                        "Entity '{}' failed validation: {:?}",
-                        entity.id, validation_errors
-                    );
+                    let error_msg = validation_errors
+                        .iter()
+                        .map(|e| e.message.as_str())
+                        .collect::<Vec<_>>()
+                        .join("; ");
                     return Err(WorkspaceError::ValidationError(path.clone(), error_msg));
                 }
 

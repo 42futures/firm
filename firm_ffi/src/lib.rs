@@ -2,7 +2,10 @@ uniffi::setup_scaffolding!();
 
 mod types;
 
-pub use types::{FirmDirection, FirmEntity, FirmField, FirmFieldValue, FirmQueryResult};
+pub use types::{
+    FirmDirection, FirmEntity, FirmField, FirmFieldValue, FirmQueryResult, FirmSchema,
+    FirmSchemaField,
+};
 
 use std::path::PathBuf;
 use std::sync::Mutex;
@@ -198,6 +201,35 @@ impl FirmSession {
             Some(entities) => Ok(entities.iter().map(|e| FirmEntity::from(*e)).collect()),
             None => Ok(vec![]),
         }
+    }
+
+    /// Get the structured schema definition for an entity type.
+    pub fn get_schema(&self, entity_type: String) -> Result<Option<FirmSchema>, FirmError> {
+        let inner = self.inner.lock().map_err(|e| FirmError::Other {
+            message: e.to_string(),
+        })?;
+        let build = inner.build.as_ref().ok_or(FirmError::NotBuilt)?;
+        let et = EntityType::new(&entity_type);
+        Ok(build
+            .schemas
+            .iter()
+            .find(|s| s.entity_type == et)
+            .map(|s| {
+                let fields = s
+                    .ordered_fields()
+                    .iter()
+                    .map(|(field_id, field_schema)| FirmSchemaField {
+                        name: field_id.to_string(),
+                        field_type: field_schema.expected_type().to_string(),
+                        required: field_schema.is_required(),
+                        allowed_values: field_schema.allowed_values().cloned(),
+                    })
+                    .collect();
+                FirmSchema {
+                    entity_type: s.entity_type.to_string(),
+                    fields,
+                }
+            }))
     }
 
     /// Generate .firm DSL text for an entity.
