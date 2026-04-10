@@ -34,6 +34,24 @@ You can organize your `.firm` files however you like:
 
 Firm will discover and process all `.firm` files in your workspace directory recursively.
 
+## Ignoring files
+
+You can exclude specific directories or files from being processed by creating a `.firmignore` file in your workspace root. This uses the same pattern syntax as `.gitignore`.
+
+For example, to ignore git worktrees stored in `.worktrees/`:
+
+```gitignore
+# .firmignore
+**/.worktrees/
+```
+
+Common use cases:
+- Exclude git worktrees (e.g., `.worktrees/`, `.git/worktrees/`)
+- Exclude backup directories
+- Exclude specific files you don't want in your graph
+
+If no `.firmignore` exists, Firm will fall back to reading `.gitignore` patterns. If neither file exists, all `.firm` files in the workspace are loaded.
+
 ## Version control
 
 Since your workspace is just plain text files, you can (and should!) put it in version control:

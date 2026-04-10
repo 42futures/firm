@@ -53,6 +53,117 @@ mod tests {
     }
 
     #[test]
+    fn test_load_directory_with_firmignore() {
+        use std::fs;
+
+        let temp_dir = TempDir::new().unwrap();
+
+        let main_file = temp_dir.path().join("main.firm");
+        fs::write(&main_file, "person john { name = \"John\" }").expect("Write main file");
+
+        let ignored_dir = temp_dir.path().join("ignored_dir");
+        fs::create_dir(&ignored_dir).expect("Create ignored dir");
+        let ignored_file = ignored_dir.join("data.firm");
+        fs::write(&ignored_file, "person jane { name = \"Jane\" }").expect("Write ignored file");
+
+        let firmignore_path = temp_dir.path().join(".firmignore");
+        fs::write(&firmignore_path, "ignored_dir/\n").expect("Write firmignore");
+
+        let mut workspace = Workspace::new();
+        let result = workspace.load_directory(&temp_dir.path().to_path_buf());
+        assert!(result.is_ok(), "Should load directory successfully");
+
+        assert_eq!(
+            workspace.num_files(),
+            1,
+            "Should only load main.firm, not ignored_dir/data.firm"
+        );
+    }
+
+    #[test]
+    fn test_load_directory_with_gitignore_fallback() {
+        use std::fs;
+
+        let temp_dir = TempDir::new().unwrap();
+
+        let main_file = temp_dir.path().join("main.firm");
+        fs::write(&main_file, "person john { name = \"John\" }").expect("Write main file");
+
+        let ignored_dir = temp_dir.path().join("node_modules");
+        fs::create_dir(&ignored_dir).expect("Create node_modules dir");
+        let ignored_file = ignored_dir.join("data.firm");
+        fs::write(&ignored_file, "person jane { name = \"Jane\" }").expect("Write ignored file");
+
+        let gitignore_path = temp_dir.path().join(".gitignore");
+        fs::write(&gitignore_path, "node_modules/\n").expect("Write gitignore");
+
+        let mut workspace = Workspace::new();
+        let result = workspace.load_directory(&temp_dir.path().to_path_buf());
+        assert!(result.is_ok(), "Should load directory successfully");
+
+        assert_eq!(
+            workspace.num_files(),
+            1,
+            "Should only load main.firm, not node_modules/data.firm"
+        );
+    }
+
+    #[test]
+    fn test_load_directory_no_ignore_files() {
+        use std::fs;
+
+        let temp_dir = TempDir::new().unwrap();
+
+        let main_file = temp_dir.path().join("main.firm");
+        fs::write(&main_file, "person john { name = \"John\" }").expect("Write main file");
+
+        let subdir = temp_dir.path().join("subdir");
+        fs::create_dir(&subdir).expect("Create subdir");
+        let subdir_file = subdir.join("data.firm");
+        fs::write(&subdir_file, "person jane { name = \"Jane\" }").expect("Write subdir file");
+
+        let mut workspace = Workspace::new();
+        let result = workspace.load_directory(&temp_dir.path().to_path_buf());
+        assert!(result.is_ok(), "Should load directory successfully");
+
+        assert_eq!(
+            workspace.num_files(),
+            2,
+            "Should load both files when no ignore files exist"
+        );
+    }
+
+    #[test]
+    fn test_load_directory_respects_firmignore_glob_patterns() {
+        use std::fs;
+
+        let temp_dir = TempDir::new().unwrap();
+
+        let main_file = temp_dir.path().join("main.firm");
+        fs::write(&main_file, "person john { name = \"John\" }").expect("Write main file");
+
+        let dot_citadel = temp_dir.path().join(".citadel");
+        fs::create_dir(&dot_citadel).expect("Create .citadel dir");
+        let worktrees = dot_citadel.join("worktrees");
+        fs::create_dir(&worktrees).expect("Create worktrees dir");
+        let ignored_file = worktrees.join("data.firm");
+        fs::write(&ignored_file, "person jane { name = \"Jane\" }").expect("Write ignored file");
+
+        let firmignore_path = temp_dir.path().join(".firmignore");
+        fs::write(&firmignore_path, "**/.citadel/\n").expect("Write firmignore");
+
+        let mut workspace = Workspace::new();
+        let result = workspace.load_directory(&temp_dir.path().to_path_buf());
+        assert!(result.is_ok(), "Should load directory successfully");
+
+        assert_eq!(
+            workspace.num_files(),
+            1,
+            "Should only load main.firm, not .citadel/worktrees/data.firm"
+        );
+    }
+
+    #[test]
     fn test_load_empty_directory() {
         let temp_dir = TempDir::new().unwrap();
         let temp_path = temp_dir.path();
