@@ -18,6 +18,7 @@ chrono = { version = "0.4", features = ["serde"] }
 path-clean = "1.0.1"
 pest = "2.7"
 pest_derive = "2.7"
+ignore = "0.4"
 
 [dev-dependencies]
 assert_matches = "1.5"
