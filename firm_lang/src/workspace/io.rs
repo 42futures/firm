@@ -3,7 +3,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use ignore::WalkBuilder;
+use ignore::{overrides::OverrideBuilder, WalkBuilder};
 
 use crate::{parser::dsl::parse_source, workspace::WorkspaceFile};
 
@@ -31,22 +31,33 @@ impl Workspace {
     }
 
     pub fn load_directory(&mut self, directory_path: &PathBuf) -> Result<(), WorkspaceError> {
+        // 1. Always load schemas from .firm/schemas/ explicitly - never subject to ignore rules
+        let schemas_dir = directory_path.join(".firm").join("schemas");
+        if schemas_dir.is_dir() {
+            for entry in fs::read_dir(&schemas_dir).map_err(WorkspaceError::IoError)? {
+                let entry = entry.map_err(WorkspaceError::IoError)?;
+                let path = entry.path();
+                if path.is_file() && self.is_firm_file(&path) {
+                    self.load_file(&path, directory_path)?;
+                }
+            }
+        }
+
+        // 2. Walk the rest of the workspace for entity files, respecting .firmignore / .gitignore
         let ignore_path = directory_path.join(".firmignore");
         let gitignore_path = directory_path.join(".gitignore");
 
         let mut binding = WalkBuilder::new(directory_path);
         let walker_builder = binding
-            .hidden(true)
+            .hidden(true)  // skip hidden dirs (like .firm, .citadel) during entity walk
             .require_git(false)
-            .filter_entry(move |entry| {
+            .filter_entry(|entry| {
                 let path = entry.path();
-
                 if path.is_file() {
                     return path
                         .extension()
                         .map_or(false, |ext| ext == FIRM_FILE_EXTENSION);
                 }
-
                 true
             });
 
@@ -56,9 +67,7 @@ impl Workspace {
             let _ = walker_builder.git_ignore(true);
         }
 
-        let walker = walker_builder.build();
-
-        for result in walker {
+        for result in walker_builder.build() {
             match result {
                 Ok(entry) => {
                     let path = entry.path().to_path_buf();
